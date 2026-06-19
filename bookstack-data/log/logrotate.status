@@ -1,0 +1,6 @@
+logrotate state -- version 2
+"/var/log/acpid.log" 2026-6-5-2:0:0
+"/var/log/php85/*.log" 2026-6-5-2:0:0
+"/config/log/nginx/access.log" 2026-6-5-2:0:0
+"/config/log/nginx/error.log" 2026-6-5-2:0:0
+"/config/log/php/error.log" 2026-6-7-2:0:0

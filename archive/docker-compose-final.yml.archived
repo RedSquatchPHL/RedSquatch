@@ -1,0 +1,39 @@
+services:
+  redsquatch-frontend-standalone:
+    image: node:18.20.8
+    ports:
+      - "3002:3000"
+    volumes:
+      - /root/n8n-docker/redsquatch-site:/app
+    working_dir: /app
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: https://api.redsquatch.com
+    command: npm run start
+    networks:
+      - coolify
+    restart: unless-stopped
+
+  redsquatch-api-final:
+    image: node:18.20.8
+    ports:
+      - "3001:3001"
+    volumes:
+      - /root/n8n-docker/redsquatch-api:/app
+    working_dir: /app
+    environment:
+      DB_HOST: 10.0.3.2
+      DB_USER: postgres
+      DB_PASSWORD: Ofvw0gbKUm7mNC6C5BLzDSyEGXHChfABsuDVhkxPKC2Px7eRtozJXQT88fRr6QWA
+      DB_NAME: client_portal_db
+    command: node index.js
+    networks:
+      - coolify
+      - redsquatch-shared
+    restart: unless-stopped
+
+networks:
+  coolify:
+    external: true
+  redsquatch-shared:
+    external: true

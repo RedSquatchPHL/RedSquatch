@@ -1,0 +1,26 @@
+service:
+  interface: :3456
+  corsorigins:
+    - "http://localhost"
+    - "http://localhost:3456"
+    - "http://67.217.62.213:5173"
+    - "http://67.217.62.213:3456"
+
+database:
+  type: postgres
+  host: postgres
+  port: 5432
+  user: vikunja
+  password: vikunja_password
+  database: vikunja
+  sslmode: disable
+  maxopenconnections: 20
+
+auth:
+  tokenttl: 259200
+
+log:
+  level: info
+
+redis:
+  enabled: false

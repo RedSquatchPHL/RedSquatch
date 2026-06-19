@@ -1,0 +1,187 @@
+01:09:36.642 DB not initialized, please visit setup page - http://[your-server-host]:8080 to see instructions on how to initialize Trilium.
+01:09:36.645 DB size: 4 KB
+01:09:40.508 {
+  "appVersion": "0.63.7",
+  "dbVersion": 228,
+  "nodeVersion": "v18.18.2",
+  "syncVersion": 32,
+  "buildDate": "2024-05-30T06:59:06+02:00",
+  "buildRevision": "95d46b7ce7e0036eeb72b43e1815cc5c00dc214c",
+  "dataDirectory": "/home/node/trilium-data",
+  "clipperProtocolVersion": "1.0",
+  "utcDateTime": "2026-06-10T01:09:35.122Z"
+}
+01:09:40.515 CPU model: Intel(R) Xeon(R) CPU E5-2680 v4 @ 2.40GHz, logical cores: 2 freq: 2397 Mhz
+01:09:40.516 Trusted reverse proxy: false
+01:09:40.519 App HTTP server starting up at port 8080
+01:09:40.546 Listening on port 8080
+01:09:44.620 Slow 200 GET /api/health-check with 15 bytes took 465ms
+01:10:15.086 200 GET /api/health-check with 15 bytes took 2ms
+01:10:45.462 200 GET /api/health-check with 15 bytes took 3ms
+01:11:15.709 200 GET /api/health-check with 15 bytes took 2ms
+01:11:45.972 200 GET /api/health-check with 15 bytes took 2ms
+01:12:16.221 200 GET /api/health-check with 15 bytes took 4ms
+01:12:46.505 200 GET /api/health-check with 15 bytes took 3ms
+01:13:16.768 200 GET /api/health-check with 15 bytes took 2ms
+01:13:47.208 200 GET /api/health-check with 15 bytes took 5ms
+01:14:17.515 200 GET /api/health-check with 15 bytes took 2ms
+01:14:47.875 200 GET /api/health-check with 15 bytes took 3ms
+01:15:18.193 200 GET /api/health-check with 15 bytes took 6ms
+01:15:48.497 200 GET /api/health-check with 15 bytes took 3ms
+01:16:18.847 200 GET /api/health-check with 15 bytes took 3ms
+01:16:49.128 200 GET /api/health-check with 15 bytes took 3ms
+01:17:19.415 200 GET /api/health-check with 15 bytes took 3ms
+01:17:49.702 200 GET /api/health-check with 15 bytes took 3ms
+01:18:20.006 200 GET /api/health-check with 15 bytes took 5ms
+01:18:50.313 200 GET /api/health-check with 15 bytes took 2ms
+01:19:20.633 200 GET /api/health-check with 15 bytes took 2ms
+01:19:50.908 200 GET /api/health-check with 15 bytes took 2ms
+01:20:21.175 200 GET /api/health-check with 15 bytes took 3ms
+01:20:51.450 200 GET /api/health-check with 15 bytes took 4ms
+01:21:21.749 200 GET /api/health-check with 15 bytes took 2ms
+01:21:52.038 200 GET /api/health-check with 15 bytes took 2ms
+01:22:22.322 200 GET /api/health-check with 15 bytes took 3ms
+01:22:52.592 200 GET /api/health-check with 15 bytes took 3ms
+01:23:22.850 200 GET /api/health-check with 15 bytes took 2ms
+01:23:53.136 200 GET /api/health-check with 15 bytes took 6ms
+01:24:23.417 200 GET /api/health-check with 15 bytes took 2ms
+01:24:53.819 200 GET /api/health-check with 15 bytes took 2ms
+01:25:24.159 200 GET /api/health-check with 15 bytes took 4ms
+01:25:54.446 200 GET /api/health-check with 15 bytes took 4ms
+01:26:24.751 200 GET /api/health-check with 15 bytes took 3ms
+01:26:55.088 Slow 200 GET /api/health-check with 15 bytes took 12ms
+01:27:25.398 200 GET /api/health-check with 15 bytes took 2ms
+01:27:55.669 200 GET /api/health-check with 15 bytes took 2ms
+01:28:25.937 200 GET /api/health-check with 15 bytes took 3ms
+01:28:56.189 200 GET /api/health-check with 15 bytes took 3ms
+01:29:26.623 200 GET /api/health-check with 15 bytes took 5ms
+01:29:56.878 200 GET /api/health-check with 15 bytes took 1ms
+01:30:27.186 200 GET /api/health-check with 15 bytes took 3ms
+01:30:57.477 200 GET /api/health-check with 15 bytes took 5ms
+01:31:27.749 200 GET /api/health-check with 15 bytes took 2ms
+01:31:58.032 200 GET /api/health-check with 15 bytes took 3ms
+01:32:28.329 200 GET /api/health-check with 15 bytes took 3ms
+01:32:58.640 200 GET /api/health-check with 15 bytes took 2ms
+01:33:28.905 200 GET /api/health-check with 15 bytes took 2ms
+01:33:59.161 200 GET /api/health-check with 15 bytes took 3ms
+01:34:29.430 200 GET /api/health-check with 15 bytes took 2ms
+01:34:59.811 200 GET /api/health-check with 15 bytes took 3ms
+01:35:30.101 200 GET /api/health-check with 15 bytes took 3ms
+01:36:00.417 200 GET /api/health-check with 15 bytes took 2ms
+01:36:30.685 200 GET /api/health-check with 15 bytes took 3ms
+01:37:00.981 200 GET /api/health-check with 15 bytes took 2ms
+01:37:31.290 200 GET /api/health-check with 15 bytes took 3ms
+01:38:01.753 200 GET /api/health-check with 15 bytes took 5ms
+01:38:32.079 200 GET /api/health-check with 15 bytes took 2ms
+01:39:02.415 200 GET /api/health-check with 15 bytes took 2ms
+01:39:32.686 200 GET /api/health-check with 15 bytes took 2ms
+01:40:03.094 Slow 200 GET /api/health-check with 15 bytes took 14ms
+01:40:33.612 200 GET /api/health-check with 15 bytes took 4ms
+01:41:03.925 200 GET /api/health-check with 15 bytes took 4ms
+01:41:34.230 200 GET /api/health-check with 15 bytes took 2ms
+01:42:04.611 Slow 200 GET /api/health-check with 15 bytes took 11ms
+01:42:34.887 200 GET /api/health-check with 15 bytes took 2ms
+01:43:05.230 200 GET /api/health-check with 15 bytes took 8ms
+01:43:35.524 200 GET /api/health-check with 15 bytes took 3ms
+01:44:05.813 200 GET /api/health-check with 15 bytes took 4ms
+01:44:36.081 200 GET /api/health-check with 15 bytes took 8ms
+01:45:06.540 200 GET /api/health-check with 15 bytes took 3ms
+01:45:36.807 200 GET /api/health-check with 15 bytes took 1ms
+01:46:07.129 Slow 200 GET /api/health-check with 15 bytes took 11ms
+01:46:37.405 200 GET /api/health-check with 15 bytes took 3ms
+01:47:07.690 200 GET /api/health-check with 15 bytes took 3ms
+01:47:38.053 200 GET /api/health-check with 15 bytes took 3ms
+01:48:08.356 200 GET /api/health-check with 15 bytes took 4ms
+01:48:38.630 200 GET /api/health-check with 15 bytes took 2ms
+01:49:08.885 200 GET /api/health-check with 15 bytes took 2ms
+01:49:39.435 200 GET /api/health-check with 15 bytes took 4ms
+01:50:09.714 200 GET /api/health-check with 15 bytes took 3ms
+01:50:40.144 200 GET /api/health-check with 15 bytes took 5ms
+01:51:10.452 200 GET /api/health-check with 15 bytes took 2ms
+01:51:40.779 200 GET /api/health-check with 15 bytes took 2ms
+01:52:11.133 200 GET /api/health-check with 15 bytes took 4ms
+01:52:41.406 200 GET /api/health-check with 15 bytes took 1ms
+01:53:11.691 200 GET /api/health-check with 15 bytes took 2ms
+01:53:41.954 200 GET /api/health-check with 15 bytes took 3ms
+01:54:12.219 200 GET /api/health-check with 15 bytes took 2ms
+01:54:42.488 200 GET /api/health-check with 15 bytes took 3ms
+01:55:13.129 200 GET /api/health-check with 15 bytes took 3ms
+01:55:43.410 200 GET /api/health-check with 15 bytes took 3ms
+01:56:13.693 200 GET /api/health-check with 15 bytes took 2ms
+01:56:43.953 200 GET /api/health-check with 15 bytes took 1ms
+01:57:14.257 200 GET /api/health-check with 15 bytes took 2ms
+01:57:44.571 200 GET /api/health-check with 15 bytes took 2ms
+01:58:14.870 200 GET /api/health-check with 15 bytes took 5ms
+01:58:45.134 200 GET /api/health-check with 15 bytes took 2ms
+01:59:15.519 200 GET /api/health-check with 15 bytes took 7ms
+01:59:45.844 200 GET /api/health-check with 15 bytes took 4ms
+02:00:16.161 200 GET /api/health-check with 15 bytes took 3ms
+02:00:46.411 200 GET /api/health-check with 15 bytes took 3ms
+02:01:16.695 200 GET /api/health-check with 15 bytes took 3ms
+02:01:46.953 200 GET /api/health-check with 15 bytes took 1ms
+02:02:17.283 200 GET /api/health-check with 15 bytes took 3ms
+02:02:47.556 200 GET /api/health-check with 15 bytes took 1ms
+02:03:17.841 200 GET /api/health-check with 15 bytes took 3ms
+02:03:48.106 200 GET /api/health-check with 15 bytes took 1ms
+02:04:18.437 200 GET /api/health-check with 15 bytes took 2ms
+02:04:48.769 200 GET /api/health-check with 15 bytes took 2ms
+02:05:19.171 Slow 200 GET /api/health-check with 15 bytes took 11ms
+02:05:49.454 200 GET /api/health-check with 15 bytes took 2ms
+02:06:19.817 200 GET /api/health-check with 15 bytes took 2ms
+02:06:50.070 200 GET /api/health-check with 15 bytes took 2ms
+02:07:20.419 200 GET /api/health-check with 15 bytes took 5ms
+02:07:50.729 200 GET /api/health-check with 15 bytes took 3ms
+02:08:21.010 200 GET /api/health-check with 15 bytes took 9ms
+02:08:51.323 200 GET /api/health-check with 15 bytes took 3ms
+02:09:21.621 200 GET /api/health-check with 15 bytes took 3ms
+02:09:52.003 200 GET /api/health-check with 15 bytes took 2ms
+02:10:22.285 200 GET /api/health-check with 15 bytes took 3ms
+02:10:52.722 200 GET /api/health-check with 15 bytes took 5ms
+02:11:23.076 200 GET /api/health-check with 15 bytes took 9ms
+02:11:53.382 200 GET /api/health-check with 15 bytes took 1ms
+02:12:23.645 200 GET /api/health-check with 15 bytes took 2ms
+02:12:53.961 200 GET /api/health-check with 15 bytes took 5ms
+02:13:24.228 200 GET /api/health-check with 15 bytes took 3ms
+02:13:54.523 200 GET /api/health-check with 15 bytes took 3ms
+02:14:25.033 200 GET /api/health-check with 15 bytes took 6ms
+02:14:55.347 200 GET /api/health-check with 15 bytes took 2ms
+02:15:01.400 DB not initialized, please visit setup page - http://[your-server-host]:8080 to see instructions on how to initialize Trilium.
+02:15:01.411 DB size: 4 KB
+02:15:04.881 {
+  "appVersion": "0.63.7",
+  "dbVersion": 228,
+  "nodeVersion": "v18.18.2",
+  "syncVersion": 32,
+  "buildDate": "2024-05-30T06:59:06+02:00",
+  "buildRevision": "95d46b7ce7e0036eeb72b43e1815cc5c00dc214c",
+  "dataDirectory": "/home/node/trilium-data",
+  "clipperProtocolVersion": "1.0",
+  "utcDateTime": "2026-06-10T02:15:00.820Z"
+}
+02:15:04.885 CPU model: Intel(R) Xeon(R) CPU E5-2680 v4 @ 2.40GHz, logical cores: 2 freq: 2397 Mhz
+02:15:04.888 Trusted reverse proxy: false
+02:15:04.895 App HTTP server starting up at port 8080
+02:15:04.950 Listening on port 8080
+02:15:05.730 Slow 200 GET /api/health-check with 15 bytes took 30ms
+02:15:36.744 200 GET /api/health-check with 15 bytes took 6ms
+02:16:07.492 Slow 200 GET /api/health-check with 15 bytes took 19ms
+02:16:26.967 DB not initialized, please visit setup page - http://[your-server-host]:8080 to see instructions on how to initialize Trilium.
+02:16:26.973 DB size: 4 KB
+02:16:29.423 {
+  "appVersion": "0.63.7",
+  "dbVersion": 228,
+  "nodeVersion": "v18.18.2",
+  "syncVersion": 32,
+  "buildDate": "2024-05-30T06:59:06+02:00",
+  "buildRevision": "95d46b7ce7e0036eeb72b43e1815cc5c00dc214c",
+  "dataDirectory": "/home/node/trilium-data",
+  "clipperProtocolVersion": "1.0",
+  "utcDateTime": "2026-06-10T02:16:26.574Z"
+}
+02:16:29.424 CPU model: Intel(R) Xeon(R) CPU E5-2680 v4 @ 2.40GHz, logical cores: 2 freq: 2397 Mhz
+02:16:29.424 Trusted reverse proxy: false
+02:16:29.429 App HTTP server starting up at port 8080
+02:16:29.456 Listening on port 8080
+02:16:30.966 Slow 200 GET /api/health-check with 15 bytes took 29ms
+02:17:01.814 Slow 200 GET /api/health-check with 15 bytes took 16ms
+02:17:32.159 200 GET /api/health-check with 15 bytes took 3ms

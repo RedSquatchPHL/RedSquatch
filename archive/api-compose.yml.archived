@@ -1,0 +1,28 @@
+version: '3.8'
+services:
+  redsquatch-api-standalone:
+    image: node:18.20.8
+    container_name: redsquatch-api-standalone
+    working_dir: /app
+    volumes:
+      - /root/n8n-docker/redsquatch-api:/app
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - DB_HOST=10.0.3.2
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=Ofvw0gbKUm7mNC6C5BLzDSyEGXHChfABsuDVhkxPKC2Px7eRtozJXQT88fRr6QWA
+      - DB_NAME=client_portal_db
+    command: node index.js
+    restart: unless-stopped
+    networks:
+      - coolify
+      - redsquatch-shared
+
+networks:
+  coolify:
+    external: true
+  redsquatch-shared:
+    external: true

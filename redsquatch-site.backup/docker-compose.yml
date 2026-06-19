@@ -1,0 +1,185 @@
+version: '3.8'
+
+services:
+  npm:
+    image: 'jc21/nginx-proxy-manager:latest'
+    restart: always
+    ports:
+      - '80:80'
+      - '81:81'
+      - '443:443'
+    volumes:
+      - ./npm-data:/data
+      - ./letsencrypt:/etc/letsencrypt
+    depends_on:
+      redsquatch-api:
+        condition: service_started
+    networks:
+      - default
+
+  n8n:
+    image: n8nio/n8n:latest
+    restart: always
+    ports:
+      - '5678:5678'
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    environment:
+      - N8N_HOST=n8n.redsquatch.com
+      - N8N_PROTOCOL=https
+      - WEBHOOK_URL=https://n8n.redsquatch.com/
+      - NODE_ENV=production
+    volumes:
+      - ./n8n-data:/home/node/.n8n
+    networks:
+      - default
+
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_POLL_INTERVAL=86400
+      - WATCHTOWER_LABEL_ENABLE=true
+      - DOCKER_API_VERSION=1.40
+    networks:
+      - default
+
+  redsquatch-web:
+    build:
+      context: ./redsquatch-site
+      dockerfile: Dockerfile
+    container_name: redsquatch-web
+    restart: unless-stopped
+    ports:
+      - '5173:5173'
+    volumes:
+      - ./redsquatch-site/src:/app/src
+      - ./redsquatch-site/index.html:/app/index.html
+    environment:
+      - NODE_ENV=development
+    networks:
+      - default
+    depends_on:
+      - redsquatch-api
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: redsquatch-db
+    restart: always
+    environment:
+      - POSTGRES_USER=rsapi
+      - POSTGRES_PASSWORD=B1gImpactSt3alth
+      - POSTGRES_DB=client_portal_db
+    volumes:
+      - ./db_data:/var/lib/postgresql/data
+    networks:
+      - default
+
+  huginn:
+    image: ghcr.io/huginn/huginn
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_ADAPTER=postgresql
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_NAME=huginn
+      - DATABASE_USERNAME=huginn
+      - DATABASE_PASSWORD=huginn_password
+      - APP_SECRET_TOKEN=c5eaf2f9048ed121d8b8c079b35bbba92c5ee7c5be809464badfdf15286316b2a972a08e38b595272f52599fbf1ff63671244f5a20a33c26dd4f6d3e8b971bc5
+      - INVITATION_CODE=tinker-time
+      - TIMEZONE=Eastern Time (US & Canada)
+    depends_on:
+      - postgres
+    networks:
+      - default
+
+  redsquatch-api:
+    image: node:18.20.8
+    container_name: redsquatch-api
+    restart: unless-stopped
+    working_dir: /app
+    volumes:
+      - /root/n8n-docker/redsquatch-api:/app
+    command: npx nodemon index.js
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=development
+      - DB_HOST=postgres
+      - DB_USER=rsapi
+      - DB_PASSWORD=B1gImpactSt3alth
+      - DB_NAME=client_portal_db
+      - SESSION_SECRET=x7Kp2mQnR9vL4wZj8aYc3bNs6uTh5dEf
+      - ADMIN_PASSWORD=S00perSquatchy51!
+      - GUARDIAN_API_KEY=1ca4006b-a3ac-4289-8530-2d6f739e9606
+      - DEEPSEEK_API_KEY=sk-c6b81a6a1b694784bcd8f1be702a5606
+      - DEEPSEEK_API_URL=https://api.deepseek.com
+      - DEEPSEEK_MODEL=deepseek-chat
+    depends_on:
+      - postgres
+    networks:
+      - default
+
+  bookstack:
+    image: lscr.io/linuxserver/bookstack:latest
+    container_name: bookstack
+    restart: always
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - APP_URL=https://bookstack.redsquatch.com
+      - APP_KEY="base64:BUfcT4kOcRI7BXxlxcQDxASFUJIxcb2W7+K3PcWJv/I="
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_DATABASE=bookstack
+      - DB_USERNAME=rsapi
+      - DB_PASS=B1gImpactSt3alth
+    volumes:
+      - ./bookstack-data:/config
+    ports:
+      - '6875:80'
+    depends_on:
+      - postgres
+    networks:
+      - default
+
+  trilium:
+    image: zadam/trilium:latest
+    ports:
+      - '8080:8080'
+    volumes:
+      - ./trilium-data:/home/node/trilium-data
+    networks:
+      - default
+
+  vikunja:
+    image: vikunja/vikunja:latest
+    ports:
+      - '3456:3456'
+    volumes:
+      - ./vikunja-data:/app/vikunja/files
+    environment:
+      - VIKUNJA_DATABASE_TYPE=postgres
+      - VIKUNJA_DATABASE_HOST=postgres
+      - VIKUNJA_DATABASE_PORT=5432
+      - VIKUNJA_DATABASE_USER=vikunja
+      - VIKUNJA_DATABASE_PASSWORD=vikunja_password
+      - VIKUNJA_DATABASE_DATABASE=vikunja
+      - VIKUNJA_SERVICE_INTERFACE=:3456
+      - VIKUNJA_SERVICE_PUBLICURL=http://vikunja.redsquatch.com
+      - VIKUNJA_AUTH_TOKENTTL=259200
+    depends_on:
+      - postgres
+    networks:
+      - default
+
+networks:
+  default:
+    name: n8n-docker_default
+    external: true

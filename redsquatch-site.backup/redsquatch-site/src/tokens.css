@@ -1,0 +1,168 @@
+/* ========================================
+ *  AUTO-GENERATED DESIGN TOKENS
+ *  Generated from tokens.json
+ *  DO NOT EDIT MANUALLY — regenerate via: node generate-tokens.js
+ *  ======================================== */
+
+:root {
+  --colors-background-page: #0a0a0f;
+  --colors-background-sidebar: #0f0f1a;
+  --colors-background-card: #1a1a2e;
+  --colors-background-card-hover: #1f1f35;
+  --colors-background-input: #252540;
+  --colors-background-elevated-1: #1f1815;
+  --colors-background-elevated-2: #2a2420;
+  --colors-background-elevated-3: #302824;
+  --colors-surface-primary: #16213e;
+  --colors-surface-secondary: #1e2a47;
+  --colors-surface-tertiary: #2a3a5c;
+  --colors-text-primary: #ffffff;
+  --colors-text-secondary: #d4a373;
+  --colors-text-tertiary: #a0a0c0;
+  --colors-text-inverse: #1a1a2e;
+  --colors-accent-copper: #b87333;
+  --colors-accent-copper-light: #d4a373;
+  --colors-accent-gold-dark: #996515;
+  --colors-accent-gold-muted: #7a5028;
+  --colors-status-success: #10b981;
+  --colors-status-warning: #f59e0b;
+  --colors-status-danger: #ef4444;
+  --colors-status-info: #06b6d4;
+  --colors-status-complete: #10b981;
+  --colors-status-progress: #b87333;
+  --colors-status-pending: #6b6b8d;
+  --colors-border-default: #2a2a40;
+  --colors-border-light: #33334d;
+  --colors-border-divider: #1f1f30;
+
+  --typography-font-family-heading: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  --typography-font-family-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --typography-font-family-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', monospace;
+  --typography-font-size-xs: 0.75rem;
+  --typography-font-size-sm: 0.875rem;
+  --typography-font-size-base: 1rem;
+  --typography-font-size-md: 1.125rem;
+  --typography-font-size-lg: 1.25rem;
+  --typography-font-size-xl: 1.5rem;
+  --typography-font-size-2xl: 1.875rem;
+  --typography-font-size-3xl: 2.25rem;
+  --typography-font-size-4xl: 3rem;
+  --typography-font-weight-light: 300;
+  --typography-font-weight-regular: 400;
+  --typography-font-weight-medium: 500;
+  --typography-font-weight-semibold: 600;
+  --typography-font-weight-bold: 700;
+  --typography-font-weight-black: 900;
+  --typography-line-height-tight: 1.25;
+  --typography-line-height-normal: 1.5;
+  --typography-line-height-relaxed: 1.75;
+  --typography-line-height-loose: 2;
+  --typography-letter-spacing-tight: -0.025em;
+  --typography-letter-spacing-normal: 0;
+  --typography-letter-spacing-wide: 0.025em;
+  --typography-letter-spacing-wider: 0.05em;
+
+  --spacing-0: 0;
+  --spacing-1: 0.25rem;
+  --spacing-2: 0.5rem;
+  --spacing-3: 0.75rem;
+  --spacing-4: 1rem;
+  --spacing-5: 1.25rem;
+  --spacing-6: 1.5rem;
+  --spacing-7: 1.75rem;
+  --spacing-8: 2rem;
+  --spacing-9: 2.25rem;
+  --spacing-10: 2.5rem;
+  --spacing-11: 2.75rem;
+  --spacing-12: 3rem;
+  --spacing-14: 3.5rem;
+  --spacing-16: 4rem;
+  --spacing-20: 5rem;
+  --spacing-24: 6rem;
+
+  --border-radius-none: 0;
+  --border-radius-sm: 0.25rem;
+  --border-radius-md: 0.5rem;
+  --border-radius-lg: 0.75rem;
+  --border-radius-xl: 1rem;
+  --border-radius-2xl: 1.5rem;
+  --border-radius-full: 9999px;
+  --border-radius-card: 1rem;
+  --border-radius-button: 0.5rem;
+  --border-radius-input: 0.5rem;
+
+  --shadows-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadows-sm: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadows-md: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
+  --shadows-lg: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
+  --shadows-xl: 0 20px 25px rgba(0, 0, 0, 0.1), 0 10px 10px rgba(0, 0, 0, 0.02);
+  --shadows-2xl: 0 25px 50px rgba(0, 0, 0, 0.25);
+  --shadows-inset-subtle: inset 0 1px 1px rgba(255, 255, 255, 0.08);
+  --shadows-inset-light: inset 0 1px 2px rgba(255, 255, 255, 0.1);
+  --shadows-inset-medium: inset 0 1px 3px rgba(255, 255, 255, 0.12);
+  --shadows-inset-dark: inset 0 -1px 1px rgba(0, 0, 0, 0.3);
+  --shadows-inset-darker: inset 0 -1px 2px rgba(0, 0, 0, 0.4);
+  --shadows-glow-sm: 0 0 12px rgba(184, 115, 51, 0.5);
+  --shadows-glow-md: 0 0 20px rgba(184, 115, 51, 0.65);
+  --shadows-glow-lg: 0 0 28px rgba(184, 115, 51, 0.75);
+
+  --backdrop-blur-light: blur(20px);
+  --backdrop-blur-medium: blur(35px);
+  --backdrop-blur-strong: blur(45px);
+  --backdrop-blur-aggressive: blur(55px);
+  --backdrop-blur-extreme: blur(60px);
+  --backdrop-filter-standard: blur(60px) saturate(200%) contrast(125%);
+  --backdrop-filter-topbar: blur(60px) saturate(220%) contrast(130%);
+  --backdrop-filter-elevated: blur(55px) saturate(190%);
+  --backdrop-filter-card: blur(40px) saturate(180%);
+
+  --borders-subtle: 1px solid rgba(184, 115, 51, 0.12);
+  --borders-light: 1px solid rgba(184, 115, 51, 0.15);
+  --borders-medium: 1px solid rgba(184, 115, 51, 0.2);
+  --borders-strong: 1.5px solid rgba(184, 115, 51, 0.25);
+  --borders-accent: 1.5px solid #b87333;
+
+  --opacity-disabled: 0.5;
+  --opacity-hover: 0.8;
+  --opacity-active: 0.9;
+  --opacity-background-base: 0.4;
+  --opacity-background-elevated-1: 0.6;
+  --opacity-background-elevated-2: 0.65;
+  --opacity-background-elevated-3: 0.7;
+  --opacity-background-elevated-4: 0.75;
+
+  --animation-duration-fast: 0.12s;
+  --animation-duration-base: 0.25s;
+  --animation-duration-slow: 0.35s;
+  --animation-duration-slower: 0.5s;
+  --animation-easing-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --animation-easing-emphasis: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
+  --z-index-negative: -1;
+  --z-index-elevate: 1;
+  --z-index-dropdown: 10;
+  --z-index-sticky: 20;
+  --z-index-drawer: 30;
+  --z-index-modal: 40;
+  --z-index-popover: 50;
+  --z-index-toast: 60;
+  --z-index-tooltip: 70;
+
+  --layout-max-width: 1440px;
+  --layout-sidebar-width: 300px;
+  --layout-sidebar-collapsed-width: 80px;
+  --layout-header-height: 80px;
+  --layout-card-padding: 1.5rem;
+  --layout-container-padding: 1.5rem;
+  --layout-grid-gap: 1.5rem;
+  --layout-gap-main: 24px;
+  --layout-gap-card: 20px;
+  --layout-section-gap: 32px;
+  --layout-widget-gap: 24px;
+
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+}

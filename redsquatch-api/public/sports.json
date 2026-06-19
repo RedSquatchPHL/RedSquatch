@@ -1,0 +1,446 @@
+{
+  "updated": "2026-06-19T02:49:53.285Z",
+  "teams": {
+    "LAD": {
+      "key": "LAD",
+      "name": "Los Angeles Dodgers",
+      "abbreviation": "LAD",
+      "sport": "MLB",
+      "logo": "https://a.espncdn.com/i/teamlogos/mlb/500/lad.png",
+      "color": "#005a9c",
+      "record": "47-27",
+      "lastGame": {
+        "date": "2026-06-17",
+        "dateTime": "2026-06-17T02:10Z",
+        "opponent": "Tampa Bay Rays",
+        "opponentAbbr": "TB",
+        "isHome": true,
+        "score": "1-0",
+        "result": "W"
+      },
+      "nextGame": {
+        "date": "2026-06-17",
+        "dateTime": "2026-06-17T19:10Z",
+        "opponent": "Tampa Bay Rays",
+        "opponentAbbr": "TB",
+        "isHome": true,
+        "time": "3:10 PM ET"
+      },
+      "recentGames": [
+        {
+          "date": "2026-06-17",
+          "dateTime": "2026-06-17T02:10Z",
+          "opponent": "Tampa Bay Rays",
+          "opponentAbbr": "TB",
+          "isHome": true,
+          "score": "1-0",
+          "result": "W"
+        },
+        {
+          "date": "2026-06-16",
+          "dateTime": "2026-06-16T02:00Z",
+          "opponent": "Tampa Bay Rays",
+          "opponentAbbr": "TB",
+          "isHome": true,
+          "score": "4-3",
+          "result": "W"
+        },
+        {
+          "date": "2026-06-14",
+          "dateTime": "2026-06-14T18:10Z",
+          "opponent": "Chicago White Sox",
+          "opponentAbbr": "CHW",
+          "isHome": false,
+          "score": "4-6",
+          "result": "L"
+        },
+        {
+          "date": "2026-06-13",
+          "dateTime": "2026-06-13T20:10Z",
+          "opponent": "Chicago White Sox",
+          "opponentAbbr": "CHW",
+          "isHome": false,
+          "score": "7-1",
+          "result": "W"
+        },
+        {
+          "date": "2026-06-12",
+          "dateTime": "2026-06-12T23:40Z",
+          "opponent": "Chicago White Sox",
+          "opponentAbbr": "CHW",
+          "isHome": false,
+          "score": "2-8",
+          "result": "L"
+        }
+      ],
+      "upcomingGames": [
+        {
+          "date": "2026-06-17",
+          "dateTime": "2026-06-17T19:10Z",
+          "opponent": "Tampa Bay Rays",
+          "opponentAbbr": "TB",
+          "isHome": true,
+          "time": "3:10 PM ET"
+        },
+        {
+          "date": "2026-06-20",
+          "dateTime": "2026-06-20T02:10Z",
+          "opponent": "Baltimore Orioles",
+          "opponentAbbr": "BAL",
+          "isHome": true,
+          "time": "10:10 PM ET"
+        },
+        {
+          "date": "2026-06-21",
+          "dateTime": "2026-06-21T02:10Z",
+          "opponent": "Baltimore Orioles",
+          "opponentAbbr": "BAL",
+          "isHome": true,
+          "time": "10:10 PM ET"
+        },
+        {
+          "date": "2026-06-21",
+          "dateTime": "2026-06-21T20:10Z",
+          "opponent": "Baltimore Orioles",
+          "opponentAbbr": "BAL",
+          "isHome": true,
+          "time": "4:10 PM ET"
+        },
+        {
+          "date": "2026-06-22",
+          "dateTime": "2026-06-22T23:40Z",
+          "opponent": "Minnesota Twins",
+          "opponentAbbr": "MIN",
+          "isHome": false,
+          "time": "7:40 PM ET"
+        },
+        {
+          "date": "2026-06-23",
+          "dateTime": "2026-06-23T23:40Z",
+          "opponent": "Minnesota Twins",
+          "opponentAbbr": "MIN",
+          "isHome": false,
+          "time": "7:40 PM ET"
+        },
+        {
+          "date": "2026-06-24",
+          "dateTime": "2026-06-24T23:40Z",
+          "opponent": "Minnesota Twins",
+          "opponentAbbr": "MIN",
+          "isHome": false,
+          "time": "7:40 PM ET"
+        }
+      ],
+      "news": [
+        {
+          "title": "2026 MLB ABS challenge system tracker: Team, player rankings",
+          "url": "https://www.espn.com/mlb/story/_/id/48305211/2026-mlb-abs-challenge-system-tracker-team-player-rankings",
+          "date": "2026-06-17"
+        },
+        {
+          "title": "Ohtani hits 15th homer as Dodgers beat Rays 1-0",
+          "url": "http://www.espn.com/mlb/recap?gameId=401815788",
+          "date": "2026-06-17"
+        },
+        {
+          "title": "Tampa Bay Rays vs. Los Angeles Dodgers: Game Highlights",
+          "url": "https://www.espn.com/video/clip/_/id/49090353/game-highlights",
+          "date": "2026-06-17"
+        },
+        {
+          "title": "Dodgers' Shohei Ohtani (knee) to make scheduled start Wed.",
+          "url": "https://www.espn.com/mlb/story/_/id/49088049/dodgers-shohei-ohtani-start-wednesday-vs-rays-knee-swelling-completely-dissipated",
+          "date": "2026-06-17"
+        },
+        {
+          "title": "Miguel Rojas' pinch-hit home run in the 7th lifts the Dodgers to a 4-3 victory over the Rays",
+          "url": "http://www.espn.com/mlb/recap?gameId=401815773",
+          "date": "2026-06-16"
+        }
+      ]
+    },
+    "LAL": {
+      "key": "LAL",
+      "name": "Los Angeles Lakers",
+      "abbreviation": "LAL",
+      "sport": "NBA",
+      "logo": "https://a.espncdn.com/i/teamlogos/nba/500/lal.png",
+      "color": "#552583",
+      "record": "53-29",
+      "lastGame": {
+        "date": "2026-05-12",
+        "dateTime": "2026-05-12T02:30Z",
+        "opponent": "Oklahoma City Thunder",
+        "opponentAbbr": "OKC",
+        "isHome": true,
+        "score": "110-115",
+        "result": "L"
+      },
+      "nextGame": null,
+      "recentGames": [
+        {
+          "date": "2026-05-12",
+          "dateTime": "2026-05-12T02:30Z",
+          "opponent": "Oklahoma City Thunder",
+          "opponentAbbr": "OKC",
+          "isHome": true,
+          "score": "110-115",
+          "result": "L"
+        },
+        {
+          "date": "2026-05-10",
+          "dateTime": "2026-05-10T00:30Z",
+          "opponent": "Oklahoma City Thunder",
+          "opponentAbbr": "OKC",
+          "isHome": true,
+          "score": "108-131",
+          "result": "L"
+        },
+        {
+          "date": "2026-05-08",
+          "dateTime": "2026-05-08T01:30Z",
+          "opponent": "Oklahoma City Thunder",
+          "opponentAbbr": "OKC",
+          "isHome": false,
+          "score": "107-125",
+          "result": "L"
+        },
+        {
+          "date": "2026-05-06",
+          "dateTime": "2026-05-06T00:30Z",
+          "opponent": "Oklahoma City Thunder",
+          "opponentAbbr": "OKC",
+          "isHome": false,
+          "score": "90-108",
+          "result": "L"
+        },
+        {
+          "date": "2026-05-02",
+          "dateTime": "2026-05-02T01:30Z",
+          "opponent": "Houston Rockets",
+          "opponentAbbr": "HOU",
+          "isHome": false,
+          "score": "98-78",
+          "result": "W"
+        }
+      ],
+      "upcomingGames": [],
+      "news": [
+        {
+          "title": "Lawrence Tanter retiring after 40 years with the Lakers",
+          "url": "https://www.espn.com/nba/story/_/id/49086321/lakers-lawrence-tanter-retiring-40-years-microphone",
+          "date": "2026-06-16"
+        },
+        {
+          "title": "Windhorst: Six storylines already shaping the NBA offseason",
+          "url": "https://www.espn.com/nba/story/_/id/49074649/2026-nba-offseason-storylines-lakers-giannis-nba-draft-free-agency-aspiration-expansion-windhorst",
+          "date": "2026-06-16"
+        },
+        {
+          "title": "NBA offseason 2026: 10 teams that will define the summer",
+          "url": "https://www.espn.com/nba/story/_/id/49013444/nba-offseason-2026-lebron-lakers-giannis-bucks-heat-thunder-10-most-interesting-teams",
+          "date": "2026-06-15"
+        },
+        {
+          "title": "2026 NBA mock draft: Projecting all 60 picks in Rounds 1 and 2",
+          "url": "https://www.espn.com/nba/story/_/id/49041464/2026-nba-mock-draft-projecting-60-picks-draft-night-trade-talks-boozer-peterson-dybantsa-acuff",
+          "date": "2026-06-16"
+        },
+        {
+          "title": "2027 NBA championship odds: Spurs early favorites to win it all, followed by Thunder and Celtics",
+          "url": "https://www.espn.com/espn/betting/story/_/id/49062262/2027-nba-finals-odds-mvp-2026-27-championship-betting",
+          "date": "2026-06-16"
+        }
+      ]
+    },
+    "LAK": {
+      "key": "LAK",
+      "name": "Los Angeles Kings",
+      "abbreviation": "LAK",
+      "sport": "NHL",
+      "logo": "https://a.espncdn.com/i/teamlogos/nhl/500/la.png",
+      "color": "#121212",
+      "record": "35-27-20",
+      "lastGame": {
+        "date": "2026-04-26",
+        "dateTime": "2026-04-26T20:30Z",
+        "opponent": "Colorado Avalanche",
+        "opponentAbbr": "COL",
+        "isHome": true,
+        "score": "1-5",
+        "result": "L"
+      },
+      "nextGame": null,
+      "recentGames": [
+        {
+          "date": "2026-04-26",
+          "dateTime": "2026-04-26T20:30Z",
+          "opponent": "Colorado Avalanche",
+          "opponentAbbr": "COL",
+          "isHome": true,
+          "score": "1-5",
+          "result": "L"
+        },
+        {
+          "date": "2026-04-24",
+          "dateTime": "2026-04-24T02:00Z",
+          "opponent": "Colorado Avalanche",
+          "opponentAbbr": "COL",
+          "isHome": true,
+          "score": "2-4",
+          "result": "L"
+        },
+        {
+          "date": "2026-04-22",
+          "dateTime": "2026-04-22T02:22Z",
+          "opponent": "Colorado Avalanche",
+          "opponentAbbr": "COL",
+          "isHome": false,
+          "score": "1-2",
+          "result": "L"
+        },
+        {
+          "date": "2026-04-19",
+          "dateTime": "2026-04-19T19:00Z",
+          "opponent": "Colorado Avalanche",
+          "opponentAbbr": "COL",
+          "isHome": false,
+          "score": "1-2",
+          "result": "L"
+        }
+      ],
+      "upcomingGames": [],
+      "news": [
+        {
+          "title": "Former NHL player Kyle Calder, 47, dies after brief illness",
+          "url": "https://www.espn.com/nhl/story/_/id/49082322/former-nhl-player-kyle-calder-47-dies-brief-illness",
+          "date": "2026-06-16"
+        },
+        {
+          "title": "Which NHL teams have won the most Stanley Cup titles?",
+          "url": "https://www.espn.com/nhl/story/_/id/40344315/which-nhl-teams-won-most-stanley-cup-titles",
+          "date": "2026-06-15"
+        },
+        {
+          "title": "NHL Power Rankings: Way-too-early edition for 2026-27 season",
+          "url": "https://www.espn.com/nhl/story/_/id/49043763/nhl-power-rankings-2026-27-top-teams-players-poll-best-games-free-agents",
+          "date": "2026-06-16"
+        },
+        {
+          "title": "What are the winningest regions in sports?",
+          "url": "https://www.espn.com/nba/story/_/id/40402955/what-winningest-regions-sports",
+          "date": "2026-06-14"
+        },
+        {
+          "title": "Holland: Laviolette hire intended to bolster Kings' offense",
+          "url": "https://www.espn.com/nhl/story/_/id/49023526/holland-laviolette-hire-intended-bolster-kings-offense",
+          "date": "2026-06-11"
+        }
+      ]
+    },
+    "SF": {
+      "key": "SF",
+      "name": "San Francisco 49ers",
+      "abbreviation": "SF",
+      "sport": "NFL",
+      "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/sf.png",
+      "color": "#aa0000",
+      "record": "12-5",
+      "lastGame": null,
+      "nextGame": {
+        "date": "2026-09-11",
+        "dateTime": "2026-09-11T00:35Z",
+        "opponent": "Los Angeles Rams",
+        "opponentAbbr": "LAR",
+        "isHome": false,
+        "time": "8:35 PM ET"
+      },
+      "recentGames": [],
+      "upcomingGames": [
+        {
+          "date": "2026-09-11",
+          "dateTime": "2026-09-11T00:35Z",
+          "opponent": "Los Angeles Rams",
+          "opponentAbbr": "LAR",
+          "isHome": false,
+          "time": "8:35 PM ET"
+        },
+        {
+          "date": "2026-09-20",
+          "dateTime": "2026-09-20T20:25Z",
+          "opponent": "Miami Dolphins",
+          "opponentAbbr": "MIA",
+          "isHome": true,
+          "time": "4:25 PM ET"
+        },
+        {
+          "date": "2026-09-27",
+          "dateTime": "2026-09-27T20:05Z",
+          "opponent": "Arizona Cardinals",
+          "opponentAbbr": "ARI",
+          "isHome": true,
+          "time": "4:05 PM ET"
+        },
+        {
+          "date": "2026-10-04",
+          "dateTime": "2026-10-04T20:25Z",
+          "opponent": "Denver Broncos",
+          "opponentAbbr": "DEN",
+          "isHome": true,
+          "time": "4:25 PM ET"
+        },
+        {
+          "date": "2026-10-11",
+          "dateTime": "2026-10-11T20:25Z",
+          "opponent": "Seattle Seahawks",
+          "opponentAbbr": "SEA",
+          "isHome": false,
+          "time": "4:25 PM ET"
+        },
+        {
+          "date": "2026-10-20",
+          "dateTime": "2026-10-20T00:15Z",
+          "opponent": "Washington Commanders",
+          "opponentAbbr": "WSH",
+          "isHome": true,
+          "time": "8:15 PM ET"
+        },
+        {
+          "date": "2026-10-25",
+          "dateTime": "2026-10-25T17:00Z",
+          "opponent": "Atlanta Falcons",
+          "opponentAbbr": "ATL",
+          "isHome": false,
+          "time": "1:00 PM ET"
+        }
+      ],
+      "news": [
+        {
+          "title": "Family of Aldon Smith having his brain checked for CTE",
+          "url": "https://www.espn.com/nfl/story/_/id/49081473/family-aldon-smith-having-brain-checked-cte",
+          "date": "2026-06-16"
+        },
+        {
+          "title": "NFL execs choose best offseason signings, trades, draft picks",
+          "url": "https://www.espn.com/nfl/story/_/id/49071567/2026-offseason-nfl-execs-favorite-trades-signings-draft-picks-moves-waddle-garrett",
+          "date": "2026-06-16"
+        },
+        {
+          "title": "Trent Williams expects 49ers extension to be his last",
+          "url": "https://www.espn.com/video/clip/_/id/49076411/trent-williams-expects-49ers-extension-last",
+          "date": "2026-06-15"
+        },
+        {
+          "title": "Former NFL defensive lineman Aldon Smith dies at age 36",
+          "url": "https://www.espn.com/nfl/story/_/id/49054479/former-nfl-defensive-lineman-aldon-smith-dies-age-36",
+          "date": "2026-06-14"
+        },
+        {
+          "title": "NFL players make World Cup predictions, weigh in on USMNT",
+          "url": "https://www.espn.com/nfl/story/_/id/49009790/nfl-players-world-cup-golden-boot-predictions-france-kylian-mbappe",
+          "date": "2026-06-13"
+        }
+      ]
+    }
+  }
+}
