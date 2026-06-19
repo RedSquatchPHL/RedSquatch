@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { API } from '@/lib/api';
+import TipTapEditor from '@/components/TipTapEditor';
 
 interface Tool {
   id: string;
@@ -132,10 +133,25 @@ export default function ToolsPage() {
         </div>
       )}
 
-      <div className="mt-12 max-w-6xl">
+      <div className="mt-12 max-w-6xl mb-8">
         <p className="text-xs" style={{ color: '#d4a373' }}>
           Each tool opens in a new window. Services are managed independently and may require separate login.
         </p>
+      </div>
+
+      <div className="mt-12 max-w-6xl">
+        <div className="glass-surface rounded-2xl px-6 py-4 mb-6">
+          <h2 className="text-xl font-bold" style={{ color: '#d4a373', textShadow: '0 0 16px rgba(184,115,51,0.3)' }}>
+            Quick Notes
+          </h2>
+          <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.35)' }}>
+            Rich-text editor for quick notes and thoughts
+          </p>
+        </div>
+        <TipTapEditor
+          placeholder="Write your notes here... Use formatting buttons for bold, italic, headings, lists, and links."
+          height="400px"
+        />
       </div>
     </div>
   );

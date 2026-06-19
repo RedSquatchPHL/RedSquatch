@@ -157,7 +157,7 @@ export default function GoalDetailPage() {
         )}
 
         {goal.milestones.length > 0 && (
-          <div className="pt-2">
+          <div className="pt-6 mt-3" style={{ marginTop: '3rem' }}>
             <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Milestones</h2>
             <ul className="space-y-2">
               {goal.milestones.map(ms => (

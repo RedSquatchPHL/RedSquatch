@@ -22,19 +22,49 @@ const TEXT_FIELDS: { key: keyof ResearchEntry; label: string; rows?: number }[] 
 ];
 
 interface Props {
-  entry: ResearchEntry;
+  entry: ResearchEntry | null;
   onClose: () => void;
   onRefresh: () => void;
+  mode?: 'edit' | 'create';
 }
 
-export default function ResearchModal({ entry, onClose, onRefresh }: Props) {
-  const [form, setForm]               = useState<ResearchEntry>(entry);
+const BLANK_ENTRY: ResearchEntry = {
+  id: 0,
+  client_id: 0,
+  topic_name: '',
+  requested_by: null,
+  date_requested: null,
+  evaluated_by: null,
+  status: 'Not Started',
+  executive_summary: null,
+  definition: null,
+  core_mechanics: null,
+  pricing_cost_structure: null,
+  use_case_1: null,
+  use_case_2: null,
+  current_vs_new_process: null,
+  pros_strengths: null,
+  cons_risks_limitations: null,
+  recommendation: null,
+  next_steps: null,
+  converted_to_goal_id: null,
+  flagged_for_deletion: false,
+  flagged_at: null,
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString(),
+};
+
+export default function ResearchModal({ entry, onClose, onRefresh, mode = 'edit' }: Props) {
+  const [form, setForm]               = useState<ResearchEntry>(entry || BLANK_ENTRY);
   const [dirty, setDirty]             = useState(false);
   const [saving, setSaving]           = useState(false);
   const [error, setError]             = useState<string | null>(null);
   const [showGoalModal, setShowGoal]  = useState(false);
 
-  useEffect(() => { setForm(entry); setDirty(false); }, [entry]);
+  useEffect(() => {
+    setForm(entry || BLANK_ENTRY);
+    setDirty(false);
+  }, [entry]);
 
   const handleChange = (field: keyof ResearchEntry, value: string) => {
     setForm(prev => ({ ...prev, [field]: value }));
@@ -45,8 +75,12 @@ export default function ResearchModal({ entry, onClose, onRefresh }: Props) {
     setSaving(true);
     setError(null);
     try {
-      const res = await fetch(`${API}/api/client/research/${form.id}`, {
-        method: 'PUT',
+      const isCreate = mode === 'create';
+      const url = isCreate ? `${API}/api/client/research` : `${API}/api/client/research/${form.id}`;
+      const method = isCreate ? 'POST' : 'PUT';
+
+      const res = await fetch(url, {
+        method,
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
@@ -58,6 +92,10 @@ export default function ResearchModal({ entry, onClose, onRefresh }: Props) {
       const data = await res.json();
       setForm(data.entry);
       setDirty(false);
+      if (isCreate) {
+        onRefresh();
+        onClose();
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Save failed');
     } finally {
@@ -84,7 +122,7 @@ export default function ResearchModal({ entry, onClose, onRefresh }: Props) {
       <div className="modal-backdrop" onClick={onClose}>
         <div className="modal-panel research-modal" onClick={e => e.stopPropagation()}>
           <div className="modal-header">
-            <h2>Research Entry</h2>
+            <h2>{mode === 'create' ? 'New Research Entry' : 'Research Entry'}</h2>
           </div>
 
           <div className="modal-body">
@@ -145,13 +183,17 @@ export default function ResearchModal({ entry, onClose, onRefresh }: Props) {
 
           <div className="modal-footer">
             <button type="button" className="btn-secondary" onClick={onClose}>Close</button>
-            {dirty && (
+            {(dirty || mode === 'create') && (
               <button type="button" className="btn-primary" onClick={handleSave} disabled={saving}>
-                {saving ? 'Saving…' : 'Save'}
+                {saving ? 'Saving…' : mode === 'create' ? 'Create' : 'Save'}
               </button>
             )}
-            <button type="button" className="btn-primary" onClick={() => setShowGoal(true)}>Convert to Goal</button>
-            <button type="button" className="btn-danger" onClick={handleDelete}>Delete</button>
+            {mode === 'edit' && (
+              <>
+                <button type="button" className="btn-primary" onClick={() => setShowGoal(true)}>Convert to Goal</button>
+                <button type="button" className="btn-danger" onClick={handleDelete}>Delete</button>
+              </>
+            )}
           </div>
         </div>
       </div>

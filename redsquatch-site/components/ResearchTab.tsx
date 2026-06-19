@@ -41,6 +41,7 @@ export default function ResearchTab() {
   const [loading, setLoading]         = useState(true);
   const [error, setError]             = useState<string | null>(null);
   const [selectedEntry, setSelected]  = useState<ResearchEntry | null>(null);
+  const [createMode, setCreateMode]   = useState(false);
 
   const fetchEntries = async () => {
     setLoading(true);
@@ -59,8 +60,18 @@ export default function ResearchTab() {
 
   useEffect(() => { fetchEntries(); }, []);
 
-  const openModal = (entry: ResearchEntry) => setSelected(entry);
-  const closeModal = () => setSelected(null);
+  const openModal = (entry: ResearchEntry) => {
+    setSelected(entry);
+    setCreateMode(false);
+  };
+  const closeModal = () => {
+    setSelected(null);
+    setCreateMode(false);
+  };
+  const openCreate = () => {
+    setCreateMode(true);
+    setSelected(null);
+  };
 
   const handleRefresh = () => {
     fetchEntries();
@@ -81,6 +92,16 @@ export default function ResearchTab() {
 
   return (
     <div className={`research-tab ${styles['research-tab']}`}>
+      <div className="mb-4 flex justify-between items-center">
+        <h3 className="text-sm font-semibold text-light-copper">Research Entries</h3>
+        <button
+          onClick={openCreate}
+          className="px-3 py-1.5 text-xs rounded border border-copper/40 text-copper hover:border-copper/70 hover:bg-copper/5 transition-colors"
+          style={{ color: '#d4a373', borderColor: 'rgba(212,163,115,0.4)' }}
+        >
+          + Add Entry
+        </button>
+      </div>
       {entries.length === 0 ? (
         <div className="text-center py-10 text-light-copper text-sm">
           No research entries yet.
@@ -112,6 +133,15 @@ export default function ResearchTab() {
           entry={selectedEntry}
           onClose={closeModal}
           onRefresh={handleRefresh}
+          mode="edit"
+        />
+      )}
+      {createMode && (
+        <ResearchModal
+          entry={null}
+          onClose={closeModal}
+          onRefresh={handleRefresh}
+          mode="create"
         />
       )}
     </div>
