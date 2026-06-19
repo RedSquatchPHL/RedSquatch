@@ -12,20 +12,18 @@ import {
   type MotionValue,
 } from 'framer-motion';
 import {
-  BarChart3, Target, Archive, Zap, Briefcase, Settings, LogOut, ClipboardList,
+  BarChart3, Target, Zap, Settings, LogOut, ClipboardList,
 } from 'lucide-react';
 import { API } from '@/lib/api';
 
 // ── Config ─────────────────────────────────────────────────────────────────
 
 const NAV = [
-  { label: 'Dashboard',  icon: BarChart3,     href: '/dashboard'            },
-  { label: 'Goals',      icon: Target,        href: '/dashboard/goals'      },
-  { label: 'Work Items', icon: ClipboardList, href: '/dashboard/work-items' },
-  { label: 'Archive',    icon: Archive,       href: '/dashboard/archive'    },
-  { label: 'Sports',     icon: Zap,           href: '/dashboard/sports'     },
-  { label: 'Lincoln',    icon: Briefcase,     href: '/dashboard/lincoln'    },
-  { label: 'Tools',      icon: Settings,      href: '/dashboard/tools'      },
+  { label: 'Dashboard', icon: BarChart3,     href: '/dashboard'         },
+  { label: 'Goals',     icon: Target,        href: '/dashboard/goals'   },
+  { label: 'Work',      icon: ClipboardList, href: '/dashboard/work'    },
+  { label: 'Sports',    icon: Zap,           href: '/dashboard/sports'  },
+  { label: 'Tools',     icon: Settings,      href: '/dashboard/tools'   },
 ] as const;
 
 const BASE     = 48;   // resting icon size (px)

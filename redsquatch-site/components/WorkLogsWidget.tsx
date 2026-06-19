@@ -106,9 +106,10 @@ function emptyForm(type: IntakeType = 'demand'): FormState {
 
 interface WorkLogsWidgetProps {
   defaultTab?: IntakeType;
+  excludeTypes?: IntakeType[];
 }
 
-export default function WorkLogsWidget({ defaultTab = 'demand' }: WorkLogsWidgetProps) {
+export default function WorkLogsWidget({ defaultTab = 'demand', excludeTypes = [] }: WorkLogsWidgetProps) {
   const [logs, setLogs]             = useState<WorkLog[]>([]);
   const [loading, setLoading]       = useState(true);
   const [saving, setSaving]         = useState(false);
@@ -224,8 +225,7 @@ export default function WorkLogsWidget({ defaultTab = 'demand' }: WorkLogsWidget
     }
   };
 
-  // ── Derived ────────────────────────────────────────────────────────────────
-
+  const visibleTypes = INTAKE_TYPES.filter(t => !excludeTypes.includes(t.value));
   const statuses = form.intake_type === 'research' ? RESEARCH_STATUSES : WORK_STATUSES;
   const totalHours = logs.reduce((acc, l) => acc + parseFloat(l.hours ?? '0'), 0);
 
@@ -247,7 +247,7 @@ export default function WorkLogsWidget({ defaultTab = 'demand' }: WorkLogsWidget
           >
             All
           </button>
-          {INTAKE_TYPES.map(t => (
+          {visibleTypes.map(t => (
             <button
               key={t.value}
               onClick={() => setFilterType(t.value)}
@@ -305,7 +305,7 @@ export default function WorkLogsWidget({ defaultTab = 'demand' }: WorkLogsWidget
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-[#1a1a1a] border-[rgba(184,115,51,0.2)]">
-                    {INTAKE_TYPES.map(t => (
+                    {visibleTypes.map(t => (
                       <SelectItem key={t.value} value={t.value} className="text-white hover:bg-[rgba(184,115,51,0.1)]">
                         {t.label}
                       </SelectItem>

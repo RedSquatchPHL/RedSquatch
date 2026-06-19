@@ -8,6 +8,7 @@ const path = require('path');
 const fs = require('fs');
 const { scrapeAll } = require('./sports-scraper');
 const { runMigrations, runInactivityCron, makeRouter: makeWorkItemsRouter } = require('./workItemsRoutes');
+const { runMigrations: runResearchMigrations, makeRouter: makeResearchRouter } = require('./routes/research');
 
 const SPORTS_FILE = path.join(__dirname, 'public', 'sports.json');
 
@@ -216,6 +217,22 @@ app.delete('/api/client/goals/:id', requireAuth, async (req, res) => {
   } catch (err) {
     console.error('Goal delete error:', err.message);
     res.status(500).json({ error: 'Failed to delete goal' });
+  }
+});
+
+app.post('/api/client/goals/:id/archive', requireAuth, async (req, res) => {
+  const { id } = req.params;
+  try {
+    const result = await db.query(
+      `UPDATE goals SET status = 'archived', archived_at = NOW(), updated_at = NOW()
+       WHERE id = $1 AND archived_at IS NULL RETURNING id`,
+      [id]
+    );
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Goal not found' });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Goal archive error:', err.message);
+    res.status(500).json({ error: 'Failed to archive goal' });
   }
 });
 
@@ -795,6 +812,7 @@ app.post('/api/client/sports/refresh', requireAuth, async (req, res) => {
 // ============ WORK ITEMS ============
 
 app.use('/api/client/work-items', makeWorkItemsRouter(db));
+app.use('/api/client/research', makeResearchRouter(db));
 
 // ============ TOOLS ============
 
@@ -846,6 +864,7 @@ async function initializeApp() {
 
     // Run idempotent schema migrations
     await runMigrations(db);
+    await runResearchMigrations(db);
 
     app.listen(PORT, () => {
       console.log(`✓ RedSquatch API running on port ${PORT}`);
