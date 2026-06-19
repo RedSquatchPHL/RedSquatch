@@ -65,8 +65,8 @@ export default function ToolsPage() {
   }
 
   return (
-    <div className="p-6 space-y-8">
-      <div className="glass-surface rounded-2xl px-6 py-4">
+    <div className="flex flex-col items-center justify-center min-h-screen p-6 space-y-8">
+      <div className="glass-surface rounded-2xl px-6 py-4 w-full max-w-4xl">
         <h1 className="text-2xl font-bold" style={{ color: '#d4a373', textShadow: '0 0 16px rgba(184,115,51,0.3)' }}>
           Tools
         </h1>
@@ -75,7 +75,7 @@ export default function ToolsPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 max-w-6xl">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 w-full max-w-4xl">
         {tools.map((tool) => (
           <a
             key={tool.id}
@@ -133,13 +133,13 @@ export default function ToolsPage() {
         </div>
       )}
 
-      <div className="mt-12 max-w-6xl mb-8">
-        <p className="text-xs" style={{ color: '#d4a373' }}>
+      <div className="mt-6 max-w-4xl w-full mb-8">
+        <p className="text-xs text-center" style={{ color: '#d4a373' }}>
           Each tool opens in a new window. Services are managed independently and may require separate login.
         </p>
       </div>
 
-      <div className="mt-12 max-w-6xl">
+      <div className="mt-12 max-w-4xl w-full">
         <div className="glass-surface rounded-2xl px-6 py-4 mb-6">
           <h2 className="text-xl font-bold" style={{ color: '#d4a373', textShadow: '0 0 16px rgba(184,115,51,0.3)' }}>
             Quick Notes
