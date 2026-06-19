@@ -22,7 +22,11 @@ INSERT INTO goal_categories (parent_context, sub_type) VALUES
 ON CONFLICT DO NOTHING;
 
 -- 2. Migrate goals table
-ALTER TABLE goals RENAME COLUMN name TO title;
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='goals' AND column_name='name') THEN
+    ALTER TABLE goals RENAME COLUMN name TO title;
+  END IF;
+END $$;
 ALTER TABLE goals ADD COLUMN IF NOT EXISTS user_id INTEGER DEFAULT 1;
 ALTER TABLE goals ADD COLUMN IF NOT EXISTS context VARCHAR(20) DEFAULT 'personal';
 ALTER TABLE goals ADD COLUMN IF NOT EXISTS category_id INTEGER REFERENCES goal_categories(id);
@@ -36,7 +40,11 @@ CREATE INDEX IF NOT EXISTS idx_goals_context  ON goals(context);
 CREATE INDEX IF NOT EXISTS idx_goals_user_id  ON goals(user_id);
 
 -- 3. Migrate milestones table
-ALTER TABLE milestones RENAME COLUMN name TO title;
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='milestones' AND column_name='name') THEN
+    ALTER TABLE milestones RENAME COLUMN name TO title;
+  END IF;
+END $$;
 ALTER TABLE milestones ADD COLUMN IF NOT EXISTS sequence_order INTEGER DEFAULT 0;
 ALTER TABLE milestones ADD COLUMN IF NOT EXISTS is_completed BOOLEAN DEFAULT false;
 ALTER TABLE milestones ADD COLUMN IF NOT EXISTS completed_at TIMESTAMPTZ;
