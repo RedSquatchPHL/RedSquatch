@@ -77,8 +77,8 @@ export default function ToolsPage() {
         </p>
       </div>
 
-      <div className="flex flex-wrap justify-center gap-3 w-full max-w-2xl">
-        {tools.map((tool) => (
+      <div className="flex flex-wrap justify-center gap-2 w-full max-w-xl">
+        {tools.filter(tool => !tool.name.toLowerCase().includes('trilium') && !tool.name.toLowerCase().includes('vikunja')).map((tool) => (
           <a
             key={tool.id}
             href={tool.url}
@@ -87,7 +87,7 @@ export default function ToolsPage() {
             className="group cursor-pointer"
           >
             <div
-              className="glass-surface relative h-32 w-32 rounded-xl overflow-hidden transition-all duration-300"
+              className="glass-surface relative h-20 w-20 rounded-lg overflow-hidden transition-all duration-300"
               onMouseEnter={e => {
                 (e.currentTarget as HTMLDivElement).style.borderColor = '#b87333';
                 (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 40px rgba(0,0,0,0.5), 0 0 24px rgba(184,115,51,0.25), inset 0 1px 0 rgba(255,255,255,0.06)';
@@ -97,27 +97,15 @@ export default function ToolsPage() {
                 (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 32px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.05)';
               }}
             >
-              <div className="relative h-full p-2 flex flex-col justify-between z-10">
+              <div className="relative h-full p-1 flex flex-col justify-center items-center z-10">
                 <div>
-                  <div className="text-3xl mb-1 transition-transform duration-300 group-hover:scale-110">
+                  <div className="text-2xl transition-transform duration-300 group-hover:scale-125" title={tool.name}>
                     {tool.icon}
                   </div>
-                  <h2 className="text-sm font-semibold text-white transition-colors duration-300 group-hover:text-[#b87333]">
-                    {tool.name}
-                  </h2>
                 </div>
 
-                <div className="flex items-end justify-between">
-                  <p className="text-xs flex-1" style={{ color: '#d4a373' }}>
-                    {tool.description}
-                  </p>
-                  <span
-                    className="text-lg ml-1 opacity-0 group-hover:opacity-100 transition-all duration-300"
-                    style={{ color: '#b87333' }}
-                  >
-                    →
-                  </span>
-                </div>
+                <div className="hidden group-hover:flex absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 bg-black/80 px-2 py-1 rounded text-xs whitespace-nowrap pointer-events-none">
+                  <span style={{ color: '#d4a373' }}>{tool.name}</span>
               </div>
 
               <div
@@ -136,7 +124,7 @@ export default function ToolsPage() {
           className="group cursor-pointer"
         >
           <div
-            className="glass-surface relative h-32 w-32 rounded-xl overflow-hidden transition-all duration-300"
+            className="glass-surface relative h-20 w-20 rounded-lg overflow-hidden transition-all duration-300"
             onMouseEnter={e => {
               (e.currentTarget as HTMLDivElement).style.borderColor = '#b87333';
               (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 40px rgba(0,0,0,0.5), 0 0 24px rgba(184,115,51,0.25), inset 0 1px 0 rgba(255,255,255,0.06)';
@@ -146,28 +134,14 @@ export default function ToolsPage() {
               (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 32px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.05)';
             }}
           >
-            <div className="relative h-full p-2 flex flex-col justify-between z-10">
-              <div>
-                <div className="text-3xl mb-1 transition-transform duration-300 group-hover:scale-110">
-                  📝
-                </div>
-                <h2 className="text-sm font-semibold text-white transition-colors duration-300 group-hover:text-[#b87333]">
-                  Joplin
-                </h2>
-              </div>
-
-              <div className="flex items-end justify-between">
-                <p className="text-xs flex-1" style={{ color: '#d4a373' }}>
-                  Notes & tasks
-                </p>
-                <span
-                  className="text-lg ml-1 opacity-0 group-hover:opacity-100 transition-all duration-300"
-                  style={{ color: '#b87333' }}
-                >
-                  →
-                </span>
+            <div className="relative h-full p-1 flex flex-col justify-center items-center z-10">
+              <div className="text-2xl transition-transform duration-300 group-hover:scale-125" title="Joplin">
+                📝
               </div>
             </div>
+
+            <div className="hidden group-hover:flex absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 bg-black/80 px-2 py-1 rounded text-xs whitespace-nowrap pointer-events-none">
+              <span style={{ color: '#d4a373' }}>Joplin</span>
 
             <div
               className="absolute bottom-0 left-0 right-0 h-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
@@ -182,7 +156,7 @@ export default function ToolsPage() {
           className="group cursor-pointer"
         >
           <div
-            className="glass-surface relative h-32 w-32 rounded-xl overflow-hidden transition-all duration-300"
+            className="glass-surface relative h-20 w-20 rounded-lg overflow-hidden transition-all duration-300"
             onMouseEnter={e => {
               (e.currentTarget as HTMLDivElement).style.borderColor = '#b87333';
               (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 40px rgba(0,0,0,0.5), 0 0 24px rgba(184,115,51,0.25), inset 0 1px 0 rgba(255,255,255,0.06)';
@@ -192,28 +166,14 @@ export default function ToolsPage() {
               (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 32px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.05)';
             }}
           >
-            <div className="relative h-full p-2 flex flex-col justify-between z-10">
-              <div>
-                <div className="text-3xl mb-1 transition-transform duration-300 group-hover:scale-110">
-                  🎯
-                </div>
-                <h2 className="text-sm font-semibold text-white transition-colors duration-300 group-hover:text-[#b87333]">
-                  Focus
-                </h2>
-              </div>
-
-              <div className="flex items-end justify-between">
-                <p className="text-xs flex-1" style={{ color: '#d4a373' }}>
-                  Mind games
-                </p>
-                <span
-                  className="text-lg ml-1 opacity-0 group-hover:opacity-100 transition-all duration-300"
-                  style={{ color: '#b87333' }}
-                >
-                  →
-                </span>
+            <div className="relative h-full p-1 flex flex-col justify-center items-center z-10">
+              <div className="text-2xl transition-transform duration-300 group-hover:scale-125" title="Focus">
+                🎯
               </div>
             </div>
+
+            <div className="hidden group-hover:flex absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 bg-black/80 px-2 py-1 rounded text-xs whitespace-nowrap pointer-events-none">
+              <span style={{ color: '#d4a373' }}>Focus</span>
 
             <div
               className="absolute bottom-0 left-0 right-0 h-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
