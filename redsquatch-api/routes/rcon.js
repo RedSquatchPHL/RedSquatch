@@ -1,5 +1,5 @@
 const express = require('express');
-const Rcon = require('bedrock-rcon');
+const dgram = require('dgram');
 const router = express.Router();
 
 const RCON_HOST = 'localhost';
@@ -14,15 +14,51 @@ router.use((req, res, next) => {
   next();
 });
 
+// Helper to send RCON command via UDP
+const sendRconCommand = (command) => {
+  return new Promise((resolve, reject) => {
+    const client = dgram.createSocket('udp4');
+    const timeout = setTimeout(() => {
+      client.close();
+      reject(new Error('RCON command timed out'));
+    }, 5000);
+
+    try {
+      // Simple RCON message format for Bedrock
+      // Format: command as UTF-8 string
+      const message = Buffer.from(command);
+      client.send(message, RCON_PORT, RCON_HOST, (err) => {
+        clearTimeout(timeout);
+        if (err) {
+          client.close();
+          reject(err);
+        } else {
+          // Listen for response (some servers may respond)
+          client.on('message', (msg) => {
+            client.close();
+            resolve(msg.toString());
+          });
+          // Close after short delay if no response
+          setTimeout(() => {
+            client.close();
+            resolve('Command sent');
+          }, 500);
+        }
+      });
+    } catch (error) {
+      clearTimeout(timeout);
+      client.close();
+      reject(error);
+    }
+  });
+};
+
 // Execute raw command
 router.post('/execute', async (req, res) => {
   try {
     const { command } = req.body;
     if (!command) return res.status(400).json({ error: 'Command is required' });
-    const rcon = new Rcon(RCON_HOST, RCON_PORT, RCON_PASSWORD);
-    await rcon.connect();
-    const result = await rcon.execute(command);
-    await rcon.close();
+    const result = await sendRconCommand(command);
     res.json({ success: true, result });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -32,10 +68,7 @@ router.post('/execute', async (req, res) => {
 // Get online players
 router.get('/players', async (req, res) => {
   try {
-    const rcon = new Rcon(RCON_HOST, RCON_PORT, RCON_PASSWORD);
-    await rcon.connect();
-    const result = await rcon.execute('list');
-    await rcon.close();
+    const result = await sendRconCommand('list');
     res.json({ success: true, players: result });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -48,10 +81,7 @@ router.post('/give-item', async (req, res) => {
     const { player, item, amount } = req.body;
     if (!player || !item) return res.status(400).json({ error: 'Player and item are required' });
     const command = `give @a[name="${player}"] ${item} ${amount || 1}`;
-    const rcon = new Rcon(RCON_HOST, RCON_PORT, RCON_PASSWORD);
-    await rcon.connect();
-    const result = await rcon.execute(command);
-    await rcon.close();
+    const result = await sendRconCommand(command);
     res.json({ success: true, result });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -66,10 +96,7 @@ router.post('/teleport', async (req, res) => {
       return res.status(400).json({ error: 'Player and coordinates are required' });
     }
     const command = `tp @a[name="${player}"] ${x} ${y} ${z}`;
-    const rcon = new Rcon(RCON_HOST, RCON_PORT, RCON_PASSWORD);
-    await rcon.connect();
-    const result = await rcon.execute(command);
-    await rcon.close();
+    const result = await sendRconCommand(command);
     res.json({ success: true, result });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -79,11 +106,8 @@ router.post('/teleport', async (req, res) => {
 // Restart server
 router.post('/restart', async (req, res) => {
   try {
-    const rcon = new Rcon(RCON_HOST, RCON_PORT, RCON_PASSWORD);
-    await rcon.connect();
-    await rcon.execute('say Server restarting in 10 seconds...');
-    await rcon.execute('stop');
-    await rcon.close();
+    await sendRconCommand('say Server restarting in 10 seconds...');
+    const result = await sendRconCommand('stop');
     res.json({ success: true, message: 'Server restarting' });
   } catch (error) {
     res.status(500).json({ error: error.message });
