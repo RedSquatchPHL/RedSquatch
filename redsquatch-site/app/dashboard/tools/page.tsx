@@ -77,7 +77,7 @@ export default function ToolsPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 w-full max-w-4xl">
+      <div className="flex flex-wrap justify-center gap-3 w-full max-w-2xl">
         {tools.map((tool) => (
           <a
             key={tool.id}
@@ -87,7 +87,7 @@ export default function ToolsPage() {
             className="group cursor-pointer"
           >
             <div
-              className="glass-surface relative h-40 rounded-xl overflow-hidden transition-all duration-300"
+              className="glass-surface relative h-32 w-32 rounded-xl overflow-hidden transition-all duration-300"
               onMouseEnter={e => {
                 (e.currentTarget as HTMLDivElement).style.borderColor = '#b87333';
                 (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 40px rgba(0,0,0,0.5), 0 0 24px rgba(184,115,51,0.25), inset 0 1px 0 rgba(255,255,255,0.06)';
@@ -97,12 +97,12 @@ export default function ToolsPage() {
                 (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 32px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.05)';
               }}
             >
-              <div className="relative h-full p-4 flex flex-col justify-between z-10">
+              <div className="relative h-full p-2 flex flex-col justify-between z-10">
                 <div>
-                  <div className="text-4xl mb-2 transition-transform duration-300 group-hover:scale-110">
+                  <div className="text-3xl mb-1 transition-transform duration-300 group-hover:scale-110">
                     {tool.icon}
                   </div>
-                  <h2 className="text-lg font-semibold text-white mb-1 transition-colors duration-300 group-hover:text-[#b87333]">
+                  <h2 className="text-sm font-semibold text-white transition-colors duration-300 group-hover:text-[#b87333]">
                     {tool.name}
                   </h2>
                 </div>
@@ -112,7 +112,7 @@ export default function ToolsPage() {
                     {tool.description}
                   </p>
                   <span
-                    className="text-xl ml-2 opacity-0 group-hover:opacity-100 transition-all duration-300"
+                    className="text-lg ml-1 opacity-0 group-hover:opacity-100 transition-all duration-300"
                     style={{ color: '#b87333' }}
                   >
                     →
@@ -136,7 +136,7 @@ export default function ToolsPage() {
           className="group cursor-pointer"
         >
           <div
-            className="glass-surface relative h-40 rounded-xl overflow-hidden transition-all duration-300"
+            className="glass-surface relative h-32 w-32 rounded-xl overflow-hidden transition-all duration-300"
             onMouseEnter={e => {
               (e.currentTarget as HTMLDivElement).style.borderColor = '#b87333';
               (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 40px rgba(0,0,0,0.5), 0 0 24px rgba(184,115,51,0.25), inset 0 1px 0 rgba(255,255,255,0.06)';
@@ -146,12 +146,12 @@ export default function ToolsPage() {
               (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 32px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.05)';
             }}
           >
-            <div className="relative h-full p-4 flex flex-col justify-between z-10">
+            <div className="relative h-full p-2 flex flex-col justify-between z-10">
               <div>
-                <div className="text-4xl mb-2 transition-transform duration-300 group-hover:scale-110">
+                <div className="text-3xl mb-1 transition-transform duration-300 group-hover:scale-110">
                   📝
                 </div>
-                <h2 className="text-lg font-semibold text-white mb-1 transition-colors duration-300 group-hover:text-[#b87333]">
+                <h2 className="text-sm font-semibold text-white transition-colors duration-300 group-hover:text-[#b87333]">
                   Joplin
                 </h2>
               </div>
@@ -161,7 +161,7 @@ export default function ToolsPage() {
                   Notes & tasks
                 </p>
                 <span
-                  className="text-xl ml-2 opacity-0 group-hover:opacity-100 transition-all duration-300"
+                  className="text-lg ml-1 opacity-0 group-hover:opacity-100 transition-all duration-300"
                   style={{ color: '#b87333' }}
                 >
                   →
@@ -182,7 +182,7 @@ export default function ToolsPage() {
           className="group cursor-pointer"
         >
           <div
-            className="glass-surface relative h-40 rounded-xl overflow-hidden transition-all duration-300"
+            className="glass-surface relative h-32 w-32 rounded-xl overflow-hidden transition-all duration-300"
             onMouseEnter={e => {
               (e.currentTarget as HTMLDivElement).style.borderColor = '#b87333';
               (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 40px rgba(0,0,0,0.5), 0 0 24px rgba(184,115,51,0.25), inset 0 1px 0 rgba(255,255,255,0.06)';
@@ -192,12 +192,12 @@ export default function ToolsPage() {
               (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 32px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.05)';
             }}
           >
-            <div className="relative h-full p-4 flex flex-col justify-between z-10">
+            <div className="relative h-full p-2 flex flex-col justify-between z-10">
               <div>
-                <div className="text-4xl mb-2 transition-transform duration-300 group-hover:scale-110">
+                <div className="text-3xl mb-1 transition-transform duration-300 group-hover:scale-110">
                   🎯
                 </div>
-                <h2 className="text-lg font-semibold text-white mb-1 transition-colors duration-300 group-hover:text-[#b87333]">
+                <h2 className="text-sm font-semibold text-white transition-colors duration-300 group-hover:text-[#b87333]">
                   Focus
                 </h2>
               </div>
@@ -207,7 +207,7 @@ export default function ToolsPage() {
                   Mind games
                 </p>
                 <span
-                  className="text-xl ml-2 opacity-0 group-hover:opacity-100 transition-all duration-300"
+                  className="text-lg ml-1 opacity-0 group-hover:opacity-100 transition-all duration-300"
                   style={{ color: '#b87333' }}
                 >
                   →
