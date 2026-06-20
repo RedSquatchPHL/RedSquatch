@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-19T02:49:53.285Z",
+  "updated": "2026-06-20T00:53:32.953Z",
   "teams": {
     "LAD": {
       "key": "LAD",
@@ -8,25 +8,34 @@
       "sport": "MLB",
       "logo": "https://a.espncdn.com/i/teamlogos/mlb/500/lad.png",
       "color": "#005a9c",
-      "record": "47-27",
+      "record": "48-27",
       "lastGame": {
-        "date": "2026-06-17",
-        "dateTime": "2026-06-17T02:10Z",
-        "opponent": "Tampa Bay Rays",
-        "opponentAbbr": "TB",
-        "isHome": true,
-        "score": "1-0",
-        "result": "W"
-      },
-      "nextGame": {
         "date": "2026-06-17",
         "dateTime": "2026-06-17T19:10Z",
         "opponent": "Tampa Bay Rays",
         "opponentAbbr": "TB",
         "isHome": true,
-        "time": "3:10 PM ET"
+        "score": "5-4",
+        "result": "W"
+      },
+      "nextGame": {
+        "date": "2026-06-20",
+        "dateTime": "2026-06-20T02:10Z",
+        "opponent": "Baltimore Orioles",
+        "opponentAbbr": "BAL",
+        "isHome": true,
+        "time": "10:10 PM ET"
       },
       "recentGames": [
+        {
+          "date": "2026-06-17",
+          "dateTime": "2026-06-17T19:10Z",
+          "opponent": "Tampa Bay Rays",
+          "opponentAbbr": "TB",
+          "isHome": true,
+          "score": "5-4",
+          "result": "W"
+        },
         {
           "date": "2026-06-17",
           "dateTime": "2026-06-17T02:10Z",
@@ -62,26 +71,9 @@
           "isHome": false,
           "score": "7-1",
           "result": "W"
-        },
-        {
-          "date": "2026-06-12",
-          "dateTime": "2026-06-12T23:40Z",
-          "opponent": "Chicago White Sox",
-          "opponentAbbr": "CHW",
-          "isHome": false,
-          "score": "2-8",
-          "result": "L"
         }
       ],
       "upcomingGames": [
-        {
-          "date": "2026-06-17",
-          "dateTime": "2026-06-17T19:10Z",
-          "opponent": "Tampa Bay Rays",
-          "opponentAbbr": "TB",
-          "isHome": true,
-          "time": "3:10 PM ET"
-        },
         {
           "date": "2026-06-20",
           "dateTime": "2026-06-20T02:10Z",
@@ -129,33 +121,41 @@
           "opponentAbbr": "MIN",
           "isHome": false,
           "time": "7:40 PM ET"
+        },
+        {
+          "date": "2026-06-27",
+          "dateTime": "2026-06-27T01:40Z",
+          "opponent": "San Diego Padres",
+          "opponentAbbr": "SD",
+          "isHome": false,
+          "time": "9:40 PM ET"
         }
       ],
       "news": [
         {
+          "title": "Dodgers play the Orioles in first of 3-game series",
+          "url": "http://www.espn.com/mlb/preview?gameId=401815823",
+          "date": "2026-06-19"
+        },
+        {
           "title": "2026 MLB ABS challenge system tracker: Team, player rankings",
           "url": "https://www.espn.com/mlb/story/_/id/48305211/2026-mlb-abs-challenge-system-tracker-team-player-rankings",
-          "date": "2026-06-17"
+          "date": "2026-06-19"
         },
         {
-          "title": "Ohtani hits 15th homer as Dodgers beat Rays 1-0",
-          "url": "http://www.espn.com/mlb/recap?gameId=401815788",
-          "date": "2026-06-17"
+          "title": "With the top four locked, who is the fifth best team in baseball?",
+          "url": "https://www.espn.com/video/clip/_/id/49106405/with-top-four-locked-fifth-best-team-baseball",
+          "date": "2026-06-18"
         },
         {
-          "title": "Tampa Bay Rays vs. Los Angeles Dodgers: Game Highlights",
-          "url": "https://www.espn.com/video/clip/_/id/49090353/game-highlights",
-          "date": "2026-06-17"
+          "title": "MLB Power Rankings Week 12: Dodgers end Braves' No. 1 run",
+          "url": "https://www.espn.com/mlb/story/_/id/49082852/mlb-2026-power-rankings-week-12-braves-dodgers-brewers-yankees-rays",
+          "date": "2026-06-18"
         },
         {
-          "title": "Dodgers' Shohei Ohtani (knee) to make scheduled start Wed.",
-          "url": "https://www.espn.com/mlb/story/_/id/49088049/dodgers-shohei-ohtani-start-wednesday-vs-rays-knee-swelling-completely-dissipated",
-          "date": "2026-06-17"
-        },
-        {
-          "title": "Miguel Rojas' pinch-hit home run in the 7th lifts the Dodgers to a 4-3 victory over the Rays",
-          "url": "http://www.espn.com/mlb/recap?gameId=401815773",
-          "date": "2026-06-16"
+          "title": "2026 MLB mock draft: Our expert makes every first-round pick",
+          "url": "https://www.espn.com/mlb/story/_/id/49097032/2026-mlb-mock-draft-expert-first-round-picks-no-1-chicago-white-sox-cholowsky-emerson-lackey",
+          "date": "2026-06-18"
         }
       ]
     },
@@ -227,28 +227,28 @@
       "upcomingGames": [],
       "news": [
         {
+          "title": "Where does Stephen A. think LeBron should play next season?",
+          "url": "https://www.espn.com/video/clip/_/id/49107861/where-does-stephen-think-lebron-play-next-season",
+          "date": "2026-06-18"
+        },
+        {
+          "title": "The five biggest questions for the Lakers this offseason",
+          "url": "https://www.espn.com/nba/story/_/id/49098803/the-five-biggest-questions-lakers-need-answer-offseason-lebron-james-austin-reaves-luka-doncic-nba-offseason-free-agency",
+          "date": "2026-06-18"
+        },
+        {
+          "title": "J-Will: Lakers need to keep LeBron to help Luka's leadership development",
+          "url": "https://www.espn.com/video/clip/_/id/49094775/lakers-need-keep-lebron-help-luka-leadership-development",
+          "date": "2026-06-17"
+        },
+        {
           "title": "Lawrence Tanter retiring after 40 years with the Lakers",
           "url": "https://www.espn.com/nba/story/_/id/49086321/lakers-lawrence-tanter-retiring-40-years-microphone",
-          "date": "2026-06-16"
+          "date": "2026-06-18"
         },
         {
           "title": "Windhorst: Six storylines already shaping the NBA offseason",
           "url": "https://www.espn.com/nba/story/_/id/49074649/2026-nba-offseason-storylines-lakers-giannis-nba-draft-free-agency-aspiration-expansion-windhorst",
-          "date": "2026-06-16"
-        },
-        {
-          "title": "NBA offseason 2026: 10 teams that will define the summer",
-          "url": "https://www.espn.com/nba/story/_/id/49013444/nba-offseason-2026-lebron-lakers-giannis-bucks-heat-thunder-10-most-interesting-teams",
-          "date": "2026-06-15"
-        },
-        {
-          "title": "2026 NBA mock draft: Projecting all 60 picks in Rounds 1 and 2",
-          "url": "https://www.espn.com/nba/story/_/id/49041464/2026-nba-mock-draft-projecting-60-picks-draft-night-trade-talks-boozer-peterson-dybantsa-acuff",
-          "date": "2026-06-16"
-        },
-        {
-          "title": "2027 NBA championship odds: Spurs early favorites to win it all, followed by Thunder and Celtics",
-          "url": "https://www.espn.com/espn/betting/story/_/id/49062262/2027-nba-finals-odds-mvp-2026-27-championship-betting",
           "date": "2026-06-16"
         }
       ]
@@ -312,6 +312,16 @@
       "upcomingGames": [],
       "news": [
         {
+          "title": "Trades we'd like to see during the 2026 NHL offseason",
+          "url": "https://www.espn.com/nhl/story/_/id/49110952/nhl-2026-trades-draft-picks-prospects-top-players-contracts",
+          "date": "2026-06-19"
+        },
+        {
+          "title": "2026 NHL draft: Every team's biggest prospect pipeline need",
+          "url": "https://www.espn.com/nhl/story/_/id/49096432/2026-nhl-draft-top-prospects-pipeline-team-needs-gaps-players",
+          "date": "2026-06-19"
+        },
+        {
           "title": "Former NHL player Kyle Calder, 47, dies after brief illness",
           "url": "https://www.espn.com/nhl/story/_/id/49082322/former-nhl-player-kyle-calder-47-dies-brief-illness",
           "date": "2026-06-16"
@@ -325,16 +335,6 @@
           "title": "NHL Power Rankings: Way-too-early edition for 2026-27 season",
           "url": "https://www.espn.com/nhl/story/_/id/49043763/nhl-power-rankings-2026-27-top-teams-players-poll-best-games-free-agents",
           "date": "2026-06-16"
-        },
-        {
-          "title": "What are the winningest regions in sports?",
-          "url": "https://www.espn.com/nba/story/_/id/40402955/what-winningest-regions-sports",
-          "date": "2026-06-14"
-        },
-        {
-          "title": "Holland: Laviolette hire intended to bolster Kings' offense",
-          "url": "https://www.espn.com/nhl/story/_/id/49023526/holland-laviolette-hire-intended-bolster-kings-offense",
-          "date": "2026-06-11"
         }
       ]
     },
@@ -416,6 +416,21 @@
       ],
       "news": [
         {
+          "title": "Final NFL offseason moves for 32 teams: Trades, signings, more",
+          "url": "https://www.espn.com/nfl/story/_/id/49096789/2026-nfl-offseason-final-moves-trades-signings-extensions-32-teams",
+          "date": "2026-06-18"
+        },
+        {
+          "title": "What's next for 49ers QB Mac Jones after not being traded?",
+          "url": "https://www.espn.com/nfl/story/_/id/49074846/whats-next-san-francisco-49ers-qb-mac-jones-not-being-traded",
+          "date": "2026-06-18"
+        },
+        {
+          "title": "Mac Jones not surprised to remain with 49ers",
+          "url": "https://www.espn.com/video/clip/_/id/49099011/mac-jones-not-surprised-remain-49ers",
+          "date": "2026-06-17"
+        },
+        {
           "title": "Family of Aldon Smith having his brain checked for CTE",
           "url": "https://www.espn.com/nfl/story/_/id/49081473/family-aldon-smith-having-brain-checked-cte",
           "date": "2026-06-16"
@@ -424,21 +439,6 @@
           "title": "NFL execs choose best offseason signings, trades, draft picks",
           "url": "https://www.espn.com/nfl/story/_/id/49071567/2026-offseason-nfl-execs-favorite-trades-signings-draft-picks-moves-waddle-garrett",
           "date": "2026-06-16"
-        },
-        {
-          "title": "Trent Williams expects 49ers extension to be his last",
-          "url": "https://www.espn.com/video/clip/_/id/49076411/trent-williams-expects-49ers-extension-last",
-          "date": "2026-06-15"
-        },
-        {
-          "title": "Former NFL defensive lineman Aldon Smith dies at age 36",
-          "url": "https://www.espn.com/nfl/story/_/id/49054479/former-nfl-defensive-lineman-aldon-smith-dies-age-36",
-          "date": "2026-06-14"
-        },
-        {
-          "title": "NFL players make World Cup predictions, weigh in on USMNT",
-          "url": "https://www.espn.com/nfl/story/_/id/49009790/nfl-players-world-cup-golden-boot-predictions-france-kylian-mbappe",
-          "date": "2026-06-13"
         }
       ]
     }

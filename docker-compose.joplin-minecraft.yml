@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  joplin-server:
+    image: joplin/server:latest
+    container_name: joplin-server
+    restart: always
+    ports:
+      - "3789:3789"
+    environment:
+      APP_PORT: 3789
+      DB_CLIENT: pg
+      POSTGRES_HOST: redsquatch-db
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 981u6k7JQ7pTaE6pL1K9mcJQRxpE7QJTHIcIh8kg5bMLUOp2R18moakapvG4mSRf
+      POSTGRES_DATABASE: joplin
+      MAILER_ENABLED: 'false'
+      BASE_URL: https://joplin.redsquatch.com
+    networks:
+      - coolify
+
+  minecraft-bedrock:
+    image: tecknodit/minecraft-bedrock:latest
+    container_name: minecraft-bedrock
+    restart: always
+    ports:
+      - "19132:19132/udp"
+    environment:
+      EULA: 'TRUE'
+      GAMEMODE: survival
+      DIFFICULTY: normal
+      MAX_PLAYERS: '10'
+      LEVEL_NAME: RedSquatch
+    volumes:
+      - minecraft-data:/data
+    networks:
+      - coolify
+
+networks:
+  coolify:
+    external: true
+
+volumes:
+  minecraft-data:

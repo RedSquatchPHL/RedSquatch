@@ -1,0 +1,23 @@
+services:
+  joplin-server:
+    image: joplin/server:latest
+    container_name: joplin-server
+    restart: always
+    ports:
+      - "3789:3789"
+    environment:
+      APP_PORT: 3789
+      DB_CLIENT: pg
+      POSTGRES_HOST: il28r70y1xe5s4ydc12dvxdo
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 981u6k7JQ7pTaE6pL1K9mcJQRxpE7QJTHIcIh8kg5bMLUOp2R18moakapvG4mSRf
+      POSTGRES_DATABASE: joplin
+      MAILER_ENABLED: 'false'
+      BASE_URL: https://joplin.redsquatch.com
+    networks:
+      - coolify
+
+networks:
+  coolify:
+    external: true
