@@ -84,10 +84,10 @@ export default function ToolsPage() {
             href={tool.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="group cursor-pointer"
+            className="group cursor-pointer relative"
           >
             <div
-              className="glass-surface relative h-20 w-20 rounded-lg overflow-hidden transition-all duration-300"
+              className="glass-surface relative h-20 w-20 rounded-lg overflow-hidden transition-all duration-300 flex items-center justify-center"
               onMouseEnter={e => {
                 (e.currentTarget as HTMLDivElement).style.borderColor = '#b87333';
                 (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 40px rgba(0,0,0,0.5), 0 0 24px rgba(184,115,51,0.25), inset 0 1px 0 rgba(255,255,255,0.06)';
@@ -97,15 +97,12 @@ export default function ToolsPage() {
                 (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 32px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.05)';
               }}
             >
-              <div className="relative h-full p-1 flex flex-col justify-center items-center z-10">
-                <div>
-                  <div className="text-2xl transition-transform duration-300 group-hover:scale-125" title={tool.name}>
-                    {tool.icon}
-                  </div>
-                </div>
+              <div className="text-2xl transition-transform duration-300 group-hover:scale-125" title={tool.name}>
+                {tool.icon}
+              </div>
 
-                <div className="hidden group-hover:flex absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 bg-black/80 px-2 py-1 rounded text-xs whitespace-nowrap pointer-events-none">
-                  <span style={{ color: '#d4a373' }}>{tool.name}</span>
+              <div className="hidden group-hover:flex absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 bg-black/80 px-2 py-1 rounded text-xs whitespace-nowrap pointer-events-none z-10">
+                <span style={{ color: '#d4a373' }}>{tool.name}</span>
               </div>
 
               <div
@@ -121,10 +118,10 @@ export default function ToolsPage() {
           href="https://joplin.redsquatch.com"
           target="_blank"
           rel="noopener noreferrer"
-          className="group cursor-pointer"
+          className="group cursor-pointer relative"
         >
           <div
-            className="glass-surface relative h-20 w-20 rounded-lg overflow-hidden transition-all duration-300"
+            className="glass-surface relative h-20 w-20 rounded-lg overflow-hidden transition-all duration-300 flex items-center justify-center"
             onMouseEnter={e => {
               (e.currentTarget as HTMLDivElement).style.borderColor = '#b87333';
               (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 40px rgba(0,0,0,0.5), 0 0 24px rgba(184,115,51,0.25), inset 0 1px 0 rgba(255,255,255,0.06)';
@@ -134,14 +131,13 @@ export default function ToolsPage() {
               (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 32px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.05)';
             }}
           >
-            <div className="relative h-full p-1 flex flex-col justify-center items-center z-10">
-              <div className="text-2xl transition-transform duration-300 group-hover:scale-125" title="Joplin">
-                📝
-              </div>
+            <div className="text-2xl transition-transform duration-300 group-hover:scale-125">
+              📝
             </div>
 
-            <div className="hidden group-hover:flex absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 bg-black/80 px-2 py-1 rounded text-xs whitespace-nowrap pointer-events-none">
+            <div className="hidden group-hover:flex absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 bg-black/80 px-2 py-1 rounded text-xs whitespace-nowrap pointer-events-none z-10">
               <span style={{ color: '#d4a373' }}>Joplin</span>
+            </div>
 
             <div
               className="absolute bottom-0 left-0 right-0 h-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
@@ -153,10 +149,10 @@ export default function ToolsPage() {
         {/* Focus Button */}
         <button
           onClick={() => setGamesOpen(true)}
-          className="group cursor-pointer"
+          className="group cursor-pointer relative"
         >
           <div
-            className="glass-surface relative h-20 w-20 rounded-lg overflow-hidden transition-all duration-300"
+            className="glass-surface relative h-20 w-20 rounded-lg overflow-hidden transition-all duration-300 flex items-center justify-center"
             onMouseEnter={e => {
               (e.currentTarget as HTMLDivElement).style.borderColor = '#b87333';
               (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 40px rgba(0,0,0,0.5), 0 0 24px rgba(184,115,51,0.25), inset 0 1px 0 rgba(255,255,255,0.06)';
@@ -166,14 +162,13 @@ export default function ToolsPage() {
               (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 32px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.05)';
             }}
           >
-            <div className="relative h-full p-1 flex flex-col justify-center items-center z-10">
-              <div className="text-2xl transition-transform duration-300 group-hover:scale-125" title="Focus">
-                🎯
-              </div>
+            <div className="text-2xl transition-transform duration-300 group-hover:scale-125">
+              🎯
             </div>
 
-            <div className="hidden group-hover:flex absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 bg-black/80 px-2 py-1 rounded text-xs whitespace-nowrap pointer-events-none">
+            <div className="hidden group-hover:flex absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 bg-black/80 px-2 py-1 rounded text-xs whitespace-nowrap pointer-events-none z-10">
               <span style={{ color: '#d4a373' }}>Focus</span>
+            </div>
 
             <div
               className="absolute bottom-0 left-0 right-0 h-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
