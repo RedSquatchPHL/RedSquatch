@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { API } from '@/lib/api';
 import TipTapEditor from '@/components/TipTapEditor';
+import GamesModal from '@/components/GamesModal';
 
 interface Tool {
   id: string;
@@ -18,6 +19,7 @@ export default function ToolsPage() {
   const [tools, setTools] = useState<Tool[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [gamesOpen, setGamesOpen] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -125,6 +127,52 @@ export default function ToolsPage() {
             </div>
           </a>
         ))}
+
+        {/* Games Button */}
+        <button
+          onClick={() => setGamesOpen(true)}
+          className="group cursor-pointer"
+        >
+          <div
+            className="glass-surface relative h-52 rounded-xl overflow-hidden transition-all duration-300"
+            onMouseEnter={e => {
+              (e.currentTarget as HTMLDivElement).style.borderColor = '#b87333';
+              (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 40px rgba(0,0,0,0.5), 0 0 24px rgba(184,115,51,0.25), inset 0 1px 0 rgba(255,255,255,0.06)';
+            }}
+            onMouseLeave={e => {
+              (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(184,115,51,0.22)';
+              (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 32px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.05)';
+            }}
+          >
+            <div className="relative h-full p-6 flex flex-col justify-between z-10">
+              <div>
+                <div className="text-5xl mb-3 transition-transform duration-300 group-hover:scale-110">
+                  🎮
+                </div>
+                <h2 className="text-xl font-semibold text-white mb-2 transition-colors duration-300 group-hover:text-[#b87333]">
+                  Games
+                </h2>
+              </div>
+
+              <div className="flex items-end justify-between">
+                <p className="text-sm flex-1" style={{ color: '#d4a373' }}>
+                  Wordle & 2048
+                </p>
+                <span
+                  className="text-2xl ml-2 opacity-0 group-hover:opacity-100 transition-all duration-300"
+                  style={{ color: '#b87333' }}
+                >
+                  →
+                </span>
+              </div>
+            </div>
+
+            <div
+              className="absolute bottom-0 left-0 right-0 h-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              style={{ background: 'linear-gradient(to right, transparent, #b87333, transparent)' }}
+            />
+          </div>
+        </button>
       </div>
 
       {tools.length === 0 && (
@@ -153,6 +201,8 @@ export default function ToolsPage() {
           height="400px"
         />
       </div>
+
+      <GamesModal isOpen={gamesOpen} onClose={() => setGamesOpen(false)} />
     </div>
   );
 }
