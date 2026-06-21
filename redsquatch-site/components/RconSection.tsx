@@ -1017,7 +1017,7 @@ export const RconSection = () => {
 
   const fetchPlayers = async () => {
     try {
-      const res = await fetch('/api/client/rcon/players');
+      const res = await fetch('/api/client/rcon/players', { credentials: 'include' });
       const data = await res.json();
       if (data.success && data.players) {
         const playerList = data.players
@@ -1034,7 +1034,7 @@ export const RconSection = () => {
 
   const fetchWhitelist = async () => {
     try {
-      const res = await fetch('/api/client/rcon/whitelist');
+      const res = await fetch('/api/client/rcon/whitelist', { credentials: 'include' });
       const data = await res.json();
       if (data.success) {
         setWhitelist(data.whitelist || []);
@@ -1056,6 +1056,7 @@ export const RconSection = () => {
       const res = await fetch('/api/client/rcon/give-item', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ player: selectedPlayer, item, amount: parseInt(amount) || 1 })
       });
       const data = await res.json();
@@ -1085,6 +1086,7 @@ export const RconSection = () => {
       const res = await fetch('/api/client/rcon/teleport', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ player: selectedPlayer, x: parseInt(x) || 0, y: parseInt(y) || 64, z: parseInt(z) || 0 })
       });
       const data = await res.json();
@@ -1107,7 +1109,7 @@ export const RconSection = () => {
     setLoading(true);
     setMessage('');
     try {
-      const res = await fetch('/api/client/rcon/restart', { method: 'POST' });
+      const res = await fetch('/api/client/rcon/restart', { method: 'POST', credentials: 'include' });
       const data = await res.json();
       if (data.success) {
         setMessage('✓ Server restarting in 10 seconds...');
@@ -1139,6 +1141,7 @@ export const RconSection = () => {
       const res = await fetch('/api/client/rcon/whitelist/add', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ username: newPlayer })
       });
       const data = await res.json();
@@ -1164,6 +1167,7 @@ export const RconSection = () => {
       const res = await fetch('/api/client/rcon/whitelist/remove', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ username })
       });
       const data = await res.json();
