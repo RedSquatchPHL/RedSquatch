@@ -57,6 +57,31 @@ services:
     expose:
       - '3000'
 
+  minecraft-bedrock:
+    image: lomot/minecraft-bedrock:latest
+    container_name: minecraft-bedrock
+    ports:
+      - "19132:19132/udp"
+    environment:
+      EULA: "TRUE"
+      SERVER_NAME: "RedSquatch"
+      GAMEMODE: "survival"
+      DIFFICULTY: "normal"
+      MAX_PLAYERS: "4"
+      LEVEL_NAME: "RedSquatch"
+      ONLINE_MODE: "true"
+      ALLOW_CHEATS: "false"
+      ALLOW_LIST: "true"
+    volumes:
+      - minecraft-bedrock:/data
+    restart: always
+    networks:
+      - coolify
+
+volumes:
+  minecraft-bedrock:
+    driver: local
+
 networks:
   coolify:
     external: true

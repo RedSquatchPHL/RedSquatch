@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { API } from '@/lib/api';
 import TipTapEditor from '@/components/TipTapEditor';
 import GamesModal from '@/components/GamesModal';
-import RconModal from '@/components/RconModal';
+import RconSection from '@/components/RconSection';
 
 interface Tool {
   id: string;
@@ -21,7 +21,6 @@ export default function ToolsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [gamesOpen, setGamesOpen] = useState(false);
-  const [rconOpen, setRconOpen] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -179,36 +178,6 @@ export default function ToolsPage() {
           </div>
         </button>
 
-        {/* RCON Button */}
-        <button
-          onClick={() => setRconOpen(true)}
-          className="group cursor-pointer relative"
-        >
-          <div
-            className="glass-surface relative h-20 w-20 rounded-lg overflow-hidden transition-all duration-300 flex items-center justify-center"
-            onMouseEnter={e => {
-              (e.currentTarget as HTMLDivElement).style.borderColor = '#b87333';
-              (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 40px rgba(0,0,0,0.5), 0 0 24px rgba(184,115,51,0.25), inset 0 1px 0 rgba(255,255,255,0.06)';
-            }}
-            onMouseLeave={e => {
-              (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(184,115,51,0.22)';
-              (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 32px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.05)';
-            }}
-          >
-            <div className="text-2xl transition-transform duration-300 group-hover:scale-125">
-              ⚙️
-            </div>
-
-            <div className="hidden group-hover:flex absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 bg-black/80 px-2 py-1 rounded text-xs whitespace-nowrap pointer-events-none z-10">
-              <span style={{ color: '#d4a373' }}>Minecraft</span>
-            </div>
-
-            <div
-              className="absolute bottom-0 left-0 right-0 h-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-              style={{ background: 'linear-gradient(to right, transparent, #b87333, transparent)' }}
-            />
-          </div>
-        </button>
       </div>
 
       {tools.length === 0 && (
@@ -238,8 +207,19 @@ export default function ToolsPage() {
         />
       </div>
 
+      <div className="mt-12 max-w-4xl w-full mb-8">
+        <div className="glass-surface rounded-2xl px-6 py-4 mb-6">
+          <h2 className="text-xl font-bold" style={{ color: '#d4a373', textShadow: '0 0 16px rgba(184,115,51,0.3)' }}>
+            Minecraft Server Control
+          </h2>
+          <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.35)' }}>
+            Manage the Minecraft Bedrock server: whitelist, give items, teleport, and control
+          </p>
+        </div>
+        <RconSection />
+      </div>
+
       <GamesModal isOpen={gamesOpen} onClose={() => setGamesOpen(false)} />
-      <RconModal isOpen={rconOpen} onClose={() => setRconOpen(false)} />
     </div>
   );
 }

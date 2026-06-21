@@ -114,4 +114,97 @@ router.post('/restart', async (req, res) => {
   }
 });
 
+// Get whitelist
+router.get('/whitelist', async (req, res) => {
+  try {
+    const fs = require('fs').promises;
+    const path = require('path');
+    const allowlistPath = '/data/allowlist.json';
+
+    try {
+      const data = await fs.readFile(allowlistPath, 'utf-8');
+      const whitelist = JSON.parse(data || '[]');
+      res.json({ success: true, whitelist });
+    } catch (err) {
+      res.json({ success: true, whitelist: [] });
+    }
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Add player to whitelist
+router.post('/whitelist/add', async (req, res) => {
+  try {
+    const { username } = req.body;
+    if (!username) return res.status(400).json({ success: false, message: 'Username required' });
+
+    // Validate username: alphanumeric + underscore, 3-16 chars
+    if (!/^[a-zA-Z0-9_]{3,16}$/.test(username)) {
+      return res.status(400).json({ success: false, message: 'Invalid username (3-16 chars: letters, numbers, underscore)' });
+    }
+
+    const fs = require('fs').promises;
+    const allowlistPath = '/data/allowlist.json';
+
+    try {
+      const data = await fs.readFile(allowlistPath, 'utf-8');
+      const whitelist = JSON.parse(data || '[]');
+
+      // Check if player already whitelisted
+      if (whitelist.some(p => p.name.toLowerCase() === username.toLowerCase())) {
+        return res.json({ success: false, message: 'Player already whitelisted', whitelist });
+      }
+
+      // Add player
+      whitelist.push({ name: username, xuid: '' });
+      await fs.writeFile(allowlistPath, JSON.stringify(whitelist, null, 2));
+
+      // Restart server
+      await sendRconCommand('say Whitelist updated');
+      setTimeout(() => sendRconCommand('stop'), 500);
+
+      res.json({ success: true, message: `Added ${username} to whitelist`, whitelist });
+    } catch (err) {
+      return res.status(500).json({ success: false, message: err.message });
+    }
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Remove player from whitelist
+router.post('/whitelist/remove', async (req, res) => {
+  try {
+    const { username } = req.body;
+    if (!username) return res.status(400).json({ success: false, message: 'Username required' });
+
+    const fs = require('fs').promises;
+    const allowlistPath = '/data/allowlist.json';
+
+    try {
+      const data = await fs.readFile(allowlistPath, 'utf-8');
+      const whitelist = JSON.parse(data || '[]');
+
+      const filtered = whitelist.filter(p => p.name.toLowerCase() !== username.toLowerCase());
+
+      if (filtered.length === whitelist.length) {
+        return res.json({ success: false, message: 'Player not found in whitelist', whitelist });
+      }
+
+      await fs.writeFile(allowlistPath, JSON.stringify(filtered, null, 2));
+
+      // Restart server
+      await sendRconCommand('say Whitelist updated');
+      setTimeout(() => sendRconCommand('stop'), 500);
+
+      res.json({ success: true, message: `Removed ${username} from whitelist`, whitelist: filtered });
+    } catch (err) {
+      return res.status(500).json({ success: false, message: err.message });
+    }
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 module.exports = router;
