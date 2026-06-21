@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { API } from '@/lib/api';
 
 const BEDROCK_ITEMS = [
   { id: 'acacia_boat', label: 'Acacia Boat' },
@@ -1017,7 +1018,7 @@ export const RconSection = () => {
 
   const fetchPlayers = async () => {
     try {
-      const res = await fetch('/api/client/rcon/players', { credentials: 'include' });
+      const res = await fetch(`${API}/api/client/rcon/players`, { credentials: 'include' });
       const data = await res.json();
       if (data.success && data.players) {
         const playerList = data.players
@@ -1034,7 +1035,7 @@ export const RconSection = () => {
 
   const fetchWhitelist = async () => {
     try {
-      const res = await fetch('/api/client/rcon/whitelist', { credentials: 'include' });
+      const res = await fetch(`${API}/api/client/rcon/whitelist`, { credentials: 'include' });
       const data = await res.json();
       if (data.success) {
         setWhitelist(data.whitelist || []);
@@ -1053,7 +1054,7 @@ export const RconSection = () => {
     setLoading(true);
     setMessage('');
     try {
-      const res = await fetch('/api/client/rcon/give-item', {
+      const res = await fetch(`${API}/api/client/rcon/give-item`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -1083,7 +1084,7 @@ export const RconSection = () => {
     setLoading(true);
     setMessage('');
     try {
-      const res = await fetch('/api/client/rcon/teleport', {
+      const res = await fetch(`${API}/api/client/rcon/teleport`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -1109,7 +1110,7 @@ export const RconSection = () => {
     setLoading(true);
     setMessage('');
     try {
-      const res = await fetch('/api/client/rcon/restart', { method: 'POST', credentials: 'include' });
+      const res = await fetch(`${API}/api/client/rcon/restart`, { method: 'POST', credentials: 'include' });
       const data = await res.json();
       if (data.success) {
         setMessage('✓ Server restarting in 10 seconds...');
@@ -1138,7 +1139,7 @@ export const RconSection = () => {
     }
     setWhitelistLoading(true);
     try {
-      const res = await fetch('/api/client/rcon/whitelist/add', {
+      const res = await fetch(`${API}/api/client/rcon/whitelist/add`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -1164,7 +1165,7 @@ export const RconSection = () => {
   const removeFromWhitelist = async (username: string) => {
     setWhitelistLoading(true);
     try {
-      const res = await fetch('/api/client/rcon/whitelist/remove', {
+      const res = await fetch(`${API}/api/client/rcon/whitelist/remove`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
