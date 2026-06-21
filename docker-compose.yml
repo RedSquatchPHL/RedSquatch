@@ -22,6 +22,7 @@ services:
     working_dir: /app
     volumes:
       - /root/n8n-docker/redsquatch-api:/app
+      - minecraft-bedrock:/data
     command: node index.js
     environment:
       NODE_ENV: production
