@@ -30,7 +30,7 @@ services:
       DB_PORT: 5432
       DB_USER: postgres
       DB_PASSWORD: 981u6k7JQ7pTaE6pL1K9mcJQRxpE7QJTHIcIh8kg5bMLUOp2R18moakapvG4mSRf
-      DB_NAME: postgres
+      DB_NAME: redsquatch
       SESSION_SECRET: x7Kp2m0nR9vL4wZj8aYc3bNs6uTh5dEf
     networks:
       - coolify

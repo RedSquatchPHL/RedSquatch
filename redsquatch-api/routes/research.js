@@ -4,6 +4,12 @@ const VALID_STATUSES = ['Not Started', 'In Progress', 'Completed', 'Shelved'];
 const VALID_RECOMMENDATIONS = ['Adopt', 'Experiment', 'Monitor', 'Reject'];
 
 const SCHEMA_STATEMENTS = [
+  `CREATE TABLE IF NOT EXISTS client_users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(255) NOT NULL UNIQUE,
+    password_hash VARCHAR(255),
+    created_at TIMESTAMP DEFAULT NOW()
+  )`,
   `CREATE TABLE IF NOT EXISTS research_entries (
     id SERIAL PRIMARY KEY,
     client_id INTEGER NOT NULL REFERENCES client_users(id) ON DELETE CASCADE,

@@ -231,6 +231,60 @@ const SCHEMA_STATEMENTS = [
   `CREATE INDEX IF NOT EXISTS idx_lwl_intake_type ON lincoln_work_logs(intake_type)`,
   `CREATE INDEX IF NOT EXISTS idx_lwl_date        ON lincoln_work_logs(date DESC)`,
 
+  // ── Goals, Tasks, Categories ──────────────────────────────────────────────
+  `CREATE TABLE IF NOT EXISTS goal_categories (
+    id SERIAL PRIMARY KEY,
+    parent_context VARCHAR(50) NOT NULL,
+    sub_type VARCHAR(100) NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW()
+  )`,
+  `CREATE TABLE IF NOT EXISTS goals (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER DEFAULT 1,
+    title TEXT NOT NULL,
+    description TEXT,
+    context VARCHAR(50) DEFAULT 'personal',
+    category_id INTEGER REFERENCES goal_categories(id) ON DELETE SET NULL,
+    target_date DATE,
+    status VARCHAR(50) DEFAULT 'draft',
+    progress INTEGER DEFAULT 0,
+    archived_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+  )`,
+  `CREATE TABLE IF NOT EXISTS milestones (
+    id SERIAL PRIMARY KEY,
+    goal_id INTEGER NOT NULL REFERENCES goals(id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    sequence_order INTEGER DEFAULT 0,
+    is_completed BOOLEAN DEFAULT FALSE,
+    completed_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+  )`,
+  `CREATE TABLE IF NOT EXISTS tasks (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER DEFAULT 1,
+    goal_id INTEGER REFERENCES goals(id) ON DELETE SET NULL,
+    title TEXT NOT NULL,
+    is_maintenance BOOLEAN DEFAULT FALSE,
+    status VARCHAR(50) DEFAULT 'todo',
+    archived_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+  )`,
+  `CREATE TABLE IF NOT EXISTS maintenance_logs (
+    id SERIAL PRIMARY KEY,
+    task_id INTEGER NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+    notes TEXT,
+    completed_at TIMESTAMP DEFAULT NOW(),
+    created_at TIMESTAMP DEFAULT NOW()
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_goals_user_status ON goals(user_id, status)`,
+  `CREATE INDEX IF NOT EXISTS idx_milestones_goal ON milestones(goal_id)`,
+  `CREATE INDEX IF NOT EXISTS idx_tasks_user ON tasks(user_id)`,
+  `CREATE INDEX IF NOT EXISTS idx_maintenance_logs_task ON maintenance_logs(task_id)`,
+
   // ── Minecraft World Management ─────────────────────────────────────────────
   `CREATE TABLE IF NOT EXISTS minecraft_worlds (
     id SERIAL PRIMARY KEY,
