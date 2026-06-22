@@ -6,6 +6,7 @@ import { API } from '@/lib/api';
 import TipTapEditor from '@/components/TipTapEditor';
 import GamesModal from '@/components/GamesModal';
 import RconSection from '@/components/RconSection';
+import { WorldsPanel } from '@/components/WorldsPanel';
 
 interface Tool {
   id: string;
@@ -217,6 +218,18 @@ export default function ToolsPage() {
           </p>
         </div>
         <RconSection />
+      </div>
+
+      <div className="mt-12 max-w-4xl w-full mb-8">
+        <div className="glass-surface rounded-2xl px-6 py-4 mb-6">
+          <h2 className="text-xl font-bold" style={{ color: '#d4a373', textShadow: '0 0 16px rgba(184,115,51,0.3)' }}>
+            Minecraft World Management
+          </h2>
+          <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.35)' }}>
+            Manage 3 world slots with automatic backup and restore
+          </p>
+        </div>
+        <WorldsPanel />
       </div>
 
       <GamesModal isOpen={gamesOpen} onClose={() => setGamesOpen(false)} />

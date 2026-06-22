@@ -9,7 +9,7 @@ const fs = require('fs');
 const { scrapeAll } = require('./sports-scraper');
 const { runMigrations, runInactivityCron, makeRouter: makeWorkItemsRouter } = require('./workItemsRoutes');
 const { runMigrations: runResearchMigrations, makeRouter: makeResearchRouter } = require('./routes/research');
-const rconRoutes = require('./routes/rcon');
+const { makeRouter: makeRconRouter } = require('./routes/rcon');
 
 const SPORTS_FILE = path.join(__dirname, 'public', 'sports.json');
 
@@ -814,7 +814,7 @@ app.post('/api/client/sports/refresh', requireAuth, async (req, res) => {
 
 app.use('/api/client/work-items', makeWorkItemsRouter(db));
 app.use('/api/client/research', makeResearchRouter(db));
-app.use('/api/client/rcon', rconRoutes);
+app.use('/api/client/rcon', makeRconRouter(db));
 
 // ============ TOOLS ============
 

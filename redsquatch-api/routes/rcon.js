@@ -1,18 +1,21 @@
 const express = require('express');
 const dgram = require('dgram');
-const router = express.Router();
 
 const RCON_HOST = 'localhost';
 const RCON_PORT = 19132;
 const RCON_PASSWORD = 'RedSquatchRcon123';
 
-// Middleware: Require authentication
-router.use((req, res, next) => {
-  if (!req.session || !req.session.user) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
-  next();
-});
+function makeRouter(db) {
+  const router = express.Router();
+
+  // Middleware: Require authentication and attach db
+  router.use((req, res, next) => {
+    if (!req.session || !req.session.user) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    req.db = db;
+    next();
+  });
 
 // Helper to send RCON command via UDP
 const sendRconCommand = (command) => {
@@ -207,4 +210,228 @@ router.post('/whitelist/remove', async (req, res) => {
   }
 });
 
-module.exports = router;
+// ============ WORLD MANAGEMENT ============
+
+// Validate seed format (Minecraft seeds are alphanumeric, optional minus sign, up to 20 chars)
+const validateSeed = (seed) => {
+  if (!seed) return true; // Allow empty seed (random)
+  return /^-?\d+$/.test(seed) || /^[a-zA-Z0-9_\-]{1,50}$/.test(seed);
+};
+
+// Get all 3 world slots
+router.get('/worlds', async (req, res) => {
+  try {
+    if (!req.db) {
+      return res.status(500).json({ error: 'Database not available' });
+    }
+    const result = await req.db.query(
+      'SELECT id, slot, world_name, seed, last_backup_date, size_mb FROM minecraft_worlds ORDER BY CASE slot WHEN \'active\' THEN 0 WHEN \'inactive_1\' THEN 1 ELSE 2 END'
+    );
+    res.json({ success: true, worlds: result.rows });
+  } catch (error) {
+    console.error('Error fetching worlds:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Create new world in a slot
+router.post('/worlds/create', async (req, res) => {
+  try {
+    const { slot, world_name, seed } = req.body;
+
+    if (!slot || !['active', 'inactive_1', 'inactive_2'].includes(slot)) {
+      return res.status(400).json({ error: 'Invalid slot (active, inactive_1, or inactive_2)' });
+    }
+    if (!world_name) {
+      return res.status(400).json({ error: 'World name is required' });
+    }
+    if (seed && !validateSeed(seed)) {
+      return res.status(400).json({ error: 'Invalid seed format (alphanumeric, -, or numeric only)' });
+    }
+
+    if (!req.db) {
+      return res.status(500).json({ error: 'Database not available' });
+    }
+
+    // Create world via RCON
+    const seedParam = seed ? ` seed=${seed}` : '';
+    const createCmd = `/new world ${world_name}${seedParam}`;
+
+    try {
+      await sendRconCommand(createCmd);
+    } catch (rconErr) {
+      console.warn('RCON create world warning:', rconErr.message);
+      // Continue anyway - world might be created despite RCON error
+    }
+
+    // Update database
+    const result = await req.db.query(
+      'UPDATE minecraft_worlds SET world_name = $1, seed = $2, updated_at = NOW() WHERE slot = $3 RETURNING *',
+      [world_name, seed || null, slot]
+    );
+
+    res.json({
+      success: true,
+      message: `World '${world_name}' created in slot ${slot}`,
+      world: result.rows[0]
+    });
+  } catch (error) {
+    console.error('Error creating world:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Switch between worlds (with backup/restore)
+router.post('/worlds/switch', async (req, res) => {
+  try {
+    const { from_slot, to_slot } = req.body;
+
+    if (!from_slot || !to_slot || from_slot === to_slot) {
+      return res.status(400).json({ error: 'Valid from_slot and to_slot required' });
+    }
+    if (!['active', 'inactive_1', 'inactive_2'].includes(from_slot) ||
+        !['active', 'inactive_1', 'inactive_2'].includes(to_slot)) {
+      return res.status(400).json({ error: 'Invalid slot names' });
+    }
+
+    if (!req.db) {
+      return res.status(500).json({ error: 'Database not available' });
+    }
+
+    const { exec } = require('child_process');
+    const util = require('util');
+    const execPromise = util.promisify(exec);
+    const fs = require('fs');
+
+    // Get current world info
+    const fromResult = await req.db.query(
+      'SELECT * FROM minecraft_worlds WHERE slot = $1',
+      [from_slot]
+    );
+    const fromWorld = fromResult.rows[0];
+
+    if (!fromWorld) {
+      return res.status(404).json({ error: 'Source world not found' });
+    }
+
+    // Get target world info
+    const toResult = await req.db.query(
+      'SELECT * FROM minecraft_worlds WHERE slot = $1',
+      [to_slot]
+    );
+    const toWorld = toResult.rows[0];
+
+    if (!toWorld) {
+      return res.status(404).json({ error: 'Target world not found' });
+    }
+
+    if (!toWorld.world_name) {
+      return res.status(400).json({ error: 'Target world is empty. Create a world first.' });
+    }
+
+    let backupFile = null;
+
+    try {
+      // Step 1: Announce and backup current world (if it exists)
+      if (fromWorld.world_name) {
+        await sendRconCommand(`say Backing up ${fromWorld.world_name}...`);
+
+        const backupDir = '/home/RedSquatch/minecraft-backups';
+        if (!fs.existsSync(backupDir)) {
+          fs.mkdirSync(backupDir, { recursive: true });
+        }
+
+        try {
+          const backupScript = '/home/RedSquatch/minecraft-backup.sh';
+          const { stdout } = await execPromise(
+            `${backupScript} /data/worlds "${backupDir}" "${from_slot}"`
+          );
+          backupFile = stdout.trim();
+          console.log('Backup completed:', backupFile);
+
+          // Update backup timestamp in DB
+          await req.db.query(
+            'UPDATE minecraft_worlds SET last_backup_date = NOW() WHERE slot = $1',
+            [from_slot]
+          );
+        } catch (backupErr) {
+          console.error('Backup error:', backupErr.message);
+          // Don't fail the switch if backup fails, just warn
+          await sendRconCommand('say Warning: Backup may have failed, but proceeding with world switch');
+        }
+      }
+
+      // Step 2: Announce world load
+      await sendRconCommand(`say Loading ${toWorld.world_name}...`);
+
+      // Step 3: Unload current world (if one exists)
+      if (fromWorld.world_name) {
+        try {
+          await sendRconCommand(`/unload`);
+        } catch (e) {
+          console.warn('Unload command warning:', e.message);
+        }
+      }
+
+      // Step 4: Load target world
+      try {
+        const loadCmd = `/load world "${toWorld.world_name}"`;
+        await sendRconCommand(loadCmd);
+      } catch (e) {
+        console.warn('Load command may have succeeded despite error:', e.message);
+      }
+
+      // Step 5: Announce success
+      await sendRconCommand(`say World loaded: ${toWorld.world_name}`);
+
+      // Step 6: Update database
+      await req.db.query(
+        'UPDATE minecraft_worlds SET updated_at = NOW() WHERE slot IN ($1, $2)',
+        [from_slot, to_slot]
+      );
+
+      res.json({
+        success: true,
+        message: `Switched from ${from_slot} to ${to_slot}`,
+        backup_file: backupFile,
+        active_world: toWorld
+      });
+    } catch (error) {
+      throw new Error(`World switch failed: ${error.message}`);
+    }
+  } catch (error) {
+    console.error('Error switching worlds:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// List all backups
+router.get('/worlds/backups', async (req, res) => {
+  try {
+    const fs = require('fs').promises;
+    const backupDir = '/home/RedSquatch/minecraft-backups';
+
+    try {
+      const files = await fs.readdir(backupDir);
+      const backups = files
+        .filter(f => f.startsWith('world-') && f.endsWith('.tar.gz'))
+        .map(f => ({
+          filename: f,
+          slot: f.split('-')[1] || 'unknown',
+          timestamp: f.match(/(\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2})/)?.[1] || 'unknown'
+        }))
+        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+      res.json({ success: true, backups });
+    } catch (err) {
+      res.json({ success: true, backups: [] });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+  return router;
+}
+
+module.exports = { makeRouter };
