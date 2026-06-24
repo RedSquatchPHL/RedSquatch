@@ -54,17 +54,18 @@ app.use(session({
   saveUninitialized: true, // Always create session, even if empty (needed for login to work)
   proxy: true, // trust X-Forwarded-Proto from Traefik proxy
   cookie: (req) => {
-    // Determine if connection is HTTPS: either req.secure or X-Forwarded-Proto: https
-    const isHttps = req.secure || req.get('x-forwarded-proto') === 'https';
+    // Production: always use HTTPS settings (Traefik handles HTTPS termination)
+    // Development: check for X-Forwarded-Proto or fall back to secure: false
+    const isProduction = process.env.NODE_ENV === 'production';
+    const isHttps = isProduction || req.secure || req.get('x-forwarded-proto') === 'https';
 
     return {
       httpOnly: true,
-      // Use secure flag based on actual protocol
+      // HTTPS only for production; development can use HTTP
       secure: isHttps,
-      // For HTTPS cross-origin, use 'none'; for HTTP or same-origin use 'lax'
+      // SameSite=none required for HTTPS cross-origin requests; lax for HTTP same-origin
       sameSite: isHttps ? 'none' : 'lax',
-      // Production: redsquatch.com (not .redsquatch.com) allows both bare domain AND subdomains
-      // This enables cookies to be sent from redsquatch.com to api.redsquatch.com
+      // In production, allow all redsquatch.com domains (bare + subdomains)
       domain: isHttps ? 'redsquatch.com' : undefined,
       maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
       path: '/'
