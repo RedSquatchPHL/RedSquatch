@@ -40,3 +40,25 @@ logs/
 tmp/
 temp/
 .cache/
+
+# User/System files (should never be committed)
+.bash_history
+.bashrc
+.zshrc
+.profile
+.claude/
+.claude.json
+.cursor/
+.cursor-server/
+.copilot/
+.config/
+.dotnet/
+.git-credentials
+.gitconfig
+.lesshst
+.local/
+.npm/
+.ssh/
+.sudo_as_admin_successful
+.vscode-server/
+.wget-hsts
