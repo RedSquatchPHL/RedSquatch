@@ -51,12 +51,11 @@ app.use(session({
   secret: process.env.SESSION_SECRET || 'redsquatch-secret-key',
   resave: false,
   saveUninitialized: false,
-  proxy: true, // trust X-Forwarded-Proto from Traefik directly (not via req.secure)
+  proxy: true, // trust X-Forwarded-Proto from Traefik
   cookie: {
     httpOnly: true,
-    secure: true,
-    sameSite: 'none',
-    domain: '.redsquatch.com',
+    secure: false, // Allow HTTP in development/testing
+    sameSite: 'lax',
     maxAge: 1000 * 60 * 60 * 24 * 7 // 7 days
   }
 }));
@@ -80,10 +79,15 @@ app.post('/api/client/login', async (req, res) => {
   if (username !== TEST_USER.username) return res.status(401).json({ error: 'Invalid credentials' });
   const match = await bcrypt.compare(password, TEST_USER.password_hash);
   if (!match) return res.status(401).json({ error: 'Invalid credentials' });
-  req.session.user = { username, displayName: TEST_USER.displayName };
-  req.session.save(err => {
-    if (err) return res.status(500).json({ error: 'Session save failed' });
-    res.json({ success: true, message: 'Login successful' });
+
+  // Regenerate session after successful authentication (creates new session ID)
+  req.session.regenerate(err => {
+    if (err) return res.status(500).json({ error: 'Session regeneration failed' });
+    req.session.user = { username, displayName: TEST_USER.displayName };
+    req.session.save(err => {
+      if (err) return res.status(500).json({ error: 'Session save failed' });
+      res.json({ success: true, message: 'Login successful' });
+    });
   });
 });
 

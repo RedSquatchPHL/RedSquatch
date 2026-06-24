@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { API } from '@/lib/api';
 
 export const RconPanel = () => {
   const [players, setPlayers] = useState<string[]>([]);
@@ -22,7 +23,7 @@ export const RconPanel = () => {
 
   const fetchPlayers = async () => {
     try {
-      const res = await fetch('/api/client/rcon/players');
+      const res = await fetch(`${API}/api/client/rcon/players`, { credentials: 'include' });
       const data = await res.json();
       if (data.success && data.players) {
         const playerList = data.players
@@ -45,9 +46,10 @@ export const RconPanel = () => {
     setLoading(true);
     setMessage('');
     try {
-      const res = await fetch('/api/client/rcon/give-item', {
+      const res = await fetch(`${API}/api/client/rcon/give-item`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ player: selectedPlayer, item, amount: parseInt(amount) || 1 })
       });
       const data = await res.json();
@@ -70,9 +72,10 @@ export const RconPanel = () => {
     setLoading(true);
     setMessage('');
     try {
-      const res = await fetch('/api/client/rcon/teleport', {
+      const res = await fetch(`${API}/api/client/rcon/teleport`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ player: selectedPlayer, x: parseInt(x) || 0, y: parseInt(y) || 64, z: parseInt(z) || 0 })
       });
       const data = await res.json();
@@ -92,7 +95,7 @@ export const RconPanel = () => {
     setLoading(true);
     setMessage('');
     try {
-      const res = await fetch('/api/client/rcon/restart', { method: 'POST' });
+      const res = await fetch(`${API}/api/client/rcon/restart`, { method: 'POST', credentials: 'include' });
       const data = await res.json();
       if (data.success) {
         setMessage('✓ Server restarting in 10 seconds...');
