@@ -51,7 +51,7 @@ app.use(session({
   }),
   secret: process.env.SESSION_SECRET || 'redsquatch-secret-key',
   resave: false,
-  saveUninitialized: false,
+  saveUninitialized: true, // Always create session, even if empty (needed for login to work)
   proxy: true, // trust X-Forwarded-Proto from Traefik proxy
   cookie: (req) => {
     // Determine if connection is HTTPS: either req.secure or X-Forwarded-Proto: https
@@ -63,8 +63,9 @@ app.use(session({
       secure: isHttps,
       // For HTTPS cross-origin, use 'none'; for HTTP or same-origin use 'lax'
       sameSite: isHttps ? 'none' : 'lax',
-      // Production: allow subdomains; Development: no domain restriction
-      domain: isHttps ? '.redsquatch.com' : undefined,
+      // Production: redsquatch.com (not .redsquatch.com) allows both bare domain AND subdomains
+      // This enables cookies to be sent from redsquatch.com to api.redsquatch.com
+      domain: isHttps ? 'redsquatch.com' : undefined,
       maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
       path: '/'
     };
@@ -91,14 +92,11 @@ app.post('/api/client/login', async (req, res) => {
   const match = await bcrypt.compare(password, TEST_USER.password_hash);
   if (!match) return res.status(401).json({ error: 'Invalid credentials' });
 
-  // Regenerate session after successful authentication (creates new session ID)
-  req.session.regenerate(err => {
-    if (err) return res.status(500).json({ error: 'Session regeneration failed' });
-    req.session.user = { username, displayName: TEST_USER.displayName };
-    req.session.save(err => {
-      if (err) return res.status(500).json({ error: 'Session save failed' });
-      res.json({ success: true, message: 'Login successful' });
-    });
+  // Set user in session and save
+  req.session.user = { username, displayName: TEST_USER.displayName };
+  req.session.save(err => {
+    if (err) return res.status(500).json({ error: 'Session save failed' });
+    res.json({ success: true, message: 'Login successful' });
   });
 });
 
