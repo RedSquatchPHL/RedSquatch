@@ -42,7 +42,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Session middleware — Pool connects lazily, safe to register before routes
-// Cookie config supports both production (HTTPS via Traefik) and development (HTTP localhost)
+// Cookie config with dynamic secure flag based on protocol
 app.use(session({
   store: new pgSession({
     pool: db,
@@ -52,15 +52,22 @@ app.use(session({
   secret: process.env.SESSION_SECRET || 'redsquatch-secret-key',
   resave: false,
   saveUninitialized: false,
-  proxy: true, // trust X-Forwarded-Proto from Traefik proxy for HTTPS detection
-  cookie: {
-    httpOnly: true,
-    secure: false, // Allow HTTP; production uses HTTPS via Traefik proxy
-    sameSite: 'lax', // Works in both HTTP and HTTPS
-    // Only set domain for production (redsquatch.com); leave undefined for localhost
-    domain: process.env.API_HOST && process.env.API_HOST.includes('redsquatch.com') ? '.redsquatch.com' : undefined,
-    maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
-    path: '/'
+  proxy: true, // trust X-Forwarded-Proto from Traefik proxy
+  cookie: (req) => {
+    // Determine if connection is HTTPS: either req.secure or X-Forwarded-Proto: https
+    const isHttps = req.secure || req.get('x-forwarded-proto') === 'https';
+
+    return {
+      httpOnly: true,
+      // Use secure flag based on actual protocol
+      secure: isHttps,
+      // For HTTPS cross-origin, use 'none'; for HTTP or same-origin use 'lax'
+      sameSite: isHttps ? 'none' : 'lax',
+      // Production: allow subdomains; Development: no domain restriction
+      domain: isHttps ? '.redsquatch.com' : undefined,
+      maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+      path: '/'
+    };
   }
 }));
 
