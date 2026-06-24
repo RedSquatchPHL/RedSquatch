@@ -32,7 +32,7 @@ services:
       DB_PASSWORD: 981u6k7JQ7pTaE6pL1K9mcJQRxpE7QJTHIcIh8kg5bMLUOp2R18moakapvG4mSRf
       DB_NAME: postgres
       SESSION_SECRET: x7Kp2m0nR9vL4wZj8aYc3bNs6uTh5dEf
-      COOKIE_SECURE: "false"
+      SECURE_COOKIES: "true"
     networks:
       - coolify
     restart: always
