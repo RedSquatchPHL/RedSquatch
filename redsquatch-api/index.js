@@ -920,6 +920,66 @@ async function initializeApp() {
     await db.query('SELECT 1');
     console.log('✓ PostgreSQL connected');
 
+    // Create essential tables first (before any complex migrations)
+    console.log('Creating essential tables...');
+    try {
+      // Session table (used by express-session)
+      await db.query(`
+        CREATE TABLE IF NOT EXISTS session (
+          sid varchar NOT NULL PRIMARY KEY,
+          sess json NOT NULL,
+          expire timestamp(6) NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_session_expire ON session (expire);
+      `);
+
+      // Client users table (referenced by research and auth)
+      await db.query(`
+        CREATE TABLE IF NOT EXISTS client_users (
+          id SERIAL PRIMARY KEY,
+          username VARCHAR(255) NOT NULL UNIQUE,
+          password_hash VARCHAR(255),
+          created_at TIMESTAMP DEFAULT NOW()
+        );
+      `);
+
+      // Goal categories and goals (referenced by research)
+      await db.query(`
+        CREATE TABLE IF NOT EXISTS goal_categories (
+          id SERIAL PRIMARY KEY,
+          parent_context VARCHAR(50) NOT NULL,
+          sub_type VARCHAR(100) NOT NULL,
+          created_at TIMESTAMP DEFAULT NOW()
+        );
+        CREATE TABLE IF NOT EXISTS goals (
+          id SERIAL PRIMARY KEY,
+          user_id INTEGER DEFAULT 1,
+          title TEXT NOT NULL,
+          description TEXT,
+          context VARCHAR(50) DEFAULT 'personal',
+          category_id INTEGER REFERENCES goal_categories(id) ON DELETE SET NULL,
+          target_date DATE,
+          status VARCHAR(50) DEFAULT 'draft',
+          progress INTEGER DEFAULT 0,
+          archived_at TIMESTAMP,
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW()
+        );
+      `);
+
+      // Insert test user if not exists
+      await db.query(`
+        INSERT INTO client_users (username, password_hash)
+        VALUES ('acme_client', '$2b$10$p8DMKQQiF.xfhKJqAzjFRe2U3Aif16SIvpXSGCMGKW3fymbcpM8.K')
+        ON CONFLICT (username) DO NOTHING
+      `);
+
+      console.log('✓ Essential tables created');
+    } catch (err) {
+      console.error('✗ Essential table creation failed:', err.message);
+      throw err;
+    }
+
     // Run idempotent schema migrations (order matters: goals before research which references it)
     try {
       await runMigrations(db);
