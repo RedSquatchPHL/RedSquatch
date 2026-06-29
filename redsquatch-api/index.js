@@ -88,7 +88,7 @@ app.use(session({
 const TEST_USER = {
   username: 'acme_client',
   displayName: 'Darryl',
-  password_hash: '$2b$10$TjlnUfy/pm4FuHWV5mPb/eWfDWnlzDn2KObpVMrvrJIkpjWIosSLy' // password: test123
+  password_hash: '$2b$10$p8DMKQQiF.xfhKJqAzjFRe2U3Aif16SIvpXSGCMGKW3fymbcpM8.K'
 };
 
 function requireAuth(req, res, next) {
