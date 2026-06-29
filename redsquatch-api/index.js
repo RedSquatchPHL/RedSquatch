@@ -42,6 +42,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Session middleware — Pool connects lazily, safe to register before routes
+// Cookie config with dynamic secure flag based on protocol
 app.use(session({
   store: new pgSession({
     pool: db,
@@ -50,14 +51,37 @@ app.use(session({
   }),
   secret: process.env.SESSION_SECRET || 'redsquatch-secret-key',
   resave: false,
-  saveUninitialized: false,
-  proxy: true, // trust X-Forwarded-Proto from Traefik directly (not via req.secure)
-  cookie: {
-    httpOnly: true,
-    secure: true,
-    sameSite: 'none',
-    domain: '.redsquatch.com',
-    maxAge: 1000 * 60 * 60 * 24 * 7 // 7 days
+  saveUninitialized: true, // Always create session, even if empty (needed for login to work)
+  proxy: true, // trust X-Forwarded-Proto from Traefik proxy
+  cookie: (req) => {
+    // Detect actual HTTPS: trust X-Forwarded-Proto from proxy, fallback to req.secure, default to production HTTPS
+    const xForwardedProto = req.get('x-forwarded-proto');
+    const isHttps = xForwardedProto === 'https' || xForwardedProto === 'http' ? xForwardedProto === 'https' : (req.secure || process.env.NODE_ENV === 'production');
+    const host = req.get('host') || 'localhost';
+    const isLocalhost = host.includes('localhost') || host.includes('127.0.0.1');
+
+    console.log('[COOKIE-CONFIG]', {
+      NODE_ENV: process.env.NODE_ENV,
+      host,
+      isLocalhost,
+      req_secure: req.secure,
+      x_forwarded_proto: xForwardedProto,
+      isHttps,
+      protocol: req.protocol
+    });
+
+    const cookieConfig = {
+      httpOnly: true,
+      secure: isHttps,
+      sameSite: isHttps && !isLocalhost ? 'none' : 'lax',
+      // Domain: use redsquatch.com for production, undefined for localhost (session-only)
+      domain: !isLocalhost && isHttps ? 'redsquatch.com' : undefined,
+      maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+      path: '/'
+    };
+
+    console.log('[COOKIE-FINAL]', cookieConfig);
+    return cookieConfig;
   }
 }));
 
@@ -68,7 +92,12 @@ const TEST_USER = {
 };
 
 function requireAuth(req, res, next) {
-  if (!req.session.user) return res.status(401).json({ error: 'Unauthorized' });
+  console.log('[AUTH] Checking auth. SessionID:', req.sessionID, 'User:', req.session.user, 'Session:', req.session);
+  if (!req.session.user) {
+    console.log('[AUTH] User not found in session. Returning 401.');
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  console.log('[AUTH] User authenticated:', req.session.user.username);
   next();
 }
 
@@ -80,9 +109,16 @@ app.post('/api/client/login', async (req, res) => {
   if (username !== TEST_USER.username) return res.status(401).json({ error: 'Invalid credentials' });
   const match = await bcrypt.compare(password, TEST_USER.password_hash);
   if (!match) return res.status(401).json({ error: 'Invalid credentials' });
+
+  // Set user in session and save
   req.session.user = { username, displayName: TEST_USER.displayName };
+  console.log('[LOGIN] Setting session:', { sessionId: req.sessionID, user: req.session.user });
   req.session.save(err => {
-    if (err) return res.status(500).json({ error: 'Session save failed' });
+    if (err) {
+      console.error('[LOGIN] Session save failed:', err);
+      return res.status(500).json({ error: 'Session save failed' });
+    }
+    console.log('[LOGIN] Session saved successfully. Set-Cookie will be:', req.sessionID);
     res.json({ success: true, message: 'Login successful' });
   });
 });

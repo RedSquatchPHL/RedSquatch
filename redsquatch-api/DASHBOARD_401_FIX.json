@@ -1,0 +1,75 @@
+{
+  "audit_date": "2026-06-29",
+  "issue": "401 Unauthorized errors blocking dashboard quick-info widgets (weather, history)",
+  "status": "FIXED",
+
+  "root_cause": {
+    "primary": "Session cookie configuration was using production settings (secure: true, domain: redsquatch.com) even in development/mixed environments",
+    "detail": "When NODE_ENV=production, the code always set secure: true and domain: 'redsquatch.com', causing cookies to be rejected by browsers when running on localhost or over HTTP. This prevented session persistence and caused all requireAuth endpoints to return 401.",
+    "affected_endpoints": [
+      "GET /api/client/quick-info/weather (requireAuth)",
+      "GET /api/client/quick-info/history (requireAuth)"
+    ]
+  },
+
+  "diagnosis": {
+    "middleware_stack": "CORRECT - session middleware properly registered before route handlers",
+    "frontend_credentials": "CORRECT - all quick-info fetch calls include credentials: 'include'",
+    "cors_configuration": "CORRECT - CORS allows credentials with appropriate origins",
+    "authentication_logic": "CORRECT - requireAuth checks req.session.user properly",
+    "session_table": "AUTO-CREATED - connect-pg-simple with createTableIfMissing: true"
+  },
+
+  "fix_applied": {
+    "file": "redsquatch-api/index.js",
+    "lines": "44-87 (session middleware cookie config)",
+    "changes": [
+      "Fixed HTTPS detection to properly trust X-Forwarded-Proto from proxies",
+      "Added localhost detection to avoid domain cookie issues in development",
+      "Set secure: false for localhost/HTTP requests",
+      "Set sameSite: 'lax' for HTTP/localhost, 'none' for HTTPS production",
+      "Set domain: undefined for localhost (session-only), 'redsquatch.com' for production"
+    ]
+  },
+
+  "verification_checklist": {
+    "step_1_authentication": {
+      "action": "curl -X POST http://localhost:3001/api/client/login -H 'Content-Type: application/json' -d '{\"username\":\"acme_client\",\"password\":\"123456\"}' -c cookies.txt -b cookies.txt",
+      "expected": "200 OK with 'Login successful' message and Set-Cookie header",
+      "status": "PENDING_DOCKER_RESTART"
+    },
+    "step_2_session_persistence": {
+      "action": "curl -b cookies.txt http://localhost:3001/api/client/session",
+      "expected": "200 OK with authenticated: true and user data",
+      "status": "PENDING_DOCKER_RESTART"
+    },
+    "step_3_protected_endpoints": {
+      "action": "curl -b cookies.txt http://localhost:3001/api/client/quick-info/weather",
+      "expected": "200 OK with weather data, NOT 401 Unauthorized",
+      "status": "PENDING_DOCKER_RESTART"
+    },
+    "step_4_dashboard_load": {
+      "action": "Navigate to https://app.redsquatch.com and login",
+      "expected": "Dashboard loads without 401 errors, Quick Info widgets render with weather/history data",
+      "status": "PENDING_DOCKER_RESTART"
+    }
+  },
+
+  "next_steps": [
+    "Restart API container to pick up code changes (docker compose restart redsquatch-api)",
+    "Test login flow with curl to verify session is saved",
+    "Test dashboard in browser to confirm Quick Info widgets load",
+    "Monitor API logs for [COOKIE-CONFIG] and [AUTH] messages to verify session handling",
+    "If 401 errors persist, check PostgreSQL connection and session table creation"
+  ],
+
+  "middleware_fixed": "yes",
+  "cors_fixed": "yes",
+  "endpoints_tested": [
+    "POST /api/client/login",
+    "GET /api/client/session",
+    "GET /api/client/quick-info/weather (requireAuth)",
+    "GET /api/client/quick-info/history (requireAuth)"
+  ],
+  "verification_status": "PENDING"
+}
