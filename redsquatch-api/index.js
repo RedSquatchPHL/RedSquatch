@@ -23,6 +23,7 @@ app.use(cors({
     'https://redsquatch.com',
     'https://www.redsquatch.com',
     'https://app.redsquatch.com',
+    'https://api.redsquatch.com',
     'http://localhost:3002',
     'http://localhost:3000'
   ],
