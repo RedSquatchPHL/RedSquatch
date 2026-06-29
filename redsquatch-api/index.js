@@ -81,9 +81,9 @@ app.use(session({
       httpOnly: true,
       secure: isHttps,
       sameSite: isHttps && !isNonProduction ? 'none' : 'lax',
-      // Domain: use .redsquatch.com (with leading dot) for production to allow cookies across subdomains
-      // undefined for dev/Docker (session-only, no cross-origin issues)
-      domain: !isNonProduction && isHttps ? '.redsquatch.com' : undefined,
+      // Domain: allow cookies to be shared across api.redsquatch.com and www.redsquatch.com
+      // For production (HTTPS), use parent domain format for subdomain sharing
+      domain: !isNonProduction && isHttps ? 'redsquatch.com' : undefined,
       maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
       path: '/'
     };
@@ -124,13 +124,22 @@ app.post('/api/client/login', async (req, res) => {
   // Set user in session and save
   req.session.user = { username, displayName: TEST_USER.displayName };
   console.log('[LOGIN] Setting session:', { sessionId: req.sessionID, user: req.session.user, origin: req.get('origin'), host: req.get('host') });
+
   req.session.save(err => {
     if (err) {
-      console.error('[LOGIN] Session save failed:', err);
-      return res.status(500).json({ error: 'Session save failed' });
+      console.error('[LOGIN] Session save FAILED:', err.message, err.stack);
+      return res.status(500).json({ error: 'Session save failed: ' + err.message });
     }
-    console.log('[LOGIN] Session saved successfully. SessionID:', req.sessionID, 'Response headers:', res.getHeaders());
+
+    console.log('[LOGIN] Session saved. Before response send:');
+    console.log('  SessionID:', req.sessionID);
+    console.log('  Response headers:', JSON.stringify(res.getHeaders(), null, 2));
+    console.log('  req.session:', req.session);
+
     res.json({ success: true, message: 'Login successful' });
+
+    console.log('[LOGIN] After res.json():');
+    console.log('  Response headers:', JSON.stringify(res.getHeaders(), null, 2));
   });
 });
 
