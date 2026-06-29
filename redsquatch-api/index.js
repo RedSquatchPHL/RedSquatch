@@ -99,7 +99,10 @@ const TEST_USER = {
 };
 
 function requireAuth(req, res, next) {
-  console.log('[AUTH] Checking auth. SessionID:', req.sessionID, 'User:', req.session.user, 'Session:', req.session);
+  const cookies = req.get('cookie') || 'no cookies';
+  console.log('[AUTH] Request from:', req.get('origin') || 'no origin', 'Host:', req.get('host'));
+  console.log('[AUTH] Cookies in request:', cookies.substring(0, 100));
+  console.log('[AUTH] SessionID:', req.sessionID, 'User:', req.session.user, 'Session keys:', Object.keys(req.session));
   if (!req.session.user) {
     console.log('[AUTH] User not found in session. Returning 401.');
     return res.status(401).json({ error: 'Unauthorized' });
@@ -119,13 +122,13 @@ app.post('/api/client/login', async (req, res) => {
 
   // Set user in session and save
   req.session.user = { username, displayName: TEST_USER.displayName };
-  console.log('[LOGIN] Setting session:', { sessionId: req.sessionID, user: req.session.user });
+  console.log('[LOGIN] Setting session:', { sessionId: req.sessionID, user: req.session.user, origin: req.get('origin'), host: req.get('host') });
   req.session.save(err => {
     if (err) {
       console.error('[LOGIN] Session save failed:', err);
       return res.status(500).json({ error: 'Session save failed' });
     }
-    console.log('[LOGIN] Session saved successfully. Set-Cookie will be:', req.sessionID);
+    console.log('[LOGIN] Session saved successfully. SessionID:', req.sessionID, 'Response headers:', res.getHeaders());
     res.json({ success: true, message: 'Login successful' });
   });
 });
