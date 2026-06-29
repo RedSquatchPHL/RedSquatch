@@ -81,8 +81,9 @@ app.use(session({
       httpOnly: true,
       secure: isHttps,
       sameSite: isHttps && !isNonProduction ? 'none' : 'lax',
-      // Domain: use redsquatch.com for production only, undefined for dev/Docker (session-only, no cross-origin issues)
-      domain: !isNonProduction && isHttps ? 'redsquatch.com' : undefined,
+      // Domain: use .redsquatch.com (with leading dot) for production to allow cookies across subdomains
+      // undefined for dev/Docker (session-only, no cross-origin issues)
+      domain: !isNonProduction && isHttps ? '.redsquatch.com' : undefined,
       maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
       path: '/'
     };
@@ -910,9 +911,22 @@ async function initializeApp() {
     await db.query('SELECT 1');
     console.log('✓ PostgreSQL connected');
 
-    // Run idempotent schema migrations
-    await runMigrations(db);
-    await runResearchMigrations(db);
+    // Run idempotent schema migrations (order matters: goals before research which references it)
+    try {
+      await runMigrations(db);
+      console.log('✓ Work items migrations complete');
+    } catch (err) {
+      console.error('✗ Work items migration failed:', err.message);
+      throw err;
+    }
+
+    try {
+      await runResearchMigrations(db);
+      console.log('✓ Research migrations complete');
+    } catch (err) {
+      console.error('✗ Research migration failed:', err.message);
+      throw err;
+    }
 
     app.listen(PORT, () => {
       console.log(`✓ RedSquatch API running on port ${PORT}`);
