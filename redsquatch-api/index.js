@@ -54,9 +54,9 @@ app.use(session({
   saveUninitialized: true, // Always create session, even if empty (needed for login to work)
   proxy: true, // trust X-Forwarded-Proto from Traefik proxy
   cookie: (req) => {
-    // Detect actual HTTPS: trust X-Forwarded-Proto from proxy, fallback to req.secure, default to production HTTPS
+    // Detect actual HTTPS: trust X-Forwarded-Proto from proxy, fallback to req.secure
     const xForwardedProto = req.get('x-forwarded-proto');
-    const isHttps = xForwardedProto === 'https' || xForwardedProto === 'http' ? xForwardedProto === 'https' : (req.secure || process.env.NODE_ENV === 'production');
+    const isHttps = xForwardedProto ? xForwardedProto === 'https' : req.secure;
     const host = req.get('host') || 'localhost';
     const isLocalhost = host.includes('localhost') || host.includes('127.0.0.1');
 
@@ -74,7 +74,7 @@ app.use(session({
       httpOnly: true,
       secure: isHttps,
       sameSite: isHttps && !isLocalhost ? 'none' : 'lax',
-      // Domain: use redsquatch.com for production, undefined for localhost (session-only)
+      // Domain: use redsquatch.com for production HTTPS, undefined for localhost/HTTP (session-only)
       domain: !isLocalhost && isHttps ? 'redsquatch.com' : undefined,
       maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
       path: '/'
@@ -88,7 +88,7 @@ app.use(session({
 const TEST_USER = {
   username: 'acme_client',
   displayName: 'Darryl',
-  password_hash: '$2b$10$p8DMKQQiF.xfhKJqAzjFRe2U3Aif16SIvpXSGCMGKW3fymbcpM8.K'
+  password_hash: '$2b$10$TjlnUfy/pm4FuHWV5mPb/eWfDWnlzDn2KObpVMrvrJIkpjWIosSLy' // password: test123
 };
 
 function requireAuth(req, res, next) {
