@@ -58,12 +58,18 @@ app.use(session({
     const xForwardedProto = req.get('x-forwarded-proto');
     const isHttps = xForwardedProto ? xForwardedProto === 'https' : req.secure;
     const host = req.get('host') || 'localhost';
-    const isLocalhost = host.includes('localhost') || host.includes('127.0.0.1');
+
+    // Detect non-production environments (localhost, Docker internal IPs, etc.)
+    const isNonProduction = host.includes('localhost') ||
+                            host.includes('127.0.0.1') ||
+                            host.startsWith('10.') ||
+                            host.includes('192.168') ||
+                            host.includes(':3001'); // API on port 3001 = dev
 
     console.log('[COOKIE-CONFIG]', {
       NODE_ENV: process.env.NODE_ENV,
       host,
-      isLocalhost,
+      isNonProduction,
       req_secure: req.secure,
       x_forwarded_proto: xForwardedProto,
       isHttps,
@@ -73,9 +79,9 @@ app.use(session({
     const cookieConfig = {
       httpOnly: true,
       secure: isHttps,
-      sameSite: isHttps && !isLocalhost ? 'none' : 'lax',
-      // Domain: use redsquatch.com for production HTTPS, undefined for localhost/HTTP (session-only)
-      domain: !isLocalhost && isHttps ? 'redsquatch.com' : undefined,
+      sameSite: isHttps && !isNonProduction ? 'none' : 'lax',
+      // Domain: use redsquatch.com for production only, undefined for dev/Docker (session-only, no cross-origin issues)
+      domain: !isNonProduction && isHttps ? 'redsquatch.com' : undefined,
       maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
       path: '/'
     };
