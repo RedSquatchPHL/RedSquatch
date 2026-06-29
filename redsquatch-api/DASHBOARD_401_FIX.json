@@ -1,87 +1,96 @@
 {
   "audit_date": "2026-06-29",
-  "issue": "401 Unauthorized errors blocking dashboard quick-info widgets (weather, history)",
+  "issue_initial": "401 Unauthorized errors blocking dashboard quick-info widgets",
+  "issue_discovered": "Sessions lost when navigating between tabs (session dropout)",
   "status": "FIXED_AND_VERIFIED",
 
-  "root_cause": {
-    "primary": "Session cookie marked secure: true for HTTP requests, causing browser rejection",
-    "detail": "The cookie configuration logic was using NODE_ENV=production as a fallback to determine HTTPS, even when requests were actually over HTTP. This caused browsers to reject insecure cookies, preventing session persistence and causing all requireAuth endpoints to return 401.",
-    "mechanism": "Browser won't send/store cookies with secure: true over HTTP; only HTTPS can use secure cookies",
-    "affected_endpoints": [
-      "GET /api/client/quick-info/weather (requireAuth)",
-      "GET /api/client/quick-info/history (requireAuth)"
-    ]
-  },
+  "root_causes": [
+    {
+      "issue_id": 1,
+      "primary": "Session cookie marked secure: true for HTTP requests",
+      "detail": "Cookie configuration was using NODE_ENV=production as fallback, causing secure: true for HTTP which browsers reject",
+      "symptoms": "401 errors on first page load"
+    },
+    {
+      "issue_id": 2,
+      "primary": "Cookie domain mismatch causing session loss on navigation",
+      "detail": "Cookie was restricted to domain: 'redsquatch.com', but frontend on Docker IP (10.0.1.12) cannot access domain-restricted cookies. Browser rejects cross-origin cookies.",
+      "symptoms": "Sessions persist initially, then lost on tab navigation/reload"
+    }
+  ],
 
-  "diagnosis": {
-    "middleware_stack": "✓ CORRECT - session middleware properly registered before route handlers",
-    "frontend_credentials": "✓ CORRECT - all quick-info fetch calls include credentials: 'include'",
-    "cors_configuration": "✓ CORRECT - CORS allows credentials with appropriate origins",
-    "authentication_logic": "✓ CORRECT - requireAuth checks req.session.user properly",
-    "session_table": "✓ AUTO-CREATED - connect-pg-simple with createTableIfMissing: true",
-    "cookie_configuration": "✗ BROKEN - defaulting to secure: true for HTTP requests"
-  },
-
-  "fix_applied": {
-    "file": "redsquatch-api/index.js",
-    "lines": "46-69 (session middleware cookie config)",
-    "changes": [
-      "Fixed HTTPS detection: only trust X-Forwarded-Proto header or req.secure",
-      "Removed fallback to NODE_ENV=production for HTTPS detection",
-      "Correctly sets secure: false for HTTP requests",
-      "Sets sameSite: 'lax' for HTTP, 'none' for HTTPS",
-      "Sets domain: undefined for HTTP (session-only), 'redsquatch.com' for HTTPS production"
-    ]
-  },
+  "fixes_applied": [
+    {
+      "commit": "b8505c9",
+      "title": "Initial cookie configuration fix",
+      "changes": [
+        "Fixed HTTPS detection to not default to production mode",
+        "Changed from: (NODE_ENV === 'production' ? true : req.secure)",
+        "Changed to: (xForwardedProto ? xForwardedProto === 'https' : req.secure)"
+      ]
+    },
+    {
+      "commit": "6ed14fa",
+      "title": "Corrected HTTPS detection logic",
+      "changes": [
+        "Simplified to only trust actual protocol indicators",
+        "Removed fallback to NODE_ENV for HTTPS detection"
+      ]
+    },
+    {
+      "commit": "3fb5e2e",
+      "title": "Critical fix: Detect non-production origins",
+      "changes": [
+        "Added isNonProduction detection for: localhost, 10.x, 192.168.x, :3001",
+        "For non-production: domain: undefined (session-only, no cross-origin issues)",
+        "For production: domain: redsquatch.com (works across subdomains)"
+      ]
+    }
+  ],
 
   "verification_results": {
-    "step_1_login": {
-      "action": "POST /api/client/login with username=acme_client, password=test123",
-      "result": "200 OK, {\"success\":true,\"message\":\"Login successful\"}",
-      "status": "✓ PASS"
+    "session_persistence_5_requests": {
+      "action": "Login once, then make 5 consecutive requests with same cookie",
+      "result": "All 5 requests return authenticated: true ✓",
+      "status": "✓ PASS - Sessions now persist across requests"
     },
-    "step_2_session_cookie": {
-      "action": "Check Set-Cookie header and cookies.txt",
-      "result": "✓ connect.sid cookie saved with secure=false, sameSite=lax",
-      "status": "✓ PASS"
+    "database_session_data": {
+      "action": "Check PostgreSQL session table",
+      "result": "Sessions contain username: 'acme_client' ✓",
+      "status": "✓ PASS - User data properly persisted"
     },
-    "step_3_session_persistence": {
-      "action": "curl -b cookies.txt /api/client/session",
-      "result": "200 OK, {\"authenticated\":true,\"user\":{\"username\":\"acme_client\",\"displayName\":\"Darryl\"}}",
-      "status": "✓ PASS"
+    "protected_endpoints": {
+      "action": "curl -b cookies.txt /api/client/quick-info/{weather,history,goals,tools}",
+      "result": "All return 200 OK, not 401",
+      "status": "✓ PASS - No 401 errors on protected endpoints"
     },
-    "step_4_protected_endpoints": {
-      "action": "curl -b cookies.txt /api/client/quick-info/history",
-      "result": "200 OK with history data (June 29 events from 2014 and 1945)",
-      "status": "✓ PASS - No 401 Unauthorized"
-    },
-    "step_5_cookie_logging": {
-      "action": "Check API logs for [COOKIE-CONFIG] and [COOKIE-FINAL]",
-      "result": "httpOnly: true, secure: false, sameSite: lax, domain: undefined",
-      "status": "✓ PASS"
+    "cookie_configuration": {
+      "action": "Check API logs [COOKIE-FINAL]",
+      "result": "secure: false, sameSite: lax, domain: undefined",
+      "status": "✓ PASS - Correct for Docker environment"
     }
   },
 
-  "key_improvements": [
-    "Session cookies now properly created and persisted",
-    "Protected endpoints (/api/quick-info/*) no longer return 401 for authenticated users",
-    "Separate cookie configs for HTTP (dev) and HTTPS (prod)",
-    "Added detailed logging to diagnose session and cookie handling"
-  ],
-
-  "commits": [
-    "b8505c9: fix session cookie configuration for localhost and production environments",
-    "6ed14fa: fix HTTPS detection to not default to production mode"
-  ],
-
-  "endpoints_tested": [
+  "endpoint_tests": [
     "POST /api/client/login - ✓ 200 OK",
-    "GET /api/client/session - ✓ 200 OK (authenticated: true)",
-    "GET /api/client/quick-info/weather - ✓ 200 OK (no 401)",
-    "GET /api/client/quick-info/history - ✓ 200 OK with data"
+    "GET /api/client/session - ✓ 200 OK, persists across 5 requests",
+    "GET /api/client/quick-info/quote - ✓ 200 OK",
+    "GET /api/client/quick-info/history - ✓ 200 OK (June 29 events)",
+    "GET /api/client/quick-info/weather - ✓ 200 OK (73°F Jenkintown, PA)",
+    "GET /api/client/goals - ✓ 200 OK (0 items)",
+    "GET /api/client/tools - ✓ 200 OK (4 items)"
   ],
 
-  "middleware_fixed": "yes",
-  "cors_fixed": "yes",
-  "verification_status": "PASS"
+  "key_improvements": [
+    "Initial 401 errors on dashboard load - FIXED",
+    "Session loss on navigation between tabs - FIXED",
+    "Session persistence across requests - VERIFIED",
+    "Cookie configuration dynamically adjusted for environment",
+    "Production HTTPS + dev Docker IP both supported"
+  ],
+
+  "commits_total": 3,
+  "verification_status": "PASS",
+  "session_dropout_fixed": "yes",
+  "dashboard_stable": "yes"
 }
