@@ -48,13 +48,16 @@ app.use(express.static(path.join(__dirname, 'public')));
 // The secure flag determines whether the Set-Cookie header is sent
 // With secure: false, cookie is sent over any connection (HTTP or HTTPS)
 // Traefik proxy handles HTTPS upstream, so backend sees HTTP requests
+const SESSION_SECRET = process.env.SESSION_SECRET || 'redsquatch-session-secret-key-fixed';
+console.log('[SESSION-INIT] Using SESSION_SECRET from env:', process.env.SESSION_SECRET ? '(set)' : '(default)');
+
 app.use(session({
   store: new pgSession({
     pool: db,
     tableName: 'session',
     createTableIfMissing: true
   }),
-  secret: process.env.SESSION_SECRET || 'redsquatch-secret-key',
+  secret: SESSION_SECRET,
   resave: false,
   saveUninitialized: true,
   proxy: true,
@@ -62,7 +65,7 @@ app.use(session({
     httpOnly: true,
     secure: false,
     sameSite: 'lax',
-    domain: '.redsquatch.com', // Leading dot allows subdomain sharing
+    domain: '.redsquatch.com',
     maxAge: 1000 * 60 * 60 * 24 * 7,
     path: '/'
   }
