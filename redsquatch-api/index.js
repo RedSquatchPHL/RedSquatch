@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const pgSession = require('connect-pg-simple')(session);
 const bcrypt = require('bcrypt');
@@ -42,6 +43,7 @@ const db = new Pool({
 // Register basic middleware (no DB dependency)
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(cookieParser()); // Parse cookies BEFORE session middleware
 
 // Session middleware — Pool connects lazily, safe to register before routes
 // Session middleware with static cookie configuration
