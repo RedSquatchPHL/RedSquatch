@@ -62,7 +62,7 @@ app.use(session({
     httpOnly: true,
     secure: false,
     sameSite: 'lax',
-    domain: 'redsquatch.com',
+    domain: '.redsquatch.com', // Leading dot allows subdomain sharing
     maxAge: 1000 * 60 * 60 * 24 * 7,
     path: '/'
   }
@@ -101,9 +101,9 @@ app.post('/api/client/login', async (req, res) => {
   console.log('[LOGIN] 1. SessionID:', req.sessionID);
   console.log('[LOGIN] 2. User set:', req.session.user);
 
-  // Manually set Set-Cookie header since Express-session isn't doing it
+  // Manually set Set-Cookie header for consistency with Express-session
   const cookieValue = req.sessionID;
-  const setCookieHeader = `connect.sid=${cookieValue}; Path=/; Domain=redsquatch.com; HttpOnly; SameSite=Lax; Max-Age=604800`;
+  const setCookieHeader = `connect.sid=${cookieValue}; Path=/; Domain=.redsquatch.com; HttpOnly; SameSite=Lax; Max-Age=604800`;
 
   console.log('[LOGIN] 3. Setting Set-Cookie:', setCookieHeader);
   res.setHeader('Set-Cookie', setCookieHeader);
