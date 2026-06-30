@@ -43,7 +43,9 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Session middleware — Pool connects lazily, safe to register before routes
-// Cookie config with dynamic secure flag based on protocol
+// Session middleware with static cookie configuration
+// Production uses: secure: true, sameSite: 'none', domain: 'redsquatch.com'
+// This allows cookies to be shared across api.redsquatch.com and www.redsquatch.com
 app.use(session({
   store: new pgSession({
     pool: db,
@@ -52,44 +54,15 @@ app.use(session({
   }),
   secret: process.env.SESSION_SECRET || 'redsquatch-secret-key',
   resave: false,
-  saveUninitialized: true, // Always create session, even if empty (needed for login to work)
-  proxy: true, // trust X-Forwarded-Proto from Traefik proxy
-  cookie: (req) => {
-    // Detect actual HTTPS: trust X-Forwarded-Proto from proxy, fallback to req.secure
-    const xForwardedProto = req.get('x-forwarded-proto');
-    const isHttps = xForwardedProto ? xForwardedProto === 'https' : req.secure;
-    const host = req.get('host') || 'localhost';
-
-    // Detect non-production environments (localhost, Docker internal IPs, etc.)
-    const isNonProduction = host.includes('localhost') ||
-                            host.includes('127.0.0.1') ||
-                            host.startsWith('10.') ||
-                            host.includes('192.168') ||
-                            host.includes(':3001'); // API on port 3001 = dev
-
-    console.log('[COOKIE-CONFIG]', {
-      NODE_ENV: process.env.NODE_ENV,
-      host,
-      isNonProduction,
-      req_secure: req.secure,
-      x_forwarded_proto: xForwardedProto,
-      isHttps,
-      protocol: req.protocol
-    });
-
-    const cookieConfig = {
-      httpOnly: true,
-      secure: isHttps,
-      sameSite: isHttps && !isNonProduction ? 'none' : 'lax',
-      // Domain: allow cookies to be shared across api.redsquatch.com and www.redsquatch.com
-      // For production (HTTPS), use parent domain format for subdomain sharing
-      domain: !isNonProduction && isHttps ? 'redsquatch.com' : undefined,
-      maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
-      path: '/'
-    };
-
-    console.log('[COOKIE-FINAL]', cookieConfig);
-    return cookieConfig;
+  saveUninitialized: true,
+  proxy: true, // trust X-Forwarded-Proto from Traefik
+  cookie: {
+    httpOnly: true,
+    secure: true, // Production HTTPS
+    sameSite: 'none', // Allow cross-origin cookies
+    domain: 'redsquatch.com', // Share across subdomains
+    maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+    path: '/'
   }
 }));
 
