@@ -98,16 +98,29 @@ app.post('/api/client/login', async (req, res) => {
 
   // Set user in session
   req.session.user = { username, displayName: TEST_USER.displayName };
-  console.log('[LOGIN] SessionID:', req.sessionID);
-  console.log('[LOGIN] User set:', req.session.user);
-  console.log('[LOGIN] Headers before send:', res.getHeaders());
+  console.log('[LOGIN] 1. SessionID:', req.sessionID);
+  console.log('[LOGIN] 2. User set:', req.session.user);
 
-  // Manually test header setting
-  res.setHeader('X-Test-Header', 'test-value-' + Date.now());
-  console.log('[LOGIN] Headers after setHeader:', res.getHeaders());
+  // Manually set Set-Cookie header since Express-session isn't doing it
+  const cookieValue = req.sessionID;
+  const cookieOptions = [
+    `connect.sid=${cookieValue}`,
+    'Path=/',
+    'Domain=redsquatch.com',
+    'HttpOnly',
+    'SameSite=Lax',
+    'Max-Age=604800' // 7 days
+  ];
+  const setCookieHeader = cookieOptions.join('; ');
+
+  console.log('[LOGIN] 3. Manually setting Set-Cookie:', setCookieHeader);
+  res.setHeader('Set-Cookie', setCookieHeader);
+  res.setHeader('X-Test-Header', 'manual-test-' + Date.now());
 
   // Send response
   res.json({ success: true, message: 'Login successful' });
+
+  console.log('[LOGIN] 4. Response headers after json:', res.getHeaders());
 });
 
 app.post('/api/client/logout', (req, res) => {
