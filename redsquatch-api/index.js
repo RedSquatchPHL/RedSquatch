@@ -113,6 +113,19 @@ app.post('/api/client/logout', (req, res) => {
   });
 });
 
+// Test endpoint to verify Express-session is working
+app.get('/api/client/test-session', (req, res) => {
+  console.log('[TEST-SESSION] SessionID before:', req.sessionID);
+  req.session.testValue = 'test-' + Date.now();
+  console.log('[TEST-SESSION] SessionID after setting testValue:', req.sessionID);
+  console.log('[TEST-SESSION] Response headers:', res.getHeaders());
+  res.json({
+    sessionID: req.sessionID,
+    testValue: req.session.testValue,
+    message: 'Check if Set-Cookie header is present in response'
+  });
+});
+
 app.get('/api/client/session', (req, res) => {
   console.log('[SESSION-CHECK] SessionID:', req.sessionID, 'User:', req.session.user, 'All keys:', Object.keys(req.session));
   console.log('[SESSION-CHECK] Cookies received:', req.get('cookie') || 'none');
