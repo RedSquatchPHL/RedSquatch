@@ -55,15 +55,15 @@ app.use(session({
     createTableIfMissing: true
   }),
   secret: process.env.SESSION_SECRET || 'redsquatch-secret-key',
-  resave: true, // Force save on every request to ensure Set-Cookie is sent
-  saveUninitialized: true, // Create session even if uninitialized
-  proxy: true, // trust X-Forwarded-Proto from Traefik
+  resave: false,
+  saveUninitialized: true,
+  proxy: true,
   cookie: {
     httpOnly: true,
-    secure: false, // Requests come through HTTP from Traefik proxy
+    secure: false,
     sameSite: 'lax',
     domain: 'redsquatch.com',
-    maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+    maxAge: 1000 * 60 * 60 * 24 * 7,
     path: '/'
   }
 }));
