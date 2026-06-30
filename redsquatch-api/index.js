@@ -95,32 +95,15 @@ app.post('/api/client/login', async (req, res) => {
   const match = await bcrypt.compare(password, TEST_USER.password_hash);
   if (!match) return res.status(401).json({ error: 'Invalid credentials' });
 
-  // Set user in session and save
+  // Set user in session - Express-session will auto-save on response end
   req.session.user = { username, displayName: TEST_USER.displayName };
-  console.log('[LOGIN] 1. Before save - SessionID:', req.sessionID, 'User:', req.session.user);
+  console.log('[LOGIN] Setting user - SessionID:', req.sessionID, 'User:', req.session.user);
+  console.log('[LOGIN] Response before json - headers:', res.getHeaders());
 
-  req.session.save(err => {
-    if (err) {
-      console.error('[LOGIN] 2. Session.save() FAILED:', err.message);
-      return res.status(500).json({ error: 'Session save failed: ' + err.message });
-    }
+  // Send response - Express-session middleware will add Set-Cookie header automatically
+  res.json({ success: true, message: 'Login successful' });
 
-    console.log('[LOGIN] 2. Session.save() succeeded');
-    console.log('[LOGIN] 3. After save - SessionID:', req.sessionID);
-    console.log('[LOGIN] 4. Session contents:', JSON.stringify(req.session, null, 2));
-    console.log('[LOGIN] 5. Response headers before res.json():', JSON.stringify(res.getHeaders(), null, 2));
-
-    // Check if session was actually saved to database
-    db.query('SELECT COUNT(*) as count FROM session WHERE sid = $1', [req.sessionID])
-      .then(result => {
-        console.log('[LOGIN] 5b. Database check - Sessions with this SID:', result.rows[0].count);
-      })
-      .catch(err => console.error('[LOGIN] 5b. Database query error:', err.message));
-
-    res.json({ success: true, message: 'Login successful' });
-
-    console.log('[LOGIN] 6. Response headers after res.json():', JSON.stringify(res.getHeaders(), null, 2));
-  });
+  console.log('[LOGIN] Response after json - headers:', res.getHeaders());
 });
 
 app.post('/api/client/logout', (req, res) => {
