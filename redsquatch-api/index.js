@@ -44,8 +44,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Session middleware — Pool connects lazily, safe to register before routes
 // Session middleware with static cookie configuration
-// Production uses: secure: true, sameSite: 'none', domain: 'redsquatch.com'
-// This allows cookies to be shared across api.redsquatch.com and www.redsquatch.com
+// The secure flag determines whether the Set-Cookie header is sent
+// With secure: false, cookie is sent over any connection (HTTP or HTTPS)
+// Traefik proxy handles HTTPS upstream, so backend sees HTTP requests
 app.use(session({
   store: new pgSession({
     pool: db,
@@ -58,8 +59,8 @@ app.use(session({
   proxy: true, // trust X-Forwarded-Proto from Traefik
   cookie: {
     httpOnly: true,
-    secure: true, // Production HTTPS
-    sameSite: 'none', // Allow cross-origin cookies
+    secure: false, // IMPORTANT: Set to false because requests come through HTTP from Traefik proxy
+    sameSite: 'lax', // Relaxed CORS cookie policy
     domain: 'redsquatch.com', // Share across subdomains
     maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
     path: '/'
