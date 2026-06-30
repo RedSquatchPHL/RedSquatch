@@ -27,7 +27,8 @@ app.use(cors({
     'http://localhost:3002',
     'http://localhost:3000'
   ],
-  credentials: true
+  credentials: true,
+  exposedHeaders: ['set-cookie', 'x-test-header']
 }));
 
 const db = new Pool({
