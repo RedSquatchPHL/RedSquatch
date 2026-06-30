@@ -96,23 +96,29 @@ app.post('/api/client/login', async (req, res) => {
 
   // Set user in session and save
   req.session.user = { username, displayName: TEST_USER.displayName };
-  console.log('[LOGIN] Setting session:', { sessionId: req.sessionID, user: req.session.user, origin: req.get('origin'), host: req.get('host') });
+  console.log('[LOGIN] 1. Before save - SessionID:', req.sessionID, 'User:', req.session.user);
 
   req.session.save(err => {
     if (err) {
-      console.error('[LOGIN] Session save FAILED:', err.message, err.stack);
+      console.error('[LOGIN] 2. Session.save() FAILED:', err.message);
       return res.status(500).json({ error: 'Session save failed: ' + err.message });
     }
 
-    console.log('[LOGIN] Session saved. Before response send:');
-    console.log('  SessionID:', req.sessionID);
-    console.log('  Response headers:', JSON.stringify(res.getHeaders(), null, 2));
-    console.log('  req.session:', req.session);
+    console.log('[LOGIN] 2. Session.save() succeeded');
+    console.log('[LOGIN] 3. After save - SessionID:', req.sessionID);
+    console.log('[LOGIN] 4. Session contents:', JSON.stringify(req.session, null, 2));
+    console.log('[LOGIN] 5. Response headers before res.json():', JSON.stringify(res.getHeaders(), null, 2));
+
+    // Check if session was actually saved to database
+    db.query('SELECT COUNT(*) as count FROM session WHERE sid = $1', [req.sessionID])
+      .then(result => {
+        console.log('[LOGIN] 5b. Database check - Sessions with this SID:', result.rows[0].count);
+      })
+      .catch(err => console.error('[LOGIN] 5b. Database query error:', err.message));
 
     res.json({ success: true, message: 'Login successful' });
 
-    console.log('[LOGIN] After res.json():');
-    console.log('  Response headers:', JSON.stringify(res.getHeaders(), null, 2));
+    console.log('[LOGIN] 6. Response headers after res.json():', JSON.stringify(res.getHeaders(), null, 2));
   });
 });
 
@@ -124,8 +130,15 @@ app.post('/api/client/logout', (req, res) => {
 });
 
 app.get('/api/client/session', (req, res) => {
-  if (req.session.user) res.json({ authenticated: true, user: req.session.user });
-  else res.json({ authenticated: false });
+  console.log('[SESSION-CHECK] SessionID:', req.sessionID, 'User:', req.session.user, 'All keys:', Object.keys(req.session));
+  console.log('[SESSION-CHECK] Cookies received:', req.get('cookie') || 'none');
+  if (req.session.user) {
+    console.log('[SESSION-CHECK] ✓ Authenticated');
+    res.json({ authenticated: true, user: req.session.user });
+  } else {
+    console.log('[SESSION-CHECK] ✗ Not authenticated');
+    res.json({ authenticated: false });
+  }
 });
 
 // ============ GOALS ============
