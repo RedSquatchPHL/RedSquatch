@@ -55,14 +55,14 @@ app.use(session({
     createTableIfMissing: true
   }),
   secret: process.env.SESSION_SECRET || 'redsquatch-secret-key',
-  resave: false,
-  saveUninitialized: true,
+  resave: true, // Force save on every request to ensure Set-Cookie is sent
+  saveUninitialized: true, // Create session even if uninitialized
   proxy: true, // trust X-Forwarded-Proto from Traefik
   cookie: {
     httpOnly: true,
-    secure: false, // IMPORTANT: Set to false because requests come through HTTP from Traefik proxy
-    sameSite: 'lax', // Relaxed CORS cookie policy
-    domain: 'redsquatch.com', // Share across subdomains
+    secure: false, // Requests come through HTTP from Traefik proxy
+    sameSite: 'lax',
+    domain: 'redsquatch.com',
     maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
     path: '/'
   }
