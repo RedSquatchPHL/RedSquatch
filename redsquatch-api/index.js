@@ -95,15 +95,18 @@ app.post('/api/client/login', async (req, res) => {
   const match = await bcrypt.compare(password, TEST_USER.password_hash);
   if (!match) return res.status(401).json({ error: 'Invalid credentials' });
 
-  // Set user in session - Express-session will auto-save on response end
+  // Set user in session
   req.session.user = { username, displayName: TEST_USER.displayName };
-  console.log('[LOGIN] Setting user - SessionID:', req.sessionID, 'User:', req.session.user);
-  console.log('[LOGIN] Response before json - headers:', res.getHeaders());
+  console.log('[LOGIN] SessionID:', req.sessionID);
+  console.log('[LOGIN] User set:', req.session.user);
+  console.log('[LOGIN] Headers before send:', res.getHeaders());
 
-  // Send response - Express-session middleware will add Set-Cookie header automatically
+  // Manually test header setting
+  res.setHeader('X-Test-Header', 'test-value-' + Date.now());
+  console.log('[LOGIN] Headers after setHeader:', res.getHeaders());
+
+  // Send response
   res.json({ success: true, message: 'Login successful' });
-
-  console.log('[LOGIN] Response after json - headers:', res.getHeaders());
 });
 
 app.post('/api/client/logout', (req, res) => {
