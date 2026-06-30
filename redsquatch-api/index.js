@@ -99,24 +99,12 @@ app.post('/api/client/login', async (req, res) => {
   const match = await bcrypt.compare(password, TEST_USER.password_hash);
   if (!match) return res.status(401).json({ error: 'Invalid credentials' });
 
-  // Set user in session
+  // Set user in session - Express-session will handle Set-Cookie
   req.session.user = { username, displayName: TEST_USER.displayName };
-  console.log('[LOGIN] 1. SessionID:', req.sessionID);
-  console.log('[LOGIN] 2. User set:', req.session.user);
+  console.log('[LOGIN] SessionID:', req.sessionID, 'User:', req.session.user);
 
-  // Manually set Set-Cookie header for consistency with Express-session
-  const cookieValue = req.sessionID;
-  const setCookieHeader = `connect.sid=${cookieValue}; Path=/; Domain=.redsquatch.com; HttpOnly; SameSite=Lax; Max-Age=604800`;
-
-  console.log('[LOGIN] 3. Setting Set-Cookie:', setCookieHeader);
-  res.setHeader('Set-Cookie', setCookieHeader);
-  res.setHeader('X-Test-Header', 'manual-test-' + Date.now());
-  console.log('[LOGIN] Headers set - checking:', res.getHeaders());
-
-  // Send response
+  // Send response - Express-session will add signed Set-Cookie header
   res.json({ success: true, message: 'Login successful' });
-
-  console.log('[LOGIN] 4. Response headers after json:', res.getHeaders());
 });
 
 app.post('/api/client/logout', (req, res) => {
