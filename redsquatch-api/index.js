@@ -103,19 +103,12 @@ app.post('/api/client/login', async (req, res) => {
 
   // Manually set Set-Cookie header since Express-session isn't doing it
   const cookieValue = req.sessionID;
-  const cookieOptions = [
-    `connect.sid=${cookieValue}`,
-    'Path=/',
-    'Domain=redsquatch.com',
-    'HttpOnly',
-    'SameSite=Lax',
-    'Max-Age=604800' // 7 days
-  ];
-  const setCookieHeader = cookieOptions.join('; ');
+  const setCookieHeader = `connect.sid=${cookieValue}; Path=/; Domain=redsquatch.com; HttpOnly; SameSite=Lax; Max-Age=604800`;
 
-  console.log('[LOGIN] 3. Manually setting Set-Cookie:', setCookieHeader);
+  console.log('[LOGIN] 3. Setting Set-Cookie:', setCookieHeader);
   res.setHeader('Set-Cookie', setCookieHeader);
   res.setHeader('X-Test-Header', 'manual-test-' + Date.now());
+  console.log('[LOGIN] Headers set - checking:', res.getHeaders());
 
   // Send response
   res.json({ success: true, message: 'Login successful' });
