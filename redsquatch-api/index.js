@@ -137,13 +137,30 @@ app.get('/api/client/test-session', (req, res) => {
 });
 
 app.get('/api/client/session', (req, res) => {
-  console.log('[SESSION-CHECK] SessionID:', req.sessionID, 'User:', req.session.user, 'All keys:', Object.keys(req.session));
-  console.log('[SESSION-CHECK] Cookies received:', req.get('cookie') || 'none');
+  const cookies = req.get('cookie') || 'none';
+  const connectSid = cookies.split('connect.sid=')[1]?.split(';')[0] || 'not-found';
+
+  console.log('[SESSION-CHECK] Incoming cookie connect.sid:', connectSid);
+  console.log('[SESSION-CHECK] Express-session ID (req.sessionID):', req.sessionID);
+  console.log('[SESSION-CHECK] Session user:', req.session.user);
+  console.log('[SESSION-CHECK] Session contents:', JSON.stringify(req.session));
+
   if (req.session.user) {
     console.log('[SESSION-CHECK] ✓ Authenticated');
     res.json({ authenticated: true, user: req.session.user });
   } else {
-    console.log('[SESSION-CHECK] ✗ Not authenticated');
+    console.log('[SESSION-CHECK] ✗ Not authenticated - querying database...');
+    // Query database to see if the session exists
+    db.query('SELECT sess FROM session WHERE sid = $1 LIMIT 1', [req.sessionID])
+      .then(result => {
+        if (result.rows.length > 0) {
+          console.log('[SESSION-CHECK] Session found in DB:', result.rows[0].sess);
+        } else {
+          console.log('[SESSION-CHECK] Session NOT found in DB for sid:', req.sessionID);
+        }
+      })
+      .catch(err => console.error('[SESSION-CHECK] DB error:', err.message));
+
     res.json({ authenticated: false });
   }
 });
