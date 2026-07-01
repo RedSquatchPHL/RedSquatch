@@ -1,6 +1,5 @@
 const express = require('express');
 const cors = require('cors');
-const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const pgSession = require('connect-pg-simple')(session);
 const bcrypt = require('bcrypt');
@@ -24,12 +23,10 @@ app.use(cors({
     'https://redsquatch.com',
     'https://www.redsquatch.com',
     'https://app.redsquatch.com',
-    'https://api.redsquatch.com',
     'http://localhost:3002',
     'http://localhost:3000'
   ],
-  credentials: true,
-  exposedHeaders: ['set-cookie', 'x-test-header']
+  credentials: true
 }));
 
 const db = new Pool({
@@ -43,35 +40,55 @@ const db = new Pool({
 // Register basic middleware (no DB dependency)
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(cookieParser()); // Parse cookies BEFORE session middleware
 
 // Session middleware — Pool connects lazily, safe to register before routes
-// Session middleware with static cookie configuration
-// The secure flag determines whether the Set-Cookie header is sent
-// With secure: false, cookie is sent over any connection (HTTP or HTTPS)
-// Traefik proxy handles HTTPS upstream, so backend sees HTTP requests
-const SESSION_SECRET = process.env.SESSION_SECRET || 'redsquatch-session-secret-key-fixed';
-console.log('[SESSION-INIT] Using SESSION_SECRET from env:', process.env.SESSION_SECRET ? '(set)' : '(default)');
-
+// Cookie config with dynamic secure flag based on protocol
 app.use(session({
   store: new pgSession({
     pool: db,
     tableName: 'session',
     createTableIfMissing: true
   }),
-  secret: SESSION_SECRET,
+  secret: process.env.SESSION_SECRET || 'redsquatch-secret-key',
   resave: false,
-  saveUninitialized: true,
-  proxy: true,
-  cookie: {
-    httpOnly: true,
-    secure: false,
-    sameSite: 'lax',
-    domain: '.redsquatch.com',
-    maxAge: 1000 * 60 * 60 * 24 * 7,
-    path: '/'
+  saveUninitialized: true, // Always create session, even if empty (needed for login to work)
+  proxy: true, // trust X-Forwarded-Proto from Traefik proxy
+  cookie: (req) => {
+    // Production: always use HTTPS settings (Traefik handles HTTPS termination)
+    // Development: check for X-Forwarded-Proto or fall back to secure: false
+    const isProduction = process.env.NODE_ENV === 'production';
+    const isHttps = isProduction || req.secure || req.get('x-forwarded-proto') === 'https';
+
+    return {
+      httpOnly: true,
+      // HTTPS only for production; development can use HTTP
+      secure: isHttps,
+      // SameSite=none required for HTTPS cross-origin requests; lax for HTTP same-origin
+      sameSite: isHttps ? 'none' : 'lax',
+      // In production, allow all redsquatch.com domains (bare + subdomains)
+      domain: isHttps ? 'redsquatch.com' : undefined,
+      maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+      path: '/'
+    };
   }
 }));
+
+// Periodic cleanup of stale sessions (sessions without user data)
+async function cleanupStaleSessions() {
+  try {
+    const result = await db.query(
+      `DELETE FROM session WHERE data NOT LIKE '%"user"%' AND expire < NOW() + INTERVAL '1 hour'`
+    );
+    if (result.rowCount > 0) {
+      console.log(`[SESSION-CLEANUP] Removed ${result.rowCount} stale sessions`);
+    }
+  } catch (err) {
+    console.error('[SESSION-CLEANUP-ERROR]', err.message);
+  }
+}
+
+// Run cleanup every 30 minutes
+setInterval(cleanupStaleSessions, 30 * 60 * 1000);
 
 const TEST_USER = {
   username: 'acme_client',
@@ -80,15 +97,13 @@ const TEST_USER = {
 };
 
 function requireAuth(req, res, next) {
-  const cookies = req.get('cookie') || 'no cookies';
-  console.log('[AUTH] Request from:', req.get('origin') || 'no origin', 'Host:', req.get('host'));
-  console.log('[AUTH] Cookies in request:', cookies.substring(0, 100));
-  console.log('[AUTH] SessionID:', req.sessionID, 'User:', req.session.user, 'Session keys:', Object.keys(req.session));
   if (!req.session.user) {
-    console.log('[AUTH] User not found in session. Returning 401.');
+    const hasCookie = !!req.headers.cookie?.includes('connect.sid');
+    const sid = req.sessionID;
+    const verb = hasCookie ? 'stale' : 'missing';
+    console.log(`[AUTH-FAIL] ${verb} session (SID: ${sid})`);
     return res.status(401).json({ error: 'Unauthorized' });
   }
-  console.log('[AUTH] User authenticated:', req.session.user.username);
   next();
 }
 
@@ -101,12 +116,16 @@ app.post('/api/client/login', async (req, res) => {
   const match = await bcrypt.compare(password, TEST_USER.password_hash);
   if (!match) return res.status(401).json({ error: 'Invalid credentials' });
 
-  // Set user in session - Express-session will handle Set-Cookie
+  // Set user in session and save
   req.session.user = { username, displayName: TEST_USER.displayName };
-  console.log('[LOGIN] SessionID:', req.sessionID, 'User:', req.session.user);
-
-  // Send response - Express-session will add signed Set-Cookie header
-  res.json({ success: true, message: 'Login successful' });
+  req.session.save(err => {
+    if (err) {
+      console.error(`[LOGIN-FAIL] Session save error: ${err.message}`);
+      return res.status(500).json({ error: 'Session save failed' });
+    }
+    console.log(`[LOGIN-SUCCESS] User ${username} session saved (SID: ${req.sessionID})`);
+    res.json({ success: true, message: 'Login successful' });
+  });
 });
 
 app.post('/api/client/logout', (req, res) => {
@@ -116,46 +135,9 @@ app.post('/api/client/logout', (req, res) => {
   });
 });
 
-// Test endpoint to verify Express-session is working
-app.get('/api/client/test-session', (req, res) => {
-  console.log('[TEST-SESSION] SessionID before:', req.sessionID);
-  req.session.testValue = 'test-' + Date.now();
-  console.log('[TEST-SESSION] SessionID after setting testValue:', req.sessionID);
-  console.log('[TEST-SESSION] Response headers:', res.getHeaders());
-  res.json({
-    sessionID: req.sessionID,
-    testValue: req.session.testValue,
-    message: 'Check if Set-Cookie header is present in response'
-  });
-});
-
 app.get('/api/client/session', (req, res) => {
-  const cookies = req.get('cookie') || 'none';
-  const connectSid = cookies.split('connect.sid=')[1]?.split(';')[0] || 'not-found';
-
-  console.log('[SESSION-CHECK] Incoming cookie connect.sid:', connectSid);
-  console.log('[SESSION-CHECK] Express-session ID (req.sessionID):', req.sessionID);
-  console.log('[SESSION-CHECK] Session user:', req.session.user);
-  console.log('[SESSION-CHECK] Session contents:', JSON.stringify(req.session));
-
-  if (req.session.user) {
-    console.log('[SESSION-CHECK] ✓ Authenticated');
-    res.json({ authenticated: true, user: req.session.user });
-  } else {
-    console.log('[SESSION-CHECK] ✗ Not authenticated - querying database...');
-    // Query database to see if the session exists
-    db.query('SELECT sess FROM session WHERE sid = $1 LIMIT 1', [req.sessionID])
-      .then(result => {
-        if (result.rows.length > 0) {
-          console.log('[SESSION-CHECK] Session found in DB:', result.rows[0].sess);
-        } else {
-          console.log('[SESSION-CHECK] Session NOT found in DB for sid:', req.sessionID);
-        }
-      })
-      .catch(err => console.error('[SESSION-CHECK] DB error:', err.message));
-
-    res.json({ authenticated: false });
-  }
+  if (req.session.user) res.json({ authenticated: true, user: req.session.user });
+  else res.json({ authenticated: false });
 });
 
 // ============ GOALS ============
@@ -881,36 +863,36 @@ app.get('/api/client/tools', requireAuth, (req, res) => {
   res.json({
     tools: [
       {
-        id: 'n8n',
-        name: 'n8n',
-        description: 'Workflow automation',
-        url: 'https://n8n.redsquatch.com',
-        icon: '⚙️',
-        color: '#ff6d5a'
+        id: 'joplin',
+        name: 'Joplin',
+        description: 'Notes & journaling',
+        url: 'https://joplin.redsquatch.com',
+        icon: 'notebook',
+        color: '#2196F3'
       },
       {
-        id: 'trilium',
-        name: 'Trilium',
-        description: 'Notes & knowledge base',
-        url: 'https://trilium.redsquatch.com',
-        icon: '📝',
-        color: '#4285f4'
+        id: 'nextcloud',
+        name: 'Nextcloud',
+        description: 'Cloud storage & files',
+        url: 'https://cloud.redsquatch.com',
+        icon: 'cloud',
+        color: '#0082C9'
       },
       {
-        id: 'vikunja',
-        name: 'Vikunja',
-        description: 'Task management',
-        url: 'https://vikunja.redsquatch.com',
-        icon: '✓',
-        color: '#2ecc71'
+        id: 'stirling-pdf',
+        name: 'Stirling-PDF',
+        description: 'PDF tools & utilities',
+        url: 'https://pdf.redsquatch.com',
+        icon: 'file-pdf',
+        color: '#d4a373'
       },
       {
-        id: 'huginn',
-        name: 'Huginn',
-        description: 'Agents & automation',
-        url: 'https://huginn.redsquatch.com',
-        icon: '🤖',
-        color: '#9b59b6'
+        id: 'bookmarks',
+        name: 'Linkding',
+        description: 'Bookmark management',
+        url: 'https://bookmarks.redsquatch.com',
+        icon: 'bookmark',
+        color: '#FF9800'
       }
     ]
   });
@@ -923,82 +905,9 @@ async function initializeApp() {
     await db.query('SELECT 1');
     console.log('✓ PostgreSQL connected');
 
-    // Create essential tables first (before any complex migrations)
-    console.log('Creating essential tables...');
-    try {
-      // Session table (used by express-session)
-      await db.query(`
-        CREATE TABLE IF NOT EXISTS session (
-          sid varchar NOT NULL PRIMARY KEY,
-          sess json NOT NULL,
-          expire timestamp(6) NOT NULL
-        );
-        CREATE INDEX IF NOT EXISTS idx_session_expire ON session (expire);
-      `);
-
-      // Client users table (referenced by research and auth)
-      await db.query(`
-        CREATE TABLE IF NOT EXISTS client_users (
-          id SERIAL PRIMARY KEY,
-          username VARCHAR(255) NOT NULL UNIQUE,
-          password_hash VARCHAR(255),
-          created_at TIMESTAMP DEFAULT NOW()
-        );
-      `);
-
-      // Goal categories and goals (referenced by research)
-      await db.query(`
-        CREATE TABLE IF NOT EXISTS goal_categories (
-          id SERIAL PRIMARY KEY,
-          parent_context VARCHAR(50) NOT NULL,
-          sub_type VARCHAR(100) NOT NULL,
-          created_at TIMESTAMP DEFAULT NOW()
-        );
-        CREATE TABLE IF NOT EXISTS goals (
-          id SERIAL PRIMARY KEY,
-          user_id INTEGER DEFAULT 1,
-          title TEXT NOT NULL,
-          description TEXT,
-          context VARCHAR(50) DEFAULT 'personal',
-          category_id INTEGER REFERENCES goal_categories(id) ON DELETE SET NULL,
-          target_date DATE,
-          status VARCHAR(50) DEFAULT 'draft',
-          progress INTEGER DEFAULT 0,
-          archived_at TIMESTAMP,
-          created_at TIMESTAMP DEFAULT NOW(),
-          updated_at TIMESTAMP DEFAULT NOW()
-        );
-      `);
-
-      // Insert test user if not exists
-      await db.query(`
-        INSERT INTO client_users (username, password_hash)
-        VALUES ('acme_client', '$2b$10$p8DMKQQiF.xfhKJqAzjFRe2U3Aif16SIvpXSGCMGKW3fymbcpM8.K')
-        ON CONFLICT (username) DO NOTHING
-      `);
-
-      console.log('✓ Essential tables created');
-    } catch (err) {
-      console.error('✗ Essential table creation failed:', err.message);
-      throw err;
-    }
-
-    // Run idempotent schema migrations (order matters: goals before research which references it)
-    try {
-      await runMigrations(db);
-      console.log('✓ Work items migrations complete');
-    } catch (err) {
-      console.error('✗ Work items migration failed:', err.message);
-      throw err;
-    }
-
-    try {
-      await runResearchMigrations(db);
-      console.log('✓ Research migrations complete');
-    } catch (err) {
-      console.error('✗ Research migration failed:', err.message);
-      throw err;
-    }
+    // Run idempotent schema migrations
+    await runMigrations(db);
+    await runResearchMigrations(db);
 
     app.listen(PORT, () => {
       console.log(`✓ RedSquatch API running on port ${PORT}`);
