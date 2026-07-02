@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { API } from '@/lib/api';
 import { CreateWorldModal } from './CreateWorldModal';
 import { SwitchWorldModal } from './SwitchWorldModal';
 
@@ -30,7 +31,7 @@ export const WorldsPanel = () => {
 
   const fetchWorlds = async () => {
     try {
-      const res = await fetch('/api/client/rcon/worlds');
+      const res = await fetch(`${API}/api/client/rcon/worlds`, { credentials: 'include' });
       const data = await res.json();
       if (data.success && data.worlds) {
         setWorlds(data.worlds);
@@ -47,8 +48,9 @@ export const WorldsPanel = () => {
   const handleCreateWorld = async (slotName: string, worldName: string, seed: string) => {
     setLoading(true);
     try {
-      const res = await fetch('/api/client/rcon/worlds/create', {
+      const res = await fetch(`${API}/api/client/rcon/worlds/create`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           slot: slotName,
@@ -73,8 +75,9 @@ export const WorldsPanel = () => {
   const handleSwitchWorld = async (fromSlot: string, toSlot: string) => {
     setSwitching(true);
     try {
-      const res = await fetch('/api/client/rcon/worlds/switch', {
+      const res = await fetch(`${API}/api/client/rcon/worlds/switch`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ from_slot: fromSlot, to_slot: toSlot })
       });
