@@ -1,8 +1,8 @@
 const express = require('express');
 const dgram = require('dgram');
 
-const RCON_HOST = 'minecraft-bedrock';
-const RCON_PORT = 19132;
+const RCON_HOST = process.env.RCON_HOST || 'minecraft-bedrock';
+const RCON_PORT = process.env.RCON_PORT || 19132;
 
 function makeRouter(db) {
   const router = express.Router();
