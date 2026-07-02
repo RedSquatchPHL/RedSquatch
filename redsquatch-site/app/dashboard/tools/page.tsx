@@ -7,7 +7,7 @@ import TipTapEditor from '@/components/TipTapEditor';
 import GamesModal from '@/components/GamesModal';
 import RconSection from '@/components/RconSection';
 import { WorldsPanel } from '@/components/WorldsPanel';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, Zap } from 'lucide-react';
 
 interface Tool {
   id: string;
