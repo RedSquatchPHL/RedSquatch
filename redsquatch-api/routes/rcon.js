@@ -1,9 +1,8 @@
 const express = require('express');
 const dgram = require('dgram');
 
-const RCON_HOST = 'localhost';
+const RCON_HOST = 'minecraft-bedrock';
 const RCON_PORT = 19132;
-const RCON_PASSWORD = 'RedSquatchRcon123';
 
 function makeRouter(db) {
   const router = express.Router();
@@ -17,35 +16,52 @@ function makeRouter(db) {
     next();
   });
 
-// Helper to send RCON command via UDP
-const sendRconCommand = (command) => {
+// Helper to send Minecraft Bedrock RCON command via UDP
+const executeRconCommand = (command) => {
   return new Promise((resolve, reject) => {
     const client = dgram.createSocket('udp4');
     const timeout = setTimeout(() => {
       client.close();
       reject(new Error('RCON command timed out'));
-    }, 5000);
+    }, 3000);
 
     try {
-      // Simple RCON message format for Bedrock
-      // Format: command as UTF-8 string
-      const message = Buffer.from(command);
-      client.send(message, RCON_PORT, RCON_HOST, (err) => {
-        clearTimeout(timeout);
+      // Minecraft Bedrock RCON format: 4-byte BE int (packet ID) + 1-byte request type + null-terminated string
+      const buf = Buffer.alloc(10 + command.length);
+      let offset = 0;
+
+      // Packet ID (random)
+      buf.writeUInt32BE(Math.floor(Math.random() * 0x7fffffff), offset);
+      offset += 4;
+
+      // Request type: 2 = command
+      buf.writeUInt8(2, offset);
+      offset += 1;
+
+      // Command string (null-terminated)
+      buf.write(command, offset, command.length, 'utf8');
+      offset += command.length;
+      buf.writeUInt8(0, offset); // null terminator
+
+      client.send(buf, 0, buf.length, RCON_PORT, RCON_HOST, (err) => {
         if (err) {
+          clearTimeout(timeout);
           client.close();
           reject(err);
         } else {
-          // Listen for response (some servers may respond)
-          client.on('message', (msg) => {
+          // Wait for response
+          const responseTimeout = setTimeout(() => {
             client.close();
-            resolve(msg.toString());
-          });
-          // Close after short delay if no response
-          setTimeout(() => {
-            client.close();
-            resolve('Command sent');
+            clearTimeout(timeout);
+            resolve('Command sent'); // Default response if no reply
           }, 500);
+
+          client.once('message', (msg) => {
+            clearTimeout(responseTimeout);
+            clearTimeout(timeout);
+            client.close();
+            resolve(msg.toString('utf8').slice(6)); // Skip header, return message
+          });
         }
       });
     } catch (error) {
@@ -61,7 +77,7 @@ router.post('/execute', async (req, res) => {
   try {
     const { command } = req.body;
     if (!command) return res.status(400).json({ error: 'Command is required' });
-    const result = await sendRconCommand(command);
+    const result = await executeRconCommand(command);
     res.json({ success: true, result });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -71,7 +87,7 @@ router.post('/execute', async (req, res) => {
 // Get online players
 router.get('/players', async (req, res) => {
   try {
-    const result = await sendRconCommand('list');
+    const result = await executeRconCommand('list');
     res.json({ success: true, players: result });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -84,7 +100,7 @@ router.post('/give-item', async (req, res) => {
     const { player, item, amount } = req.body;
     if (!player || !item) return res.status(400).json({ error: 'Player and item are required' });
     const command = `give @a[name="${player}"] ${item} ${amount || 1}`;
-    const result = await sendRconCommand(command);
+    const result = await executeRconCommand(command);
     res.json({ success: true, result });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -99,7 +115,7 @@ router.post('/teleport', async (req, res) => {
       return res.status(400).json({ error: 'Player and coordinates are required' });
     }
     const command = `tp @a[name="${player}"] ${x} ${y} ${z}`;
-    const result = await sendRconCommand(command);
+    const result = await executeRconCommand(command);
     res.json({ success: true, result });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -109,8 +125,8 @@ router.post('/teleport', async (req, res) => {
 // Restart server
 router.post('/restart', async (req, res) => {
   try {
-    await sendRconCommand('say Server restarting in 10 seconds...');
-    const result = await sendRconCommand('stop');
+    await executeRconCommand('say Server restarting in 10 seconds...');
+    const result = await executeRconCommand('stop');
     res.json({ success: true, message: 'Server restarting' });
   } catch (error) {
     res.status(500).json({ error: error.message });
