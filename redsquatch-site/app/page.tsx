@@ -24,7 +24,7 @@ export default function LoginPage() {
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error || 'Login failed'); return; }
-      router.push('/dashboard');
+      router.push('/login-interceptor');
     } catch {
       setError('Network error. Check API connectivity.');
     } finally {

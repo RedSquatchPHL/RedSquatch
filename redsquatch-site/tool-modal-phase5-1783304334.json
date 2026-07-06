@@ -1,0 +1,23 @@
+{
+  "status": "complete",
+  "timestamp": 1783304334,
+  "phase1_health_check": {
+    "grampsweb_initial": "503, self-signed cert (Coolify never had a Traefik router for gramps.redsquatch.com)",
+    "root_cause": "grampsweb service only had the auto-generated sslip.io domain configured in Coolify; gramps.redsquatch.com was never added",
+    "fix_applied": "Added gramps.redsquatch.com as the service domain via Coolify API (PATCH /api/v1/services), triggered instant_deploy",
+    "grampsweb_final": "200, valid Let's Encrypt cert (issuer: Let's Encrypt YR2, expires 2026-10-04)",
+    "stirling_pdf": "401 (expected - has its own login page), already correctly configured at pdf.redsquatch.com with valid cert"
+  },
+  "files_created": [
+    "hooks/useToolModal.ts",
+    "components/ToolModal.tsx"
+  ],
+  "files_modified": [
+    "app/dashboard/tools/page.tsx"
+  ],
+  "deviations_from_original_spec": [
+    "RightToolbar.tsx did not exist in the codebase; per user decision, launcher buttons were added to the existing app/dashboard/tools/page.tsx instead of creating a new toolbar component",
+    "Checkpoint written to project directory instead of /root/audits/ because that directory is root-owned and not writable by the RedSquatch user"
+  ],
+  "next_steps": "test on localhost (npm run dev), click Grampsweb and Stirling-PDF cards on /dashboard/tools, verify iframe loads and modal close/click-outside works"
+}
