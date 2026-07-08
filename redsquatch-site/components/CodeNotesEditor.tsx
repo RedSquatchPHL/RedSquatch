@@ -20,6 +20,7 @@ import 'prismjs/components/prism-java';
 import 'prismjs/components/prism-c';
 import 'prismjs/components/prism-cpp';
 import 'prismjs/components/prism-rust';
+import 'prismjs/components/prism-markup-templating';
 import 'prismjs/components/prism-php';
 import 'prismjs/components/prism-ruby';
 import 'prismjs/themes/prism-tomorrow.css';
