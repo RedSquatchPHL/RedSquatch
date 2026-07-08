@@ -844,7 +844,7 @@ async function fetchWeather() {
   };
 }
 
-app.get('/api/client/quick-info/weather', requireAuth, async (req, res) => {
+app.get('/api/client/quick-info/weather', async (req, res) => {
   const force = req.query.force === 'true';
   if (!force && qiCache.weather.expiresAt > Date.now() && qiCache.weather.data) {
     return res.json(qiCache.weather.data);
