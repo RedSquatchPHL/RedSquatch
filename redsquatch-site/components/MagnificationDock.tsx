@@ -127,6 +127,7 @@ function DockItem({
       {/* Icon */}
       <Link
         href={href}
+        prefetch={false}
         onMouseEnter={() => setTip(true)}
         onMouseLeave={() => setTip(false)}
         style={{ textDecoration: 'none', display: 'block' }}
