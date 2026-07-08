@@ -6,14 +6,11 @@ import { API } from '@/lib/api';
 import { QuoteWidget } from '@/components/QuoteWidget';
 import { HistoryWidget } from '@/components/HistoryWidget';
 import { WeatherWidget } from '@/components/WeatherWidget';
-import MagicBento from '@/components/MagicBento';
 import ThemeToggle from '@/components/ThemeToggle';
 
-
-export default function DashboardPage() {
-  const [user,      setUser]      = useState<{ username: string; displayName?: string } | null>(null);
-  const [loading,   setLoading]   = useState(true);
-  const [bentoView, setBentoView] = useState(false);
+export default function HSDashboardPage() {
+  const [user,    setUser]    = useState<{ username: string; displayName?: string } | null>(null);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
@@ -58,7 +55,7 @@ export default function DashboardPage() {
               className="text-xl font-bold leading-tight"
               style={{ color: '#d4a373', textShadow: '0 0 20px rgba(184,115,51,0.35)' }}
             >
-              Dashboard
+              HomeSquatch Dashboard
             </h1>
             {user && (
               <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.38)' }}>
@@ -77,43 +74,18 @@ export default function DashboardPage() {
             >
               ⚙ Settings
             </button>
-            <button
-              onClick={() => setBentoView(v => !v)}
-              className="glass-btn px-3.5 py-1.5 text-sm rounded-xl font-medium"
-              title="Toggle Bento / Classic view"
-            >
-              {bentoView ? '🔲 Classic' : '⊞ Bento'}
-            </button>
           </div>
         </div>
       </header>
 
-      {/* ── Bento view ────────────────────────────────────────────────────── */}
-      {bentoView && (
-        <div className="w-full">
-          <MagicBento
-            textAutoHide={true}
-            enableSpotlight={false}
-            enableBorderGlow={true}
-            enableTilt={false}
-            enableMagnetism={false}
-            clickEffect={true}
-            glowColor="255, 200, 70"
-          />
+      {/* ── Widgets ───────────────────────────────────────────────────────── */}
+      <main className="p-6 space-y-5">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <QuoteWidget />
+          <HistoryWidget />
+          <WeatherWidget />
         </div>
-      )}
-
-      {/* ── Classic view ──────────────────────────────────────────────────── */}
-      {!bentoView && (
-        <main className="p-6 space-y-5">
-          {/* Quick-info widget row */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <QuoteWidget />
-            <HistoryWidget />
-            <WeatherWidget />
-          </div>
-        </main>
-      )}
+      </main>
     </div>
   );
 }

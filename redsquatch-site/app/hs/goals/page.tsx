@@ -12,8 +12,8 @@ const CTX_COLORS: Record<AppContext, { accent: string; dim: string }> = {
   personal: { accent: '#14b8a6', dim: 'rgba(20, 184, 166, 0.12)' },
 };
 
-export default function GoalsPage() {
-  const [context, setContext] = useState<AppContext>('personal');
+export default function HSGoalsPage() {
+  const [context, setContext] = useState<AppContext>('home');
   const [logTask, setLogTask] = useState<Task | null>(null);
 
   const { accent, dim } = CTX_COLORS[context];
@@ -30,7 +30,7 @@ export default function GoalsPage() {
           className="text-2xl font-bold"
           style={{ color: '#d4a373', textShadow: '0 0 16px rgba(184,115,51,0.3)' }}
         >
-          Goals &amp; Tasks
+          HomeSquatch Goals &amp; Tasks
         </h1>
         <ContextSwitcher value={context} onChange={setContext} />
       </div>

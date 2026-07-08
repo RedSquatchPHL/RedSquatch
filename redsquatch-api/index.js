@@ -3,12 +3,15 @@ const cors = require('cors');
 const session = require('express-session');
 const pgSession = require('connect-pg-simple')(session);
 const bcrypt = require('bcrypt');
+const speakeasy = require('speakeasy');
+const QRCode = require('qrcode');
 const { Pool } = require('pg');
 const path = require('path');
 const fs = require('fs');
 const { scrapeAll } = require('./sports-scraper');
 const { runMigrations, runInactivityCron, makeRouter: makeWorkItemsRouter } = require('./workItemsRoutes');
 const { runMigrations: runResearchMigrations, makeRouter: makeResearchRouter } = require('./routes/research');
+const { runMigrations: runQuickNotesMigrations, makeRouter: makeQuickNotesRouter } = require('./routes/quickNotes');
 const { makeRouter: makeRconRouter } = require('./routes/rcon');
 
 const SPORTS_FILE = path.join(__dirname, 'public', 'sports.json');
@@ -90,10 +93,8 @@ async function cleanupStaleSessions() {
 // Run cleanup every 30 minutes
 setInterval(cleanupStaleSessions, 30 * 60 * 1000);
 
-const TEST_USER = {
-  username: 'acme_client',
-  displayName: 'Darryl',
-  password_hash: '$2b$10$p8DMKQQiF.xfhKJqAzjFRe2U3Aif16SIvpXSGCMGKW3fymbcpM8.K'
+const DISPLAY_NAMES = {
+  acme_client: 'Darryl'
 };
 
 function requireAuth(req, res, next) {
@@ -112,20 +113,80 @@ function requireAuth(req, res, next) {
 app.post('/api/client/login', async (req, res) => {
   const { username, password } = req.body;
   if (!username || !password) return res.status(400).json({ error: 'Username and password required' });
-  if (username !== TEST_USER.username) return res.status(401).json({ error: 'Invalid credentials' });
-  const match = await bcrypt.compare(password, TEST_USER.password_hash);
-  if (!match) return res.status(401).json({ error: 'Invalid credentials' });
 
-  // Set user in session and save
-  req.session.user = { username, displayName: TEST_USER.displayName };
-  req.session.save(err => {
-    if (err) {
-      console.error(`[LOGIN-FAIL] Session save error: ${err.message}`);
-      return res.status(500).json({ error: 'Session save failed' });
+  try {
+    const result = await db.query(
+      'SELECT id, username, password_hash, totp_enabled FROM client_users WHERE username = $1',
+      [username]
+    );
+    const dbUser = result.rows[0];
+    if (!dbUser) return res.status(401).json({ error: 'Invalid credentials' });
+
+    const match = await bcrypt.compare(password, dbUser.password_hash);
+    if (!match) return res.status(401).json({ error: 'Invalid credentials' });
+
+    if (dbUser.totp_enabled) {
+      req.session.pendingUser = { id: dbUser.id, username: dbUser.username };
+      return req.session.save(err => {
+        if (err) {
+          console.error(`[LOGIN-FAIL] Session save error: ${err.message}`);
+          return res.status(500).json({ error: 'Session save failed' });
+        }
+        console.log(`[LOGIN-OTP-PENDING] User ${username} awaiting TOTP (SID: ${req.sessionID})`);
+        res.json({ success: true, awaiting_otp: true });
+      });
     }
-    console.log(`[LOGIN-SUCCESS] User ${username} session saved (SID: ${req.sessionID})`);
-    res.json({ success: true, message: 'Login successful' });
-  });
+
+    req.session.user = { username: dbUser.username, displayName: DISPLAY_NAMES[dbUser.username] };
+    req.session.save(err => {
+      if (err) {
+        console.error(`[LOGIN-FAIL] Session save error: ${err.message}`);
+        return res.status(500).json({ error: 'Session save failed' });
+      }
+      console.log(`[LOGIN-SUCCESS] User ${username} session saved (SID: ${req.sessionID})`);
+      res.json({ success: true, message: 'Login successful' });
+    });
+  } catch (err) {
+    console.error('Login error:', err.message);
+    res.status(500).json({ error: 'Login failed' });
+  }
+});
+
+app.post('/api/client/verify-otp', async (req, res) => {
+  const { token } = req.body;
+  if (!req.session.pendingUser) return res.status(401).json({ error: 'No pending login' });
+  if (!token) return res.status(400).json({ error: 'Token required' });
+
+  try {
+    const result = await db.query(
+      'SELECT username, totp_secret FROM client_users WHERE id = $1',
+      [req.session.pendingUser.id]
+    );
+    const dbUser = result.rows[0];
+    if (!dbUser || !dbUser.totp_secret) return res.status(401).json({ error: 'Invalid session' });
+
+    const verified = speakeasy.totp.verify({
+      secret: dbUser.totp_secret,
+      encoding: 'base32',
+      token,
+      window: 1
+    });
+    if (!verified) return res.status(401).json({ error: 'Invalid code' });
+
+    req.session.user = { username: dbUser.username, displayName: DISPLAY_NAMES[dbUser.username] };
+    delete req.session.pendingUser;
+    req.session.save(err => {
+      if (err) {
+        console.error(`[OTP-FAIL] Session save error: ${err.message}`);
+        return res.status(500).json({ error: 'Session save failed' });
+      }
+      console.log(`[OTP-SUCCESS] User ${dbUser.username} completed 2FA (SID: ${req.sessionID})`);
+      res.json({ success: true, message: 'Login successful' });
+    });
+  } catch (err) {
+    console.error('OTP verify error:', err.message);
+    res.status(500).json({ error: 'Verification failed' });
+  }
 });
 
 app.post('/api/client/logout', (req, res) => {
@@ -138,6 +199,77 @@ app.post('/api/client/logout', (req, res) => {
 app.get('/api/client/session', (req, res) => {
   if (req.session.user) res.json({ authenticated: true, user: req.session.user });
   else res.json({ authenticated: false });
+});
+
+// ============ TOTP (2FA) ============
+
+app.get('/api/client/totp/status', requireAuth, async (req, res) => {
+  try {
+    const result = await db.query(
+      'SELECT totp_enabled FROM client_users WHERE username = $1',
+      [req.session.user.username]
+    );
+    res.json({ enabled: !!result.rows[0]?.totp_enabled });
+  } catch (err) {
+    console.error('TOTP status error:', err.message);
+    res.status(500).json({ error: 'Failed to fetch TOTP status' });
+  }
+});
+
+app.post('/api/client/totp/setup', requireAuth, async (req, res) => {
+  try {
+    const secret = speakeasy.generateSecret({ name: `RedSquatch (${req.session.user.username})` });
+    await db.query(
+      'UPDATE client_users SET totp_secret = $1, totp_enabled = false WHERE username = $2',
+      [secret.base32, req.session.user.username]
+    );
+    const qr = await QRCode.toDataURL(secret.otpauth_url);
+    res.json({ qr, secret: secret.base32 });
+  } catch (err) {
+    console.error('TOTP setup error:', err.message);
+    res.status(500).json({ error: 'Failed to start TOTP setup' });
+  }
+});
+
+app.post('/api/client/totp/verify', requireAuth, async (req, res) => {
+  const { token } = req.body;
+  if (!token) return res.status(400).json({ error: 'Token required' });
+
+  try {
+    const result = await db.query(
+      'SELECT totp_secret FROM client_users WHERE username = $1',
+      [req.session.user.username]
+    );
+    const dbUser = result.rows[0];
+    if (!dbUser?.totp_secret) return res.status(400).json({ error: 'No pending TOTP setup' });
+
+    const verified = speakeasy.totp.verify({
+      secret: dbUser.totp_secret,
+      encoding: 'base32',
+      token,
+      window: 1
+    });
+    if (!verified) return res.status(401).json({ error: 'Invalid code' });
+
+    await db.query('UPDATE client_users SET totp_enabled = true WHERE username = $1', [req.session.user.username]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('TOTP verify error:', err.message);
+    res.status(500).json({ error: 'Verification failed' });
+  }
+});
+
+app.post('/api/client/totp/disable', requireAuth, async (req, res) => {
+  try {
+    await db.query(
+      'UPDATE client_users SET totp_enabled = false, totp_secret = NULL WHERE username = $1',
+      [req.session.user.username]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    console.error('TOTP disable error:', err.message);
+    res.status(500).json({ error: 'Failed to disable TOTP' });
+  }
 });
 
 // ============ GOALS ============
@@ -855,6 +987,7 @@ app.post('/api/client/sports/refresh', requireAuth, async (req, res) => {
 
 app.use('/api/client/work-items', makeWorkItemsRouter(db));
 app.use('/api/client/research', makeResearchRouter(db));
+app.use('/api/client/quick-notes', makeQuickNotesRouter(db));
 app.use('/api/client/rcon', makeRconRouter(db));
 
 // ============ TOOLS ============
@@ -908,6 +1041,7 @@ async function initializeApp() {
     // Run idempotent schema migrations
     await runMigrations(db);
     await runResearchMigrations(db);
+    await runQuickNotesMigrations(db);
 
     app.listen(PORT, () => {
       console.log(`✓ RedSquatch API running on port ${PORT}`);

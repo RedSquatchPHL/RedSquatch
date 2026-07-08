@@ -12,19 +12,28 @@ import {
   type MotionValue,
 } from 'framer-motion';
 import {
-  BarChart3, Target, Zap, Settings, LogOut, ClipboardList,
+  BarChart3, Settings, LogOut, ArrowLeftRight,
 } from 'lucide-react';
 import { API } from '@/lib/api';
 
 // ── Config ─────────────────────────────────────────────────────────────────
 
-const NAV = [
-  { label: 'Dashboard', icon: BarChart3,     href: '/dashboard'         },
-  { label: 'Goals',     icon: Target,        href: '/dashboard/goals'   },
-  { label: 'Work',      icon: ClipboardList, href: '/dashboard/work'    },
-  { label: 'Sports',    icon: Zap,           href: '/dashboard/sports'  },
-  { label: 'Tools',     icon: Settings,      href: '/dashboard/tools'   },
-] as const;
+export interface DockNavItem {
+  label: string;
+  icon: React.ElementType;
+  href: string;
+}
+
+export interface DockSwitchConfig {
+  label: string;
+  href: string;
+  mode: 'work' | 'home';
+}
+
+const DEFAULT_NAV: DockNavItem[] = [
+  { label: 'Dashboard', icon: BarChart3, href: '/dashboard'         },
+  { label: 'Tools',     icon: Settings,  href: '/dashboard/tools'   },
+];
 
 const BASE     = 48;   // resting icon size (px)
 const MAX      = 76;   // magnified icon size (px)
@@ -153,6 +162,65 @@ function DockItem({
   );
 }
 
+// ── Switch dock item ────────────────────────────────────────────────────────
+
+function DockSwitch({ mouseX, config }: { mouseX: MotionValue<number>; config: DockSwitchConfig }) {
+  const ref    = useRef<HTMLDivElement>(null);
+  const router = useRouter();
+  const [tip, setTip] = useState(false);
+
+  const distance = useTransform(mouseX, val => {
+    const b = ref.current?.getBoundingClientRect();
+    return b ? val - (b.left + b.width / 2) : 0;
+  });
+  const sizeRaw = useTransform(distance, [-ZONE, 0, ZONE], [BASE, MAX, BASE]);
+  const size    = useSpring(sizeRaw, SPRING);
+  const yRaw    = useTransform(distance, [-ZONE, 0, ZONE], [0, -12, 0]);
+  const y       = useSpring(yRaw, SPRING);
+
+  const handleSwitch = () => {
+    localStorage.setItem('redsquatch-mode', config.mode);
+    router.push(config.href);
+  };
+
+  return (
+    <motion.div ref={ref} style={{ y }} className="relative flex flex-col items-center">
+      <AnimatePresence>
+        {tip && (
+          <motion.span
+            key="tip"
+            initial={{ opacity: 0, y: 6, scale: 0.88 }}
+            animate={{ opacity: 1, y: 0,  scale: 1    }}
+            exit={{    opacity: 0, y: 4,  scale: 0.92 }}
+            transition={{ duration: 0.14 }}
+            className="absolute -top-10 px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap pointer-events-none select-none"
+            style={{
+              background: 'rgba(6,6,6,0.88)',
+              backdropFilter: 'blur(16px)',
+              border: '1px solid rgba(184,115,51,0.32)',
+              color: '#d4a373',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.5)',
+            }}
+          >
+            {config.label}
+          </motion.span>
+        )}
+      </AnimatePresence>
+
+      <motion.div style={{ width: size, height: size }}>
+        <button
+          onClick={handleSwitch}
+          onMouseEnter={() => setTip(true)}
+          onMouseLeave={() => setTip(false)}
+          style={{ ...iconStyle(false), cursor: 'pointer', width: '100%', height: '100%' }}
+        >
+          <ArrowLeftRight style={{ width: '40%', height: '40%', color: 'rgba(255,255,255,0.72)' }} />
+        </button>
+      </motion.div>
+    </motion.div>
+  );
+}
+
 // ── Logout dock item ────────────────────────────────────────────────────────
 
 function DockLogout({ mouseX }: { mouseX: MotionValue<number> }) {
@@ -264,9 +332,10 @@ function DockLogout({ mouseX }: { mouseX: MotionValue<number> }) {
 
 // ── Dock container ──────────────────────────────────────────────────────────
 
-export default function MagnificationDock() {
+export default function MagnificationDock({ nav = DEFAULT_NAV, switchTo }: { nav?: DockNavItem[]; switchTo?: DockSwitchConfig }) {
   const mouseX  = useMotionValue(Infinity);
   const pathname = usePathname();
+  const rootHref = nav[0]?.href;
 
   return (
     <div
@@ -296,10 +365,10 @@ export default function MagnificationDock() {
           boxShadow: '0 20px 60px rgba(0,0,0,0.65), 0 0 1px rgba(184,115,51,0.15), inset 0 1px 0 rgba(255,255,255,0.05)',
         }}
       >
-        {NAV.map(item => {
+        {nav.map(item => {
           const isActive =
             pathname === item.href ||
-            (item.href !== '/dashboard' && pathname.startsWith(item.href));
+            (item.href !== rootHref && pathname.startsWith(item.href));
           return (
             <DockItem
               key={item.href}
@@ -323,6 +392,8 @@ export default function MagnificationDock() {
             margin: '0 2px',
           }}
         />
+
+        {switchTo && <DockSwitch mouseX={mouseX} config={switchTo} />}
 
         <DockLogout mouseX={mouseX} />
       </div>

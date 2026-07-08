@@ -11,7 +11,7 @@ import styles from '@/styles/work.module.css';
 
 type TabId = 'work-items' | 'lincoln' | 'research';
 
-export default function WorkPage() {
+export default function WSToolsPage() {
   const [activeTab, setActiveTab] = useState<TabId>('work-items');
   const [checking, setChecking]   = useState(true);
   const router = useRouter();
