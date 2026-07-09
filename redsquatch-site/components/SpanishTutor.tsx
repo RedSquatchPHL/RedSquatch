@@ -1,40 +1,40 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Flame, Check, X as XIcon, Plus, Trash2, BarChart3 } from 'lucide-react';
+'use client';
 
-type ItemType = 'word' | 'conjugation';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Flame, Check, X as XIcon, Plus, Trash2, BarChart3, Volume2, SkipForward } from 'lucide-react';
+import { API } from '@/lib/api';
 
 interface VocabItem {
-  id: string;
+  id: number;
+  item_type: 'word' | 'conjugation';
   front: string;
   back: string;
-  hint?: string;
-  type: ItemType;
-  box: number; // Leitner box 1-5 (5 = mastered)
-  correctCount: number;
-  incorrectCount: number;
-  lastReviewed: string | null;
-  nextReview: string; // YYYY-MM-DD, due date
+  part_of_speech: string | null;
+  example_sentence: string | null;
+  hint: string | null;
+  difficulty_level: 'beginner' | 'intermediate' | 'advanced';
+  box: number;
+  correct_count: number;
+  incorrect_count: number;
+  last_reviewed_at: string | null;
+  next_review_at: string;
 }
 
-interface StreakData {
-  current: number;
-  longest: number;
-  lastCompletedDate: string | null;
+interface Milestone {
+  id: number;
+  milestone_type: string;
+  unlocked_at: string;
 }
 
-const VOCAB_KEY = 'spanish-tutor-vocab';
-const STREAK_KEY = 'spanish-tutor-streak';
-const DRILL_SIZE_KEY = 'spanish-tutor-drillsize';
+type Mode = 'vocab' | 'conjugations' | 'immersion';
+type Difficulty = 'all' | 'beginner' | 'intermediate' | 'advanced';
+type Quality = 'hard' | 'good' | 'easy';
 
-// days until next review once an item lands in a given box
-const BOX_INTERVAL_DAYS = [0, 0, 1, 3, 7, 14];
-
-const todayStr = () => new Date().toISOString().split('T')[0];
-
-const addDays = (dateStr: string, days: number) => {
-  const d = new Date(dateStr);
-  d.setDate(d.getDate() + days);
-  return d.toISOString().split('T')[0];
+const MILESTONE_LABELS: Record<string, string> = {
+  streak_7: '🔥 7-Day Streak',
+  streak_30: '🔥 30-Day Streak',
+  words_100: '📚 100 Words',
+  conjugations_50: '🎯 50 Conjugations',
 };
 
 const shuffle = <T,>(arr: T[]): T[] => {
@@ -46,446 +46,604 @@ const shuffle = <T,>(arr: T[]): T[] => {
   return a;
 };
 
-type SeedItem = Pick<VocabItem, 'id' | 'front' | 'back' | 'type' | 'hint'>;
-
-const WORDS: SeedItem[] = [
-  { id: 'w-hello', front: 'hello', back: 'hola', type: 'word' },
-  { id: 'w-goodbye', front: 'goodbye', back: 'adiós', type: 'word' },
-  { id: 'w-please', front: 'please', back: 'por favor', type: 'word' },
-  { id: 'w-thanks', front: 'thank you', back: 'gracias', type: 'word' },
-  { id: 'w-yes', front: 'yes', back: 'sí', type: 'word' },
-  { id: 'w-no', front: 'no', back: 'no', type: 'word' },
-  { id: 'w-water', front: 'water', back: 'agua', type: 'word' },
-  { id: 'w-house', front: 'house', back: 'casa', type: 'word' },
-  { id: 'w-dog', front: 'dog', back: 'perro', type: 'word' },
-  { id: 'w-cat', front: 'cat', back: 'gato', type: 'word' },
-  { id: 'w-friend', front: 'friend', back: 'amigo', type: 'word' },
-  { id: 'w-family', front: 'family', back: 'familia', type: 'word' },
-  { id: 'w-food', front: 'food', back: 'comida', type: 'word' },
-  { id: 'w-day', front: 'day', back: 'día', type: 'word' },
-  { id: 'w-night', front: 'night', back: 'noche', type: 'word' },
-  { id: 'w-today', front: 'today', back: 'hoy', type: 'word' },
-  { id: 'w-tomorrow', front: 'tomorrow', back: 'mañana', type: 'word' },
-  { id: 'w-yesterday', front: 'yesterday', back: 'ayer', type: 'word' },
-  { id: 'w-good', front: 'good', back: 'bueno', type: 'word' },
-  { id: 'w-bad', front: 'bad', back: 'malo', type: 'word' },
-  { id: 'w-big', front: 'big', back: 'grande', type: 'word' },
-  { id: 'w-small', front: 'small', back: 'pequeño', type: 'word' },
-  { id: 'w-happy', front: 'happy', back: 'feliz', type: 'word' },
-  { id: 'w-sad', front: 'sad', back: 'triste', type: 'word' },
-  { id: 'w-book', front: 'book', back: 'libro', type: 'word' },
-  { id: 'w-school', front: 'school', back: 'escuela', type: 'word' },
-  { id: 'w-work', front: 'work', back: 'trabajo', type: 'word' },
-  { id: 'w-city', front: 'city', back: 'ciudad', type: 'word' },
-  { id: 'w-country', front: 'country', back: 'país', type: 'word' },
-  { id: 'w-money', front: 'money', back: 'dinero', type: 'word' },
-  { id: 'w-love', front: 'love', back: 'amor', type: 'word' },
-  { id: 'w-name', front: 'name', back: 'nombre', type: 'word' },
-  { id: 'w-year', front: 'year', back: 'año', type: 'word' },
-  { id: 'w-week', front: 'week', back: 'semana', type: 'word' },
-  { id: 'w-month', front: 'month', back: 'mes', type: 'word' },
-  { id: 'w-red', front: 'red', back: 'rojo', type: 'word' },
-  { id: 'w-blue', front: 'blue', back: 'azul', type: 'word' },
-  { id: 'w-green', front: 'green', back: 'verde', type: 'word' },
-  { id: 'w-white', front: 'white', back: 'blanco', type: 'word' },
-  { id: 'w-black', front: 'black', back: 'negro', type: 'word' },
-];
-
-const VERBS: { verb: string; forms: [string, string, string][] }[] = [
-  { verb: 'hablar', forms: [['yo', 'hablo', 'I speak'], ['tú', 'hablas', 'you speak'], ['él/ella', 'habla', 'he/she speaks'], ['nosotros', 'hablamos', 'we speak'], ['ellos', 'hablan', 'they speak']] },
-  { verb: 'comer', forms: [['yo', 'como', 'I eat'], ['tú', 'comes', 'you eat'], ['él/ella', 'come', 'he/she eats'], ['nosotros', 'comemos', 'we eat'], ['ellos', 'comen', 'they eat']] },
-  { verb: 'vivir', forms: [['yo', 'vivo', 'I live'], ['tú', 'vives', 'you live'], ['él/ella', 'vive', 'he/she lives'], ['nosotros', 'vivimos', 'we live'], ['ellos', 'viven', 'they live']] },
-  { verb: 'ser', forms: [['yo', 'soy', 'I am'], ['tú', 'eres', 'you are'], ['él/ella', 'es', 'he/she is'], ['nosotros', 'somos', 'we are'], ['ellos', 'son', 'they are']] },
-  { verb: 'estar', forms: [['yo', 'estoy', 'I am'], ['tú', 'estás', 'you are'], ['él/ella', 'está', 'he/she is'], ['nosotros', 'estamos', 'we are'], ['ellos', 'están', 'they are']] },
-  { verb: 'tener', forms: [['yo', 'tengo', 'I have'], ['tú', 'tienes', 'you have'], ['él/ella', 'tiene', 'he/she has'], ['nosotros', 'tenemos', 'we have'], ['ellos', 'tienen', 'they have']] },
-  { verb: 'ir', forms: [['yo', 'voy', 'I go'], ['tú', 'vas', 'you go'], ['él/ella', 'va', 'he/she goes'], ['nosotros', 'vamos', 'we go'], ['ellos', 'van', 'they go']] },
-  { verb: 'hacer', forms: [['yo', 'hago', 'I do/make'], ['tú', 'haces', 'you do/make'], ['él/ella', 'hace', 'he/she does/makes'], ['nosotros', 'hacemos', 'we do/make'], ['ellos', 'hacen', 'they do/make']] },
-  { verb: 'querer', forms: [['yo', 'quiero', 'I want'], ['tú', 'quieres', 'you want'], ['él/ella', 'quiere', 'he/she wants'], ['nosotros', 'queremos', 'we want'], ['ellos', 'quieren', 'they want']] },
-];
-
-const CONJUGATIONS: SeedItem[] = VERBS.flatMap(({ verb, forms }) =>
-  forms.map(([pronoun, conjugated, meaning]) => ({
-    id: `c-${verb}-${pronoun.replace(/[^a-z]/gi, '')}`,
-    front: `${verb} (${pronoun})`,
-    back: conjugated,
-    hint: meaning,
-    type: 'conjugation' as const,
-  }))
-);
-
-const SEED_VOCAB: SeedItem[] = [...WORDS, ...CONJUGATIONS];
-
-function loadVocab(): VocabItem[] {
-  try {
-    const raw = localStorage.getItem(VOCAB_KEY);
-    if (raw) return JSON.parse(raw);
-  } catch {
-    // fall through to reseed
-  }
-  const seeded: VocabItem[] = SEED_VOCAB.map((v) => ({
-    ...v,
-    box: 1,
-    correctCount: 0,
-    incorrectCount: 0,
-    lastReviewed: null,
-    nextReview: todayStr(),
-  }));
-  localStorage.setItem(VOCAB_KEY, JSON.stringify(seeded));
-  return seeded;
-}
-
-const saveVocab = (items: VocabItem[]) => localStorage.setItem(VOCAB_KEY, JSON.stringify(items));
-
-function loadStreak(): StreakData {
-  try {
-    const raw = localStorage.getItem(STREAK_KEY);
-    if (raw) return JSON.parse(raw);
-  } catch {
-    // fall through to default
-  }
-  return { current: 0, longest: 0, lastCompletedDate: null };
-}
-
-const saveStreak = (s: StreakData) => localStorage.setItem(STREAK_KEY, JSON.stringify(s));
-
 const weaknessScore = (v: VocabItem) => {
-  const attempts = v.correctCount + v.incorrectCount;
-  const errorRate = attempts > 0 ? v.incorrectCount / attempts : 0.5;
+  const attempts = v.correct_count + v.incorrect_count;
+  const errorRate = attempts > 0 ? v.incorrect_count / attempts : 0.5;
   return (5 - v.box) + errorRate * 3;
 };
 
-function buildDrill(vocab: VocabItem[], size: number): VocabItem[] {
-  const today = todayStr();
-  const due = vocab.filter((v) => v.nextReview <= today).sort((a, b) => weaknessScore(b) - weaknessScore(a));
-  let pool = due;
-  if (pool.length < size) {
-    const rest = vocab.filter((v) => v.nextReview > today).sort((a, b) => weaknessScore(b) - weaknessScore(a));
-    pool = [...pool, ...rest];
-  }
-  const top = pool.slice(0, Math.max(size * 2, size));
-  const picked = shuffle(top).slice(0, size);
-  return picked.length > 0 ? picked : shuffle(vocab).slice(0, size);
-}
-
-function gradeItem(item: VocabItem, correct: boolean): VocabItem {
-  const box = correct ? Math.min(item.box + 1, 5) : 1;
-  return {
-    ...item,
-    box,
-    correctCount: item.correctCount + (correct ? 1 : 0),
-    incorrectCount: item.incorrectCount + (correct ? 0 : 1),
-    lastReviewed: todayStr(),
-    nextReview: addDays(todayStr(), BOX_INTERVAL_DAYS[box]),
-  };
-}
-
-function completeDrillDay(streak: StreakData): StreakData {
-  const today = todayStr();
-  if (streak.lastCompletedDate === today) return streak;
-  const yesterday = addDays(today, -1);
-  const current = streak.lastCompletedDate === yesterday ? streak.current + 1 : 1;
-  return { current, longest: Math.max(streak.longest, current), lastCompletedDate: today };
-}
-
 const boxColor = (box: number) => {
-  if (box >= 5) return 'bg-green-700';
-  if (box >= 3) return 'bg-amber-700';
-  return 'bg-red-800/80';
+  if (box >= 5) return { background: 'rgba(34,197,94,0.18)', color: '#4ade80' };
+  if (box >= 3) return { background: 'rgba(184,115,51,0.18)', color: '#d4a373' };
+  return { background: 'rgba(224,120,86,0.18)', color: '#e07856' };
 };
 
-type Phase = 'idle' | 'drilling' | 'summary';
+async function api(path: string, opts: RequestInit = {}) {
+  const res = await fetch(`${API}/api/client/spanish${path}`, {
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    ...opts,
+  });
+  return res.json();
+}
 
 export default function SpanishTutor() {
-  const [vocab, setVocab] = useState<VocabItem[]>([]);
-  const [streak, setStreak] = useState<StreakData>({ current: 0, longest: 0, lastCompletedDate: null });
-  const [drillSize, setDrillSize] = useState(10);
-  const [phase, setPhase] = useState<Phase>('idle');
-  const [session, setSession] = useState<VocabItem[]>([]);
-  const [cardIndex, setCardIndex] = useState(0);
-  const [revealed, setRevealed] = useState(false);
-  const [results, setResults] = useState({ correct: 0, incorrect: 0 });
+  const [mode, setMode] = useState<Mode>('vocab');
+  const [difficulty, setDifficulty] = useState<Difficulty>('all');
+  const [dueOnly, setDueOnly] = useState(false);
 
+  const [wordBank, setWordBank] = useState<VocabItem[]>([]);
+  const [streak, setStreak] = useState({ current: 0, longest: 0 });
+  const [milestones, setMilestones] = useState<Milestone[]>([]);
+  const [banner, setBanner] = useState<string | null>(null);
+
+  // Vocab drills
+  const [pool, setPool] = useState<VocabItem[]>([]);
+  const [drillIndex, setDrillIndex] = useState(0);
+  const [revealed, setRevealed] = useState(false);
+  const [poolLoading, setPoolLoading] = useState(false);
+
+  // Conjugations
+  const [conjugation, setConjugation] = useState<{ verb: string; tense: string; forms: VocabItem[] } | null>(null);
+  const [conjIndex, setConjIndex] = useState(0);
+  const [conjRevealed, setConjRevealed] = useState(false);
+
+  // Immersion
+  const [immersionActive, setImmersionActive] = useState(false);
+  const [immersionWord, setImmersionWord] = useState<VocabItem | null>(null);
+  const [immersionTimer, setImmersionTimer] = useState(5);
+  const [immersionAnswer, setImmersionAnswer] = useState('');
+  const [immersionScore, setImmersionScore] = useState({ correct: 0, total: 0 });
+  const [immersionFeedback, setImmersionFeedback] = useState<'correct' | 'wrong' | null>(null);
+  const [immersionDone, setImmersionDone] = useState(false);
+
+  // Add word form
   const [newFront, setNewFront] = useState('');
   const [newBack, setNewBack] = useState('');
   const [newHint, setNewHint] = useState('');
-  const [newType, setNewType] = useState<ItemType>('word');
+  const [newType, setNewType] = useState<'word' | 'conjugation'>('word');
+  const [newDifficulty, setNewDifficulty] = useState<Difficulty>('beginner');
+
+  const loadSidebar = async () => {
+    const [vocabRes, streakRes, milestonesRes] = await Promise.all([
+      api('/vocab'),
+      api('/streaks'),
+      api('/milestones'),
+    ]);
+    setWordBank(vocabRes?.vocab || []);
+    if (streakRes) setStreak({ current: streakRes.current || 0, longest: streakRes.longest || 0 });
+    setMilestones(milestonesRes?.milestones || []);
+  };
 
   useEffect(() => {
-    setVocab(loadVocab());
-    setStreak(loadStreak());
-    const storedSize = localStorage.getItem(DRILL_SIZE_KEY);
-    if (storedSize) setDrillSize(parseInt(storedSize, 10));
+    loadSidebar();
   }, []);
 
-  const stats = useMemo(() => {
-    const total = vocab.length;
-    const mastered = vocab.filter((v) => v.box >= 5).length;
-    const dueToday = vocab.filter((v) => v.nextReview <= todayStr()).length;
-    const totalCorrect = vocab.reduce((s, v) => s + v.correctCount, 0);
-    const totalIncorrect = vocab.reduce((s, v) => s + v.incorrectCount, 0);
-    const attempts = totalCorrect + totalIncorrect;
-    const accuracy = attempts > 0 ? Math.round((totalCorrect / attempts) * 100) : 0;
-    return { total, mastered, dueToday, accuracy };
-  }, [vocab]);
-
-  const weakestFirst = useMemo(
-    () => [...vocab].sort((a, b) => weaknessScore(b) - weaknessScore(a)),
-    [vocab]
-  );
-
-  const setDrillSizePersist = (n: number) => {
-    setDrillSize(n);
-    localStorage.setItem(DRILL_SIZE_KEY, String(n));
-  };
-
-  const startDrill = () => {
-    setSession(buildDrill(vocab, drillSize));
-    setCardIndex(0);
+  const loadDrillPool = async () => {
+    setPoolLoading(true);
+    const diffParam = difficulty !== 'all' ? `?difficulty=${difficulty}` : '';
+    const data = dueOnly ? await api(`/vocab/due${diffParam}`) : await api(`/vocab${diffParam}`);
+    const items: VocabItem[] = (data?.vocab || []).filter((v: VocabItem) => v.item_type === 'word');
+    setPool(shuffle(items));
+    setDrillIndex(0);
     setRevealed(false);
-    setResults({ correct: 0, incorrect: 0 });
-    setPhase('drilling');
+    setPoolLoading(false);
   };
 
-  const grade = (correct: boolean) => {
-    const item = session[cardIndex];
-    const updatedItem = gradeItem(item, correct);
-    const newVocab = vocab.map((v) => (v.id === item.id ? updatedItem : v));
-    setVocab(newVocab);
-    saveVocab(newVocab);
-    setResults((r) => ({ correct: r.correct + (correct ? 1 : 0), incorrect: r.incorrect + (correct ? 0 : 1) }));
+  useEffect(() => {
+    if (mode === 'vocab') loadDrillPool();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, difficulty, dueOnly]);
 
-    if (cardIndex + 1 >= session.length) {
-      const newStreak = completeDrillDay(streak);
-      setStreak(newStreak);
-      saveStreak(newStreak);
-      setPhase('summary');
+  const showBanner = (msg: string) => {
+    setBanner(msg);
+    setTimeout(() => setBanner(null), 3500);
+  };
+
+  const submitReview = async (itemId: number, quality: Quality) => {
+    const data = await api(`/vocab/${itemId}/review`, { method: 'POST', body: JSON.stringify({ quality }) });
+    if (data?.streak) setStreak(data.streak);
+    if (data?.newMilestones?.length) {
+      for (const m of data.newMilestones) {
+        showBanner(`New milestone unlocked: ${MILESTONE_LABELS[m.milestone_type] || m.milestone_type}!`);
+      }
+      const milestonesRes = await api('/milestones');
+      setMilestones(milestonesRes?.milestones || []);
+    }
+    // refresh word bank stats quietly
+    const vocabRes = await api('/vocab');
+    setWordBank(vocabRes?.vocab || []);
+    return data?.item as VocabItem | undefined;
+  };
+
+  const gradeDrillCard = async (quality: Quality) => {
+    const item = pool[drillIndex];
+    if (!item) return;
+    await submitReview(item.id, quality);
+    if (drillIndex + 1 >= pool.length) {
+      setDrillIndex(pool.length); // past the end -> session complete state
     } else {
-      setCardIndex((i) => i + 1);
+      setDrillIndex((i) => i + 1);
       setRevealed(false);
     }
   };
 
-  const addWord = () => {
+  const loadConjugation = async () => {
+    const diffParam = difficulty !== 'all' ? { difficulty } : {};
+    const data = await api('/conjugations', { method: 'POST', body: JSON.stringify(diffParam) });
+    if (data?.forms) {
+      setConjugation({ verb: data.verb, tense: data.tense, forms: data.forms });
+      setConjIndex(0);
+      setConjRevealed(false);
+    }
+  };
+
+  useEffect(() => {
+    if (mode === 'conjugations') loadConjugation();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode]);
+
+  const gradeConjForm = async (quality: Quality) => {
+    if (!conjugation) return;
+    const form = conjugation.forms[conjIndex];
+    await submitReview(form.id, quality);
+    if (conjIndex + 1 >= conjugation.forms.length) {
+      loadConjugation();
+    } else {
+      setConjIndex((i) => i + 1);
+      setConjRevealed(false);
+    }
+  };
+
+  // ─── Immersion ──────────────────────────────────────────────────────────
+
+  const nextImmersionWord = async () => {
+    const diffParam = difficulty !== 'all' ? `?difficulty=${difficulty}` : '';
+    const data = await api(`/immersion${diffParam}`);
+    setImmersionWord(data?.item || null);
+    setImmersionAnswer('');
+    setImmersionFeedback(null);
+    setImmersionTimer(5);
+  };
+
+  const startImmersion = async () => {
+    setImmersionScore({ correct: 0, total: 0 });
+    setImmersionDone(false);
+    setImmersionActive(true);
+    await nextImmersionWord();
+  };
+
+  const settleImmersionWord = (skip: boolean) => {
+    if (!immersionWord) return;
+    if (skip) {
+      setImmersionScore((s) => ({ ...s, total: s.total + 1 }));
+      nextImmersionWord();
+      return;
+    }
+    const correct = immersionAnswer.trim().toLowerCase() === immersionWord.front.trim().toLowerCase();
+    setImmersionFeedback(correct ? 'correct' : 'wrong');
+    setImmersionScore((s) => ({ correct: s.correct + (correct ? 1 : 0), total: s.total + 1 }));
+    setTimeout(() => nextImmersionWord(), 900);
+  };
+
+  useEffect(() => {
+    if (!immersionActive || !immersionWord || immersionFeedback) return;
+    if (immersionTimer <= 0) {
+      settleImmersionWord(false);
+      return;
+    }
+    const t = setTimeout(() => setImmersionTimer((s) => s - 1), 1000);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [immersionTimer, immersionActive, immersionWord, immersionFeedback]);
+
+  const endImmersion = () => {
+    setImmersionActive(false);
+    setImmersionDone(true);
+  };
+
+  // ─── Add / delete word bank items ──────────────────────────────────────
+
+  const addWord = async () => {
     if (!newFront.trim() || !newBack.trim()) return;
-    const item: VocabItem = {
-      id: `custom-${Date.now()}`,
-      front: newFront.trim(),
-      back: newBack.trim(),
-      hint: newHint.trim() || undefined,
-      type: newType,
-      box: 1,
-      correctCount: 0,
-      incorrectCount: 0,
-      lastReviewed: null,
-      nextReview: todayStr(),
-    };
-    const updated = [...vocab, item];
-    setVocab(updated);
-    saveVocab(updated);
+    await api('/vocab', {
+      method: 'POST',
+      body: JSON.stringify({
+        front: newFront.trim(),
+        back: newBack.trim(),
+        hint: newHint.trim() || undefined,
+        item_type: newType,
+        difficulty_level: newDifficulty === 'all' ? 'beginner' : newDifficulty,
+      }),
+    });
     setNewFront('');
     setNewBack('');
     setNewHint('');
+    loadSidebar();
   };
 
-  const deleteWord = (id: string) => {
-    const updated = vocab.filter((v) => v.id !== id);
-    setVocab(updated);
-    saveVocab(updated);
+  const deleteWord = async (id: number) => {
+    await api(`/vocab/${id}`, { method: 'DELETE' });
+    loadSidebar();
   };
 
-  const currentCard = session[cardIndex];
+  const stats = useMemo(() => {
+    const total = wordBank.length;
+    const mastered = wordBank.filter((v) => v.box >= 5).length;
+    return { total, mastered, pct: total > 0 ? Math.round((mastered / total) * 100) : 0 };
+  }, [wordBank]);
+
+  const weakestFirst = useMemo(() => [...wordBank].sort((a, b) => weaknessScore(b) - weaknessScore(a)), [wordBank]);
+
+  const currentCard = pool[drillIndex];
+  const drillComplete = mode === 'vocab' && !poolLoading && pool.length > 0 && drillIndex >= pool.length;
+
+  const FeedbackButtons = ({ onGrade }: { onGrade: (q: Quality) => void }) => (
+    <div className="flex gap-2">
+      <button
+        onClick={() => onGrade('hard')}
+        className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
+        style={{ background: 'rgba(224,120,86,0.15)', border: '1px solid rgba(224,120,86,0.4)', color: '#e07856' }}
+      >
+        <XIcon size={16} /> Hard
+      </button>
+      <button
+        onClick={() => onGrade('good')}
+        className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
+        style={{ background: 'rgba(184,115,51,0.15)', border: '1px solid rgba(184,115,51,0.4)', color: '#d4a373' }}
+      >
+        Good
+      </button>
+      <button
+        onClick={() => onGrade('easy')}
+        className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
+        style={{ background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.4)', color: '#4ade80' }}
+      >
+        <Check size={16} /> Easy
+      </button>
+    </div>
+  );
 
   return (
-    <div className="w-full max-w-4xl mx-auto p-4 bg-gradient-to-br from-slate-950 to-slate-900 text-slate-50 rounded-lg">
+    <div className="w-full">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold font-playfair">Spanish Tutor</h1>
-        <div className="flex items-center gap-2 bg-slate-800 bg-opacity-50 px-3 py-1.5 rounded-lg border border-amber-700 border-opacity-30">
-          <Flame size={18} className={streak.current > 0 ? 'text-orange-400' : 'text-slate-500'} />
-          <span className="font-semibold text-sm">
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-2xl font-bold" style={{ color: '#d4a373', textShadow: '0 0 16px rgba(184,115,51,0.3)' }}>
+          Spanish Tutor
+        </h1>
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(184,115,51,0.25)' }}>
+          <Flame size={18} style={{ color: streak.current > 0 ? '#e07856' : 'rgba(255,255,255,0.3)' }} />
+          <span className="font-bold text-sm" style={{ color: '#d4a373' }}>
             {streak.current} day{streak.current === 1 ? '' : 's'}
           </span>
-          <span className="text-xs text-slate-400">(best {streak.longest})</span>
+          <span className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>(best {streak.longest})</span>
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-        {[
-          { label: 'Total Words', value: stats.total },
-          { label: 'Mastered', value: stats.mastered },
-          { label: 'Due Today', value: stats.dueToday },
-          { label: 'Accuracy', value: `${stats.accuracy}%` },
-        ].map((s) => (
-          <div
-            key={s.label}
-            className="p-3 bg-slate-800 bg-opacity-50 rounded-lg border border-amber-700 border-opacity-20 text-center"
+      {banner && (
+        <div className="mb-4 rounded-lg px-4 py-2 text-sm text-center" style={{ background: 'rgba(184,115,51,0.15)', border: '1px solid #b87333', color: '#d4a373' }}>
+          {banner}
+        </div>
+      )}
+
+      {/* Mode tabs */}
+      <div className="flex gap-2 mb-4">
+        {([
+          { key: 'vocab', label: 'Vocab Drills' },
+          { key: 'conjugations', label: 'Conjugations' },
+          { key: 'immersion', label: 'Immersion' },
+        ] as { key: Mode; label: string }[]).map((m) => (
+          <button
+            key={m.key}
+            onClick={() => setMode(m.key)}
+            className="px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
+            style={
+              mode === m.key
+                ? { background: 'rgba(184,115,51,0.18)', border: '1px solid #b87333', color: '#d4a373' }
+                : { background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(184,115,51,0.15)', color: 'rgba(255,255,255,0.5)' }
+            }
           >
-            <div className="text-xl font-bold text-amber-400">{s.value}</div>
-            <div className="text-xs text-slate-400">{s.label}</div>
-          </div>
+            {m.label}
+          </button>
         ))}
       </div>
 
-      {/* Drill area */}
-      {phase === 'idle' && (
-        <div className="mb-6 p-4 bg-slate-800 bg-opacity-50 rounded-lg border border-amber-700 border-opacity-30">
-          <h3 className="text-lg font-playfair mb-3">Daily Drill</h3>
-          <div className="flex items-center gap-2 mb-4">
-            <span className="text-sm text-slate-400">Words per drill:</span>
-            {[5, 10, 15].map((n) => (
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-4">
+        <div>
+          {/* Difficulty + due filter (vocab & conjugations & immersion) */}
+          <div className="flex flex-wrap items-center gap-2 mb-4">
+            {(['all', 'beginner', 'intermediate', 'advanced'] as Difficulty[]).map((d) => (
               <button
-                key={n}
-                onClick={() => setDrillSizePersist(n)}
-                className={`px-3 py-1 rounded text-sm transition ${
-                  drillSize === n ? 'bg-amber-700 text-white' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-                }`}
+                key={d}
+                onClick={() => setDifficulty(d)}
+                className="px-3 py-1 rounded text-xs capitalize transition-colors"
+                style={
+                  difficulty === d
+                    ? { background: 'rgba(184,115,51,0.2)', color: '#d4a373' }
+                    : { background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.5)' }
+                }
               >
-                {n}
+                {d}
               </button>
             ))}
-          </div>
-          <button
-            onClick={startDrill}
-            disabled={vocab.length === 0}
-            className="w-full bg-amber-700 hover:bg-amber-600 disabled:opacity-40 disabled:cursor-not-allowed px-4 py-2 rounded-lg transition font-semibold"
-          >
-            Start Drill
-          </button>
-        </div>
-      )}
-
-      {phase === 'drilling' && currentCard && (
-        <div className="mb-6 p-6 bg-slate-800 bg-opacity-50 rounded-lg border border-amber-700 border-opacity-30">
-          <div className="flex items-center justify-between text-xs text-slate-400 mb-4">
-            <span>
-              Card {cardIndex + 1} of {session.length}
-            </span>
-            <span className="uppercase tracking-wide">{currentCard.type}</span>
-          </div>
-
-          <div className="text-center py-8">
-            <div className="text-2xl font-bold mb-2">{currentCard.front}</div>
-            {revealed && (
-              <div className="mt-4">
-                <div className="text-3xl font-bold text-amber-400">{currentCard.back}</div>
-                {currentCard.hint && <div className="text-sm text-slate-400 mt-1">{currentCard.hint}</div>}
-              </div>
+            {mode === 'vocab' && (
+              <label className="flex items-center gap-1.5 text-xs ml-2" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                <input type="checkbox" checked={dueOnly} onChange={(e) => setDueOnly(e.target.checked)} />
+                Due for review only
+              </label>
             )}
           </div>
 
-          {!revealed ? (
-            <button
-              onClick={() => setRevealed(true)}
-              className="w-full bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg transition font-semibold"
-            >
-              Show Answer
-            </button>
-          ) : (
-            <div className="flex gap-3">
-              <button
-                onClick={() => grade(false)}
-                className="flex-1 flex items-center justify-center gap-2 bg-red-800 hover:bg-red-700 px-4 py-2 rounded-lg transition font-semibold"
-              >
-                <XIcon size={18} /> Missed It
-              </button>
-              <button
-                onClick={() => grade(true)}
-                className="flex-1 flex items-center justify-center gap-2 bg-green-700 hover:bg-green-600 px-4 py-2 rounded-lg transition font-semibold"
-              >
-                <Check size={18} /> Got It
-              </button>
+          {/* VOCAB DRILLS */}
+          {mode === 'vocab' && (
+            <div className="glass-surface rounded-xl p-6" style={{ border: '1px solid rgba(184,115,51,0.3)' }}>
+              {poolLoading ? (
+                <p className="text-center text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>Loading…</p>
+              ) : pool.length === 0 ? (
+                <p className="text-center text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                  Nothing to drill right now — try a different filter.
+                </p>
+              ) : drillComplete ? (
+                <div className="text-center py-6">
+                  <BarChart3 size={28} className="mx-auto mb-2" style={{ color: '#d4a373' }} />
+                  <h3 className="text-lg font-semibold mb-1" style={{ color: '#d4a373' }}>Session Complete</h3>
+                  <p className="text-sm mb-4" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                    {pool.length} word{pool.length === 1 ? '' : 's'} reviewed
+                  </p>
+                  <button onClick={loadDrillPool} className="glass-btn px-4 py-2 rounded-lg text-sm font-semibold">
+                    New Session
+                  </button>
+                </div>
+              ) : currentCard ? (
+                <>
+                  <div className="flex items-center justify-between text-xs mb-4" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                    <span>Card {drillIndex + 1} of {pool.length}</span>
+                    <span className="capitalize">{currentCard.difficulty_level}</span>
+                  </div>
+                  <div className="text-center py-8">
+                    <div className="flex items-center justify-center gap-2 text-2xl font-bold mb-2" style={{ color: '#d4a373' }}>
+                      <Volume2 size={20} style={{ color: 'rgba(255,255,255,0.3)' }} />
+                      {currentCard.front}
+                    </div>
+                    {revealed && (
+                      <div className="mt-4">
+                        <div className="text-3xl font-bold" style={{ color: '#d4a373' }}>{currentCard.back}</div>
+                        {currentCard.part_of_speech && (
+                          <div className="text-xs mt-1 italic" style={{ color: 'rgba(255,255,255,0.4)' }}>{currentCard.part_of_speech}</div>
+                        )}
+                        {currentCard.example_sentence && (
+                          <div className="text-sm mt-2" style={{ color: 'rgba(255,255,255,0.6)' }}>{currentCard.example_sentence}</div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  {!revealed ? (
+                    <button
+                      onClick={() => setRevealed(true)}
+                      className="w-full px-4 py-2 rounded-lg text-sm font-semibold"
+                      style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.7)' }}
+                    >
+                      Show English
+                    </button>
+                  ) : (
+                    <FeedbackButtons onGrade={gradeDrillCard} />
+                  )}
+                </>
+              ) : null}
+            </div>
+          )}
+
+          {/* CONJUGATIONS */}
+          {mode === 'conjugations' && (
+            <div className="glass-surface rounded-xl p-6" style={{ border: '1px solid rgba(184,115,51,0.3)' }}>
+              {!conjugation ? (
+                <p className="text-center text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>Loading…</p>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between text-xs mb-4" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                    <span>{conjugation.verb} — {conjugation.tense}</span>
+                    <span>Form {conjIndex + 1} of {conjugation.forms.length}</span>
+                  </div>
+                  <div className="text-center py-8">
+                    <div className="text-2xl font-bold mb-2" style={{ color: '#d4a373' }}>
+                      {conjugation.forms[conjIndex]?.front}
+                    </div>
+                    {conjRevealed && (
+                      <div className="mt-4">
+                        <div className="text-3xl font-bold" style={{ color: '#d4a373' }}>{conjugation.forms[conjIndex]?.back}</div>
+                        {conjugation.forms[conjIndex]?.hint && (
+                          <div className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.5)' }}>{conjugation.forms[conjIndex]?.hint}</div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  {!conjRevealed ? (
+                    <button
+                      onClick={() => setConjRevealed(true)}
+                      className="w-full px-4 py-2 rounded-lg text-sm font-semibold"
+                      style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.7)' }}
+                    >
+                      Show Answer
+                    </button>
+                  ) : (
+                    <FeedbackButtons onGrade={gradeConjForm} />
+                  )}
+                  <button onClick={loadConjugation} className="w-full mt-3 text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                    Skip to a new verb
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* IMMERSION */}
+          {mode === 'immersion' && (
+            <div className="glass-surface rounded-xl p-6" style={{ border: '1px solid rgba(184,115,51,0.3)' }}>
+              {!immersionActive && !immersionDone && (
+                <div className="text-center py-6">
+                  <p className="text-sm mb-4" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                    Rapid-fire: 5 seconds per word, type the English translation. No hints.
+                  </p>
+                  <button onClick={startImmersion} className="glass-btn px-6 py-2 rounded-lg text-sm font-semibold">
+                    Start Session
+                  </button>
+                </div>
+              )}
+
+              {immersionActive && immersionWord && (
+                <>
+                  <div className="flex items-center justify-between text-xs mb-4" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                    <span>Score: {immersionScore.correct}/{immersionScore.total}</span>
+                    <span style={{ color: immersionTimer <= 2 ? '#e07856' : 'rgba(255,255,255,0.4)' }}>⏱ {immersionTimer}s</span>
+                  </div>
+                  <div className="text-center py-6">
+                    <div className="text-3xl font-bold mb-2" style={{ color: '#d4a373' }}>{immersionWord.back}</div>
+                    {immersionWord.example_sentence && (
+                      <div className="text-sm italic" style={{ color: 'rgba(255,255,255,0.5)' }}>{immersionWord.example_sentence}</div>
+                    )}
+                    {immersionFeedback && (
+                      <div className="mt-3 text-sm font-semibold" style={{ color: immersionFeedback === 'correct' ? '#4ade80' : '#e07856' }}>
+                        {immersionFeedback === 'correct' ? 'Correct!' : `Answer: ${immersionWord.front}`}
+                      </div>
+                    )}
+                  </div>
+                  <input
+                    autoFocus
+                    type="text"
+                    placeholder="Type the English translation…"
+                    value={immersionAnswer}
+                    onChange={(e) => setImmersionAnswer(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && settleImmersionWord(false)}
+                    disabled={!!immersionFeedback}
+                    className="glass-input w-full px-3 py-2 rounded text-sm mb-3 text-center"
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => settleImmersionWord(true)}
+                      disabled={!!immersionFeedback}
+                      className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm"
+                      style={{ background: 'rgba(184,115,51,0.12)', color: '#d4a373' }}
+                    >
+                      <SkipForward size={14} /> Pass
+                    </button>
+                    <button onClick={endImmersion} className="px-4 py-2 rounded-lg text-sm" style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.5)' }}>
+                      End Session
+                    </button>
+                  </div>
+                </>
+              )}
+
+              {immersionDone && (
+                <div className="text-center py-6">
+                  <BarChart3 size={28} className="mx-auto mb-2" style={{ color: '#d4a373' }} />
+                  <h3 className="text-lg font-semibold mb-1" style={{ color: '#d4a373' }}>Session Complete</h3>
+                  <p className="text-sm mb-4" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                    {immersionScore.correct}/{immersionScore.total} correct
+                  </p>
+                  <button onClick={startImmersion} className="glass-btn px-4 py-2 rounded-lg text-sm font-semibold">
+                    New Session
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
-      )}
 
-      {phase === 'summary' && (
-        <div className="mb-6 p-6 bg-slate-800 bg-opacity-50 rounded-lg border border-amber-700 border-opacity-30 text-center">
-          <BarChart3 size={28} className="mx-auto text-amber-400 mb-2" />
-          <h3 className="text-xl font-playfair mb-1">Drill Complete</h3>
-          <p className="text-slate-300 mb-4">
-            {results.correct}/{results.correct + results.incorrect} correct
-          </p>
-          <p className="text-sm text-orange-400 flex items-center justify-center gap-1 mb-4">
-            <Flame size={16} /> Streak: {streak.current} day{streak.current === 1 ? '' : 's'} (best {streak.longest})
-          </p>
-          <button
-            onClick={() => setPhase('idle')}
-            className="bg-amber-700 hover:bg-amber-600 px-4 py-2 rounded-lg transition font-semibold"
-          >
-            Done
-          </button>
-        </div>
-      )}
+        {/* Sidebar */}
+        <div className="space-y-3">
+          <div className="glass-surface rounded-xl p-3" style={{ border: '1px solid rgba(184,115,51,0.25)' }}>
+            <div className="flex justify-between text-xs mb-1" style={{ color: 'rgba(255,255,255,0.5)' }}>
+              <span>Mastered</span>
+              <span>{stats.mastered} / {stats.total}</span>
+            </div>
+            <div className="w-full h-2 rounded" style={{ background: 'rgba(255,255,255,0.05)' }}>
+              <div
+                className="h-2 rounded transition-all"
+                style={{ width: `${stats.pct}%`, background: 'linear-gradient(90deg, #b87333, #d4a373)' }}
+              />
+            </div>
+          </div>
 
-      {/* Add word */}
-      <div className="mb-6 p-4 bg-slate-800 bg-opacity-50 rounded-lg border border-amber-700 border-opacity-30">
-        <h3 className="text-sm font-semibold text-slate-300 mb-3">Add a word or conjugation</h3>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-2 mb-2">
-          <input
-            type="text"
-            placeholder="Front (e.g. hablar (yo))"
-            value={newFront}
-            onChange={(e) => setNewFront(e.target.value)}
-            className="px-3 py-2 bg-slate-900 border border-amber-700 border-opacity-20 rounded text-slate-50 placeholder-slate-500"
-          />
-          <input
-            type="text"
-            placeholder="Back (e.g. hablo)"
-            value={newBack}
-            onChange={(e) => setNewBack(e.target.value)}
-            className="px-3 py-2 bg-slate-900 border border-amber-700 border-opacity-20 rounded text-slate-50 placeholder-slate-500"
-          />
-          <input
-            type="text"
-            placeholder="Hint (optional)"
-            value={newHint}
-            onChange={(e) => setNewHint(e.target.value)}
-            className="px-3 py-2 bg-slate-900 border border-amber-700 border-opacity-20 rounded text-slate-50 placeholder-slate-500"
-          />
-          <select
-            value={newType}
-            onChange={(e) => setNewType(e.target.value as ItemType)}
-            className="px-3 py-2 bg-slate-900 border border-amber-700 border-opacity-20 rounded text-slate-50"
-          >
-            <option value="word">Word</option>
-            <option value="conjugation">Conjugation</option>
-          </select>
-        </div>
-        <button
-          onClick={addWord}
-          className="flex items-center gap-2 bg-amber-700 hover:bg-amber-600 px-4 py-2 rounded-lg transition text-sm font-semibold"
-        >
-          <Plus size={16} /> Add
-        </button>
-      </div>
-
-      {/* Word bank */}
-      <div>
-        <h3 className="text-sm font-semibold text-slate-300 mb-2">Word Bank (weakest first)</h3>
-        <div className="space-y-1.5 max-h-72 overflow-y-auto pr-1">
-          {weakestFirst.map((v) => (
-            <div
-              key={v.id}
-              className="flex items-center justify-between px-3 py-2 bg-slate-800 bg-opacity-30 rounded border border-amber-700 border-opacity-10"
-            >
-              <div className="flex-1 min-w-0">
-                <span className="text-sm">{v.front}</span>
-                <span className="text-xs text-slate-500 ml-2">→ {v.back}</span>
-              </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <span className={`text-[10px] px-1.5 py-0.5 rounded ${boxColor(v.box)}`}>Box {v.box}</span>
-                <button
-                  onClick={() => deleteWord(v.id)}
-                  className="text-slate-500 hover:text-red-400 transition"
-                  title="Delete"
-                >
-                  <Trash2 size={14} />
-                </button>
+          {milestones.length > 0 && (
+            <div className="glass-surface rounded-xl p-3" style={{ border: '1px solid rgba(184,115,51,0.25)' }}>
+              <h4 className="text-xs font-semibold mb-2" style={{ color: '#d4a373' }}>Milestones</h4>
+              <div className="flex flex-wrap gap-1.5">
+                {milestones.map((m) => (
+                  <span
+                    key={m.id}
+                    className="text-xs px-2 py-1 rounded-full"
+                    style={{ background: 'rgba(184,115,51,0.15)', border: '1px solid rgba(184,115,51,0.4)', color: '#d4a373' }}
+                  >
+                    {MILESTONE_LABELS[m.milestone_type] || m.milestone_type}
+                  </span>
+                ))}
               </div>
             </div>
-          ))}
+          )}
+
+          {/* Add word */}
+          <div className="glass-surface rounded-xl p-3" style={{ border: '1px solid rgba(184,115,51,0.25)' }}>
+            <h4 className="text-xs font-semibold mb-2" style={{ color: '#d4a373' }}>Add a word or conjugation</h4>
+            <input
+              type="text"
+              placeholder="English"
+              value={newFront}
+              onChange={(e) => setNewFront(e.target.value)}
+              className="glass-input w-full px-2 py-1.5 rounded text-xs mb-1.5"
+            />
+            <input
+              type="text"
+              placeholder="Spanish"
+              value={newBack}
+              onChange={(e) => setNewBack(e.target.value)}
+              className="glass-input w-full px-2 py-1.5 rounded text-xs mb-1.5"
+            />
+            <input
+              type="text"
+              placeholder="Hint (optional)"
+              value={newHint}
+              onChange={(e) => setNewHint(e.target.value)}
+              className="glass-input w-full px-2 py-1.5 rounded text-xs mb-1.5"
+            />
+            <div className="flex gap-1.5 mb-2">
+              <select value={newType} onChange={(e) => setNewType(e.target.value as 'word' | 'conjugation')} className="glass-input flex-1 px-2 py-1.5 rounded text-xs">
+                <option value="word">Word</option>
+                <option value="conjugation">Conjugation</option>
+              </select>
+              <select value={newDifficulty} onChange={(e) => setNewDifficulty(e.target.value as Difficulty)} className="glass-input flex-1 px-2 py-1.5 rounded text-xs">
+                <option value="beginner">Beginner</option>
+                <option value="intermediate">Intermediate</option>
+                <option value="advanced">Advanced</option>
+              </select>
+            </div>
+            <button onClick={addWord} className="glass-btn w-full flex items-center justify-center gap-1 py-1.5 rounded text-xs font-semibold">
+              <Plus size={12} /> Add
+            </button>
+          </div>
+
+          {/* Word bank */}
+          <div className="glass-surface rounded-xl p-3" style={{ border: '1px solid rgba(184,115,51,0.25)' }}>
+            <h4 className="text-xs font-semibold mb-2" style={{ color: '#d4a373' }}>Word Bank (weakest first)</h4>
+            <div className="space-y-1 max-h-64 overflow-y-auto">
+              {weakestFirst.map((v) => {
+                const c = boxColor(v.box);
+                return (
+                  <div key={v.id} className="flex items-center justify-between px-2 py-1.5 rounded text-xs" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                    <div className="flex-1 min-w-0 truncate">
+                      <span style={{ color: 'rgba(255,255,255,0.8)' }}>{v.front}</span>
+                      <span style={{ color: 'rgba(255,255,255,0.4)' }}> → {v.back}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                      <span className="text-[10px] px-1.5 py-0.5 rounded" style={c}>Box {v.box}</span>
+                      <button onClick={() => deleteWord(v.id)} title="Delete">
+                        <Trash2 size={12} style={{ color: 'rgba(255,255,255,0.3)' }} />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
       </div>
     </div>

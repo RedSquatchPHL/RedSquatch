@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { API } from '@/lib/api';
-import CodeNotesEditor from '@/components/CodeNotesEditor';
+import DevelopmentWidget from '@/components/DevelopmentWidget';
 
 export default function WSToolsPage() {
   const [loading, setLoading] = useState(true);
@@ -34,17 +34,17 @@ export default function WSToolsPage() {
         </h1>
       </div>
 
-      {/* Code Notes */}
+      {/* Development */}
       <div className="max-w-5xl w-full">
         <div className="glass-surface rounded-2xl px-6 py-4 mb-4">
           <h2 className="text-xl font-bold" style={{ color: '#d4a373', textShadow: '0 0 16px rgba(184,115,51,0.3)' }}>
-            Code Notes
+            Development
           </h2>
           <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.35)' }}>
-            Syntax-highlighted scratchpad for code snippets, auto-saved as you type
+            Multi-tab code & text scratchpad, auto-saved as you type
           </p>
         </div>
-        <CodeNotesEditor height="400px" />
+        <DevelopmentWidget />
       </div>
 
       {/* Curriculum Tracker (placeholder) */}

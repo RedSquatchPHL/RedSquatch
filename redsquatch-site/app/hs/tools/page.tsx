@@ -8,10 +8,10 @@ import ToolModal from '@/components/ToolModal';
 import { useToolModal } from '@/hooks/useToolModal';
 import AppletModal from '@/components/AppletModal';
 import MealPlanner from '@/components/MealPlanner';
-import BillsTracker from '@/components/BillsTracker';
+import BillTracker from '@/components/BillTracker';
 import SpanishTutor from '@/components/SpanishTutor';
 
-type Applet = 'menuplanner' | 'billstracker' | 'spanishtutor' | null;
+type Applet = 'menuplanner' | 'billtracker' | 'spanishtutor' | null;
 
 export default function HSToolsPage() {
   const [loading, setLoading] = useState(true);
@@ -51,13 +51,13 @@ export default function HSToolsPage() {
             { key: 'grampsweb' as const,   label: 'Grampsweb',    description: 'Family tree & genealogy',                    kind: 'tool' as const },
             { key: 'stirling' as const,    label: 'Stirling-PDF', description: 'PDF tools & utilities (opens in new tab)',   kind: 'link' as const, url: 'https://pdf.redsquatch.com' },
             { key: 'menuplanner' as const, label: 'Menu Planner', description: 'Weekly meals & grocery list',                kind: 'applet' as const },
-            { key: 'billstracker' as const,label: 'Bills Tracker',description: 'Track recurring bills & payments',           kind: 'applet' as const },
+            { key: 'billtracker' as const, label: 'Bills Tracker',description: 'Track recurring bills & payments',           kind: 'applet' as const },
             { key: 'spanishtutor' as const,label: 'Spanish Tutor',description: 'Daily drills with spaced repetition',        kind: 'applet' as const },
           ]).map((t) => {
             const CardTag = t.kind === 'link' ? 'a' : 'button';
             const cardProps = t.kind === 'link'
               ? { href: t.url, target: '_blank', rel: 'noopener noreferrer' }
-              : { onClick: () => (t.kind === 'tool' ? openTool('grampsweb') : setActiveApplet(t.key as 'menuplanner' | 'billstracker' | 'spanishtutor')) };
+              : { onClick: () => (t.kind === 'tool' ? openTool('grampsweb') : setActiveApplet(t.key as 'menuplanner' | 'billtracker' | 'spanishtutor')) };
             return (
               <CardTag
                 key={t.key}
@@ -114,8 +114,8 @@ export default function HSToolsPage() {
         <MealPlanner />
       </AppletModal>
 
-      <AppletModal isOpen={activeApplet === 'billstracker'} title="Bills Tracker" onClose={() => setActiveApplet(null)}>
-        <BillsTracker />
+      <AppletModal isOpen={activeApplet === 'billtracker'} title="Bills Tracker" onClose={() => setActiveApplet(null)}>
+        <BillTracker />
       </AppletModal>
 
       <AppletModal isOpen={activeApplet === 'spanishtutor'} title="Spanish Tutor" onClose={() => setActiveApplet(null)}>

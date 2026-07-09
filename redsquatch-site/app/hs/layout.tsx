@@ -1,12 +1,12 @@
 'use client';
 
 import MagnificationDock from '@/components/MagnificationDock';
-import { BarChart3, Target, Zap, Settings, Gamepad2 } from 'lucide-react';
+import { BarChart3, Target, Trophy, Settings, Gamepad2 } from 'lucide-react';
 
 const HS_NAV = [
   { label: 'Dashboard', icon: BarChart3, href: '/hs/dashboard' },
   { label: 'Goals',     icon: Target,    href: '/hs/goals'     },
-  { label: 'Sports',    icon: Zap,       href: '/hs/sports'    },
+  { label: 'Sports',    icon: Trophy,    href: '/hs/sports'    },
   { label: 'Tools',     icon: Settings,  href: '/hs/tools'     },
   { label: 'Downtime',  icon: Gamepad2,  href: '/hs/downtime'  },
 ];

@@ -11,8 +11,10 @@ const fs = require('fs');
 const { scrapeAll } = require('./sports-scraper');
 const { runMigrations, runInactivityCron, makeRouter: makeWorkItemsRouter } = require('./workItemsRoutes');
 const { runMigrations: runResearchMigrations, makeRouter: makeResearchRouter } = require('./routes/research');
-const { runMigrations: runQuickNotesMigrations, makeRouter: makeQuickNotesRouter } = require('./routes/quickNotes');
 const { makeRouter: makeRconRouter } = require('./routes/rcon');
+const { runMigrations: runNotesMigrations, makeRouter: makeNotesRouter } = require('./routes/notes');
+const { runMigrations: runMealsMigrations, makeRouter: makeMealsRouter } = require('./routes/meals');
+const { runMigrations: runSpanishMigrations, makeRouter: makeSpanishRouter } = require('./routes/spanish');
 
 const SPORTS_FILE = path.join(__dirname, 'public', 'sports.json');
 
@@ -987,8 +989,10 @@ app.post('/api/client/sports/refresh', requireAuth, async (req, res) => {
 
 app.use('/api/client/work-items', makeWorkItemsRouter(db));
 app.use('/api/client/research', makeResearchRouter(db));
-app.use('/api/client/quick-notes', makeQuickNotesRouter(db));
 app.use('/api/client/rcon', makeRconRouter(db));
+app.use('/api/client/notes', makeNotesRouter(db));
+app.use('/api/client/meals', makeMealsRouter(db));
+app.use('/api/client/spanish', makeSpanishRouter(db));
 
 // ============ TOOLS ============
 
@@ -1041,7 +1045,9 @@ async function initializeApp() {
     // Run idempotent schema migrations
     await runMigrations(db);
     await runResearchMigrations(db);
-    await runQuickNotesMigrations(db);
+    await runNotesMigrations(db);
+    await runMealsMigrations(db);
+    await runSpanishMigrations(db);
 
     app.listen(PORT, () => {
       console.log(`✓ RedSquatch API running on port ${PORT}`);

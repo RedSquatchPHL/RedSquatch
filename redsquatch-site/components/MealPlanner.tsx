@@ -1,532 +1,502 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Check, TrendingUp } from 'lucide-react';
+'use client';
 
-interface MealPlan {
-  id: string;
+import React, { useEffect, useState } from 'react';
+import { ChevronLeft, ChevronRight, ExternalLink, Trash2, Copy, Download, ListChecks, X } from 'lucide-react';
+import { API } from '@/lib/api';
+
+interface Meal {
+  id: number;
   date: string;
-  mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack';
-  customName?: string;
-  notes?: string;
-  createdAt: string;
+  meal_type: 'breakfast' | 'lunch' | 'dinner' | 'snack';
+  meal_name: string;
+  recipe_url: string | null;
+  ingredients: string | null;
+  notes: string | null;
 }
 
 interface GroceryItem {
-  id: string;
+  item: string;
+  qty: string;
+  checked: boolean;
+}
+
+interface GroceryList {
+  id: number;
   name: string;
-  quantity: number;
-  unit: string;
-  estimatedCost: number;
-  actualCost?: number;
-  category: 'produce' | 'protein' | 'dairy' | 'pantry' | 'frozen' | 'other';
-  mealIds: string[];
-  purchased: boolean;
-  purchaseDate?: string;
-  createdAt: string;
+  items: GroceryItem[];
+  created_at: string;
 }
 
-interface GroceryBudget {
-  id: string;
-  period: 'weekly' | 'biweekly' | 'monthly';
-  startDate: string;
-  limit: number;
-  category?: string;
-}
+const MEAL_TYPES: { key: Meal['meal_type']; label: string; emoji: string }[] = [
+  { key: 'breakfast', label: 'Breakfast', emoji: '🍳' },
+  { key: 'lunch', label: 'Lunch', emoji: '🥙' },
+  { key: 'dinner', label: 'Dinner', emoji: '🍽️' },
+  { key: 'snack', label: 'Snack', emoji: '🍿' },
+];
 
-const MEAL_TYPES = {
-  breakfast: '🍳',
-  lunch: '🥙',
-  dinner: '🍽️',
-  snack: '🍿',
+const fmtISO = (d: Date) => d.toISOString().split('T')[0];
+
+const mondayOf = (d: Date): Date => {
+  const copy = new Date(d);
+  const dow = copy.getDay();
+  const diff = dow === 0 ? -6 : 1 - dow;
+  copy.setDate(copy.getDate() + diff);
+  copy.setHours(0, 0, 0, 0);
+  return copy;
 };
 
-const CATEGORIES = {
-  produce: 'Produce',
-  protein: 'Protein',
-  dairy: 'Dairy',
-  pantry: 'Pantry',
-  frozen: 'Frozen',
-  other: 'Other',
+const addDays = (d: Date, days: number): Date => {
+  const copy = new Date(d);
+  copy.setDate(copy.getDate() + days);
+  return copy;
 };
 
-const generateId = () => crypto.randomUUID();
+const weekDays = (weekStart: Date): Date[] => Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
 
-const getMealsStorage = (): MealPlan[] => {
-  try {
-    const data = localStorage.getItem('meal-plan');
-    return data ? JSON.parse(data) : [];
-  } catch {
-    return [];
-  }
-};
-
-const getGroceryStorage = (): GroceryItem[] => {
-  try {
-    const data = localStorage.getItem('grocery-items');
-    return data ? JSON.parse(data) : [];
-  } catch {
-    return [];
-  }
-};
-
-const getBudgetStorage = (): GroceryBudget[] => {
-  try {
-    const data = localStorage.getItem('grocery-budgets');
-    return data ? JSON.parse(data) : [];
-  } catch {
-    return [];
-  }
-};
-
-const saveMeals = (meals: MealPlan[]) => {
-  localStorage.setItem('meal-plan', JSON.stringify(meals));
-};
-
-const saveGrocery = (items: GroceryItem[]) => {
-  localStorage.setItem('grocery-items', JSON.stringify(items));
-};
-
-const saveBudget = (budgets: GroceryBudget[]) => {
-  localStorage.setItem('grocery-budgets', JSON.stringify(budgets));
-};
-
-const getWeekMeals = (meals: MealPlan[]): Record<string, MealPlan[]> => {
-  const grouped: Record<string, MealPlan[]> = {};
-  const today = new Date();
-
-  for (let i = 0; i < 7; i++) {
-    const date = new Date(today);
-    date.setDate(today.getDate() + i);
-    const dateStr = date.toISOString().split('T')[0];
-    grouped[dateStr] = meals.filter((m) => m.date === dateStr);
-  }
-
-  return grouped;
-};
+const fmtDayLabel = (d: Date) => d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
 
 export default function MealPlanner() {
-  const [meals, setMeals] = useState<MealPlan[]>([]);
-  const [groceries, setGroceries] = useState<GroceryItem[]>([]);
-  const [budgets, setBudgets] = useState<GroceryBudget[]>([]);
-  const [activeTab, setActiveTab] = useState<'week' | 'groceries'>('week');
-  const [showMealForm, setShowMealForm] = useState(false);
-  const [showGroceryForm, setShowGroceryForm] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [weekStart, setWeekStart] = useState<Date>(mondayOf(new Date()));
+  const [meals, setMeals] = useState<Meal[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const [mealForm, setMealForm] = useState({
-    mealType: 'lunch' as MealPlan['mealType'],
-    customName: '',
-    notes: '',
-  });
+  const [editingCell, setEditingCell] = useState<{ date: string; mealType: Meal['meal_type']; meal?: Meal } | null>(null);
+  const [form, setForm] = useState({ meal_name: '', recipe_url: '', ingredients: '', notes: '' });
 
-  const [groceryForm, setGroceryForm] = useState({
-    name: '',
-    quantity: 1,
-    unit: 'ea',
-    estimatedCost: 0,
-    category: 'other' as GroceryItem['category'],
-  });
+  const [groceryItems, setGroceryItems] = useState<GroceryItem[] | null>(null);
+  const [groceryLoading, setGroceryLoading] = useState(false);
+  const [showSavedLists, setShowSavedLists] = useState(false);
+  const [savedLists, setSavedLists] = useState<GroceryList[]>([]);
+  const [expandedListId, setExpandedListId] = useState<number | null>(null);
+  const [copyFeedback, setCopyFeedback] = useState(false);
+
+  const days = weekDays(weekStart);
+  const rangeStart = fmtISO(weekStart);
+  const rangeEnd = fmtISO(addDays(weekStart, 6));
+
+  const loadMeals = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`${API}/api/client/meals?start=${rangeStart}&end=${rangeEnd}`, { credentials: 'include' });
+      const data = await res.json();
+      setMeals(data?.meals || []);
+    } catch {
+      setMeals([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    setMeals(getMealsStorage());
-    setGroceries(getGroceryStorage());
-    setBudgets(getBudgetStorage());
-  }, []);
+    loadMeals();
+    setGroceryItems(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rangeStart]);
 
-  const handleAddMeal = () => {
-    if (!mealForm.customName) return;
+  const mealFor = (date: string, mealType: string) =>
+    meals.find((m) => m.date.slice(0, 10) === date && m.meal_type === mealType);
 
-    const newMeal: MealPlan = {
-      id: generateId(),
-      date: selectedDate,
-      mealType: mealForm.mealType,
-      customName: mealForm.customName,
-      notes: mealForm.notes,
-      createdAt: new Date().toISOString(),
-    };
-
-    const updated = [...meals, newMeal];
-    setMeals(updated);
-    saveMeals(updated);
-    setMealForm({ mealType: 'lunch', customName: '', notes: '' });
-    setShowMealForm(false);
-  };
-
-  const handleAddGrocery = () => {
-    if (!groceryForm.name || groceryForm.quantity <= 0) return;
-
-    const newItem: GroceryItem = {
-      id: generateId(),
-      name: groceryForm.name,
-      quantity: groceryForm.quantity,
-      unit: groceryForm.unit,
-      estimatedCost: groceryForm.estimatedCost,
-      category: groceryForm.category,
-      mealIds: [],
-      purchased: false,
-      createdAt: new Date().toISOString(),
-    };
-
-    const updated = [...groceries, newItem];
-    setGroceries(updated);
-    saveGrocery(updated);
-    setGroceryForm({
-      name: '',
-      quantity: 1,
-      unit: 'ea',
-      estimatedCost: 0,
-      category: 'other',
+  const openCell = (date: string, mealType: Meal['meal_type']) => {
+    const existing = mealFor(date, mealType);
+    setEditingCell({ date, mealType, meal: existing });
+    setForm({
+      meal_name: existing?.meal_name || '',
+      recipe_url: existing?.recipe_url || '',
+      ingredients: existing?.ingredients || '',
+      notes: existing?.notes || '',
     });
-    setShowGroceryForm(false);
   };
 
-  const handleTogglePurchased = (id: string) => {
-    const updated = groceries.map((g) =>
-      g.id === id
-        ? {
-            ...g,
-            purchased: !g.purchased,
-            purchaseDate: !g.purchased ? new Date().toISOString().split('T')[0] : undefined,
-          }
-        : g
-    );
-    setGroceries(updated);
-    saveGrocery(updated);
+  const saveMeal = async () => {
+    if (!editingCell || !form.meal_name.trim()) return;
+    const payload = {
+      date: editingCell.date,
+      meal_type: editingCell.mealType,
+      meal_name: form.meal_name.trim(),
+      recipe_url: form.recipe_url.trim() || null,
+      ingredients: form.ingredients.trim() || null,
+      notes: form.notes.trim() || null,
+    };
+    try {
+      if (editingCell.meal) {
+        await fetch(`${API}/api/client/meals/${editingCell.meal.id}`, {
+          method: 'PUT',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+      } else {
+        await fetch(`${API}/api/client/meals`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+      }
+      setEditingCell(null);
+      loadMeals();
+    } catch {
+      // leave panel open so user can retry
+    }
   };
 
-  const handleDeleteMeal = (id: string) => {
-    const updated = meals.filter((m) => m.id !== id);
-    setMeals(updated);
-    saveMeals(updated);
+  const deleteMeal = async () => {
+    if (!editingCell?.meal) return;
+    try {
+      await fetch(`${API}/api/client/meals/${editingCell.meal.id}`, { method: 'DELETE', credentials: 'include' });
+      setEditingCell(null);
+      loadMeals();
+    } catch {
+      // ignore
+    }
   };
 
-  const handleDeleteGrocery = (id: string) => {
-    const updated = groceries.filter((g) => g.id !== id);
-    setGroceries(updated);
-    saveGrocery(updated);
+  const generateGroceryList = async () => {
+    setGroceryLoading(true);
+    setShowSavedLists(false);
+    try {
+      const res = await fetch(`${API}/api/client/meals/grocery-list?start=${rangeStart}&end=${rangeEnd}`, {
+        credentials: 'include',
+      });
+      const data = await res.json();
+      setGroceryItems(data?.items || []);
+    } catch {
+      setGroceryItems([]);
+    } finally {
+      setGroceryLoading(false);
+    }
   };
 
-  const weekMeals = getWeekMeals(meals);
-  const unpurchasedGroceries = groceries.filter((g) => !g.purchased);
-  const totalEstimated = unpurchasedGroceries.reduce((sum, g) => sum + g.estimatedCost, 0);
-  const totalActual = groceries.reduce((sum, g) => sum + (g.actualCost || 0), 0);
+  const toggleGroceryItem = (idx: number) => {
+    if (!groceryItems) return;
+    setGroceryItems(groceryItems.map((it, i) => (i === idx ? { ...it, checked: !it.checked } : it)));
+  };
+
+  const copyGroceryList = async () => {
+    if (!groceryItems) return;
+    const text = groceryItems.map((i) => i.item).join('\n');
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopyFeedback(true);
+      setTimeout(() => setCopyFeedback(false), 1500);
+    } catch {
+      // clipboard unavailable
+    }
+  };
+
+  const exportCsv = async () => {
+    try {
+      const res = await fetch(`${API}/api/client/meals/grocery-list/export?start=${rangeStart}&end=${rangeEnd}`, {
+        credentials: 'include',
+      });
+      const data = await res.json();
+      const blob = new Blob([data.csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `grocery-list-${rangeStart}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      // ignore
+    }
+  };
+
+  const saveGroceryList = async () => {
+    if (!groceryItems) return;
+    try {
+      await fetch(`${API}/api/client/meals/grocery-list`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: `Week of ${rangeStart}`, items: groceryItems }),
+      });
+      if (showSavedLists) loadSavedLists();
+    } catch {
+      // ignore
+    }
+  };
+
+  const loadSavedLists = async () => {
+    try {
+      const res = await fetch(`${API}/api/client/meals/grocery-lists`, { credentials: 'include' });
+      const data = await res.json();
+      setSavedLists(data?.lists || []);
+    } catch {
+      setSavedLists([]);
+    }
+  };
+
+  const toggleSavedLists = () => {
+    const next = !showSavedLists;
+    setShowSavedLists(next);
+    if (next) loadSavedLists();
+  };
+
+  const toggleSavedItem = async (list: GroceryList, idx: number) => {
+    const items = list.items.map((it, i) => (i === idx ? { ...it, checked: !it.checked } : it));
+    setSavedLists(savedLists.map((l) => (l.id === list.id ? { ...l, items } : l)));
+    try {
+      await fetch(`${API}/api/client/meals/grocery-lists/${list.id}`, {
+        method: 'PUT',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items }),
+      });
+    } catch {
+      // ignore
+    }
+  };
+
+  const deleteSavedList = async (id: number) => {
+    try {
+      await fetch(`${API}/api/client/meals/grocery-lists/${id}`, { method: 'DELETE', credentials: 'include' });
+      setSavedLists(savedLists.filter((l) => l.id !== id));
+    } catch {
+      // ignore
+    }
+  };
 
   return (
-    <div className="w-full max-w-4xl mx-auto p-4 bg-gradient-to-br from-slate-950 to-slate-900 text-slate-50 rounded-lg">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold font-playfair">Meals & Groceries</h1>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setActiveTab('week')}
-            className={`px-4 py-2 rounded-lg transition ${
-              activeTab === 'week'
-                ? 'bg-amber-700'
-                : 'bg-slate-700 hover:bg-slate-600'
-            }`}
-          >
-            This Week
+    <div className="w-full">
+      {/* Header / week nav */}
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-2xl font-bold" style={{ color: '#d4a373', textShadow: '0 0 16px rgba(184,115,51,0.3)' }}>
+          Meal Planner
+        </h1>
+        <div className="flex items-center gap-2">
+          <button className="glass-btn p-2 rounded-lg" onClick={() => setWeekStart(addDays(weekStart, -7))} title="Previous week">
+            <ChevronLeft size={16} />
           </button>
-          <button
-            onClick={() => setActiveTab('groceries')}
-            className={`px-4 py-2 rounded-lg transition ${
-              activeTab === 'groceries'
-                ? 'bg-amber-700'
-                : 'bg-slate-700 hover:bg-slate-600'
-            }`}
-          >
-            Shopping List
+          <span className="text-sm px-2" style={{ color: 'rgba(255,255,255,0.6)' }}>
+            {fmtDayLabel(days[0])} – {fmtDayLabel(days[6])}
+          </span>
+          <button className="glass-btn p-2 rounded-lg" onClick={() => setWeekStart(mondayOf(new Date()))} title="This week">
+            Today
+          </button>
+          <button className="glass-btn p-2 rounded-lg" onClick={() => setWeekStart(addDays(weekStart, 7))} title="Next week">
+            <ChevronRight size={16} />
           </button>
         </div>
       </div>
 
-      {/* Week View */}
-      {activeTab === 'week' && (
-        <div className="space-y-4">
-          <button
-            onClick={() => setShowMealForm(true)}
-            className="w-full bg-amber-700 hover:bg-amber-600 px-4 py-2 rounded-lg transition font-semibold flex items-center justify-center gap-2"
-          >
-            <Plus size={20} />
-            Add Meal
-          </button>
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_260px] gap-4">
+        {/* Grid */}
+        <div className="overflow-x-auto">
+          <div className="grid gap-1" style={{ gridTemplateColumns: `80px repeat(7, minmax(110px, 1fr))`, minWidth: '760px' }}>
+            <div />
+            {days.map((d) => (
+              <div key={fmtISO(d)} className="text-center text-xs font-semibold py-2" style={{ color: '#d4a373' }}>
+                {fmtDayLabel(d)}
+              </div>
+            ))}
 
-          {showMealForm && (
-            <div className="p-4 bg-slate-800 bg-opacity-50 rounded-lg border border-amber-700 border-opacity-30">
-              <h3 className="text-lg font-playfair mb-4">New Meal</h3>
+            {MEAL_TYPES.map(({ key, label, emoji }) => (
+              <React.Fragment key={key}>
+                <div className="flex items-center text-xs font-semibold py-2" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                  {emoji} {label}
+                </div>
+                {days.map((d) => {
+                  const dateStr = fmtISO(d);
+                  const meal = mealFor(dateStr, key);
+                  const isEditing = editingCell?.date === dateStr && editingCell?.mealType === key;
+                  return (
+                    <div
+                      key={dateStr}
+                      onClick={() => openCell(dateStr, key)}
+                      className="rounded-lg p-2 min-h-[56px] cursor-pointer transition-colors text-xs"
+                      style={{
+                        background: isEditing ? 'rgba(184,115,51,0.14)' : 'rgba(255,255,255,0.03)',
+                        border: `1px solid ${isEditing ? '#b87333' : 'rgba(184,115,51,0.18)'}`,
+                      }}
+                    >
+                      {meal ? (
+                        <div>
+                          <div style={{ color: '#d4a373' }}>{meal.meal_name}</div>
+                          {meal.recipe_url && (
+                            <a
+                              href={meal.recipe_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className="inline-flex items-center gap-1 mt-1"
+                              style={{ color: 'rgba(255,255,255,0.4)' }}
+                            >
+                              <ExternalLink size={10} /> recipe
+                            </a>
+                          )}
+                        </div>
+                      ) : (
+                        <span style={{ color: 'rgba(255,255,255,0.25)' }}>+ add</span>
+                      )}
+                    </div>
+                  );
+                })}
+              </React.Fragment>
+            ))}
+          </div>
 
-              <input
-                type="date"
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-900 border border-amber-700 border-opacity-20 rounded text-slate-50 mb-4"
-              />
-
-              <select
-                value={mealForm.mealType}
-                onChange={(e) =>
-                  setMealForm({ ...mealForm, mealType: e.target.value as MealPlan['mealType'] })
-                }
-                className="w-full px-3 py-2 bg-slate-900 border border-amber-700 border-opacity-20 rounded text-slate-50 mb-4"
-              >
-                {Object.entries(MEAL_TYPES).map(([key, emoji]) => (
-                  <option key={key} value={key}>
-                    {emoji} {key.charAt(0).toUpperCase() + key.slice(1)}
-                  </option>
-                ))}
-              </select>
+          {/* Inline edit panel */}
+          {editingCell && (
+            <div className="glass-surface rounded-xl p-4 mt-4" style={{ border: '1px solid rgba(184,115,51,0.3)' }}>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-semibold" style={{ color: '#d4a373' }}>
+                  {editingCell.meal ? 'Edit' : 'Add'} {MEAL_TYPES.find((m) => m.key === editingCell.mealType)?.label} —{' '}
+                  {editingCell.date}
+                </h3>
+                <button onClick={() => setEditingCell(null)}>
+                  <X size={16} style={{ color: 'rgba(255,255,255,0.5)' }} />
+                </button>
+              </div>
 
               <input
                 type="text"
                 placeholder="Meal name"
-                value={mealForm.customName}
-                onChange={(e) => setMealForm({ ...mealForm, customName: e.target.value })}
-                className="w-full px-3 py-2 bg-slate-900 border border-amber-700 border-opacity-20 rounded text-slate-50 placeholder-slate-500 mb-4"
+                value={form.meal_name}
+                onChange={(e) => setForm({ ...form, meal_name: e.target.value })}
+                className="glass-input w-full px-3 py-2 rounded mb-2 text-sm"
               />
-
+              <input
+                type="url"
+                placeholder="Recipe URL (optional)"
+                value={form.recipe_url}
+                onChange={(e) => setForm({ ...form, recipe_url: e.target.value })}
+                className="glass-input w-full px-3 py-2 rounded mb-2 text-sm"
+              />
+              <textarea
+                placeholder="Ingredients (comma-separated)"
+                value={form.ingredients}
+                onChange={(e) => setForm({ ...form, ingredients: e.target.value })}
+                className="glass-input w-full px-3 py-2 rounded mb-2 text-sm"
+                rows={2}
+              />
               <textarea
                 placeholder="Notes (optional)"
-                value={mealForm.notes}
-                onChange={(e) => setMealForm({ ...mealForm, notes: e.target.value })}
-                className="w-full px-3 py-2 bg-slate-900 border border-amber-700 border-opacity-20 rounded text-slate-50 placeholder-slate-500 mb-4"
+                value={form.notes}
+                onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                className="glass-input w-full px-3 py-2 rounded mb-3 text-sm"
                 rows={2}
               />
 
               <div className="flex gap-2">
-                <button
-                  onClick={handleAddMeal}
-                  className="flex-1 bg-amber-700 hover:bg-amber-600 px-4 py-2 rounded-lg transition font-semibold"
-                >
+                <button onClick={saveMeal} className="glass-btn flex-1 py-2 rounded-lg text-sm font-semibold">
                   Save
                 </button>
+                {editingCell.meal && (
+                  <button onClick={deleteMeal} className="glass-btn-danger px-4 py-2 rounded-lg text-sm">
+                    <Trash2 size={14} />
+                  </button>
+                )}
                 <button
-                  onClick={() => setShowMealForm(false)}
-                  className="flex-1 bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg transition"
+                  onClick={() => setEditingCell(null)}
+                  className="px-4 py-2 rounded-lg text-sm"
+                  style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.6)' }}
                 >
                   Cancel
                 </button>
               </div>
             </div>
           )}
-
-          {/* Week Days */}
-          <div className="space-y-3">
-            {Object.entries(weekMeals).map(([date, dayMeals]) => {
-              const dateObj = new Date(date + 'T00:00:00');
-              const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
-              const dayDate = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-
-              return (
-                <div
-                  key={date}
-                  className="p-4 rounded-lg border border-amber-700 border-opacity-20 bg-slate-800 bg-opacity-30"
-                >
-                  <h3 className="font-playfair text-lg mb-3">
-                    {dayName} • {dayDate}
-                  </h3>
-
-                  {dayMeals.length === 0 ? (
-                    <p className="text-slate-400 text-sm">No meals planned</p>
-                  ) : (
-                    <div className="space-y-2">
-                      {dayMeals.map((meal) => (
-                        <div
-                          key={meal.id}
-                          className="flex items-center justify-between p-2 bg-slate-900 bg-opacity-30 rounded"
-                        >
-                          <div>
-                            <span className="mr-2">
-                              {MEAL_TYPES[meal.mealType]}
-                            </span>
-                            <span>{meal.customName}</span>
-                          </div>
-                          <button
-                            onClick={() => handleDeleteMeal(meal.id)}
-                            className="text-red-400 hover:text-red-300 transition"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
         </div>
-      )}
 
-      {/* Groceries View */}
-      {activeTab === 'groceries' && (
-        <div className="space-y-4">
-          {/* Budget Indicator */}
-          <div className="p-4 bg-slate-800 bg-opacity-50 rounded-lg border border-amber-700 border-opacity-30">
-            <div className="flex items-center gap-2 mb-2">
-              <TrendingUp size={20} className="text-amber-400" />
-              <span className="text-sm text-slate-400">Shopping Cart</span>
-            </div>
-            <div className="flex justify-between items-baseline">
-              <div>
-                <span className="text-2xl font-bold text-amber-400">
-                  ${totalEstimated.toFixed(2)}
-                </span>
-                <span className="text-xs text-slate-400 ml-2">estimated</span>
+        {/* Sidebar */}
+        <div className="space-y-3">
+          <button onClick={generateGroceryList} className="glass-btn w-full py-2 rounded-lg text-sm font-semibold flex items-center justify-center gap-2">
+            <ListChecks size={16} /> Generate Grocery List
+          </button>
+          <button onClick={toggleSavedLists} className="glass-btn w-full py-2 rounded-lg text-sm font-semibold">
+            View Saved Lists
+          </button>
+
+          {groceryLoading && <p className="text-xs text-center" style={{ color: 'rgba(255,255,255,0.4)' }}>Loading…</p>}
+
+          {groceryItems && !groceryLoading && (
+            <div className="glass-surface rounded-xl p-3" style={{ border: '1px solid rgba(184,115,51,0.25)' }}>
+              <h4 className="text-xs font-semibold mb-2" style={{ color: '#d4a373' }}>
+                This Week&apos;s List
+              </h4>
+              {groceryItems.length === 0 ? (
+                <p className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                  No ingredients yet — add some meals with ingredients.
+                </p>
+              ) : (
+                <div className="space-y-1 max-h-52 overflow-y-auto mb-3">
+                  {groceryItems.map((item, idx) => (
+                    <label key={idx} className="flex items-center gap-2 text-xs cursor-pointer">
+                      <input type="checkbox" checked={item.checked} onChange={() => toggleGroceryItem(idx)} />
+                      <span style={{ color: item.checked ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.75)', textDecoration: item.checked ? 'line-through' : 'none' }}>
+                        {item.item}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              )}
+              <div className="flex gap-2 flex-wrap">
+                <button onClick={copyGroceryList} className="glass-btn px-2 py-1.5 rounded text-xs flex items-center gap-1">
+                  <Copy size={12} /> {copyFeedback ? 'Copied!' : 'Copy'}
+                </button>
+                <button onClick={exportCsv} className="glass-btn px-2 py-1.5 rounded text-xs flex items-center gap-1">
+                  <Download size={12} /> CSV
+                </button>
+                <button onClick={saveGroceryList} className="glass-btn px-2 py-1.5 rounded text-xs">
+                  Save List
+                </button>
               </div>
-              {totalActual > 0 && (
-                <div>
-                  <span className="text-lg text-green-400">${totalActual.toFixed(2)}</span>
-                  <span className="text-xs text-slate-400 ml-2">actual</span>
+            </div>
+          )}
+
+          {showSavedLists && (
+            <div className="glass-surface rounded-xl p-3" style={{ border: '1px solid rgba(184,115,51,0.25)' }}>
+              <h4 className="text-xs font-semibold mb-2" style={{ color: '#d4a373' }}>
+                Saved Lists
+              </h4>
+              {savedLists.length === 0 ? (
+                <p className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                  No saved lists yet.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {savedLists.map((list) => (
+                    <div key={list.id} className="rounded-lg p-2" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                      <div
+                        className="flex items-center justify-between cursor-pointer"
+                        onClick={() => setExpandedListId(expandedListId === list.id ? null : list.id)}
+                      >
+                        <span className="text-xs" style={{ color: '#d4a373' }}>{list.name}</span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteSavedList(list.id);
+                          }}
+                        >
+                          <Trash2 size={12} style={{ color: 'rgba(255,255,255,0.4)' }} />
+                        </button>
+                      </div>
+                      {expandedListId === list.id && (
+                        <div className="mt-2 space-y-1">
+                          {(list.items || []).map((item, idx) => (
+                            <label key={idx} className="flex items-center gap-2 text-xs cursor-pointer">
+                              <input type="checkbox" checked={item.checked} onChange={() => toggleSavedItem(list, idx)} />
+                              <span style={{ color: item.checked ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.75)', textDecoration: item.checked ? 'line-through' : 'none' }}>
+                                {item.item}
+                              </span>
+                            </label>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
-            <div className="w-full bg-slate-900 rounded h-2 mt-3">
-              <div
-                className="bg-gradient-to-r from-amber-700 to-amber-500 h-2 rounded transition-all"
-                style={{ width: `${Math.min(100, (totalEstimated / 200) * 100)}%` }}
-              />
-            </div>
-          </div>
-
-          <button
-            onClick={() => setShowGroceryForm(true)}
-            className="w-full bg-amber-700 hover:bg-amber-600 px-4 py-2 rounded-lg transition font-semibold flex items-center justify-center gap-2"
-          >
-            <Plus size={20} />
-            Add Item
-          </button>
-
-          {showGroceryForm && (
-            <div className="p-4 bg-slate-800 bg-opacity-50 rounded-lg border border-amber-700 border-opacity-30">
-              <h3 className="text-lg font-playfair mb-4">New Grocery Item</h3>
-
-              <input
-                type="text"
-                placeholder="Item name"
-                value={groceryForm.name}
-                onChange={(e) => setGroceryForm({ ...groceryForm, name: e.target.value })}
-                className="w-full px-3 py-2 bg-slate-900 border border-amber-700 border-opacity-20 rounded text-slate-50 placeholder-slate-500 mb-4"
-              />
-
-              <div className="grid grid-cols-3 gap-2 mb-4">
-                <input
-                  type="number"
-                  placeholder="Qty"
-                  min="1"
-                  value={groceryForm.quantity}
-                  onChange={(e) =>
-                    setGroceryForm({ ...groceryForm, quantity: parseFloat(e.target.value) })
-                  }
-                  className="px-3 py-2 bg-slate-900 border border-amber-700 border-opacity-20 rounded text-slate-50"
-                />
-                <input
-                  type="text"
-                  placeholder="Unit"
-                  value={groceryForm.unit}
-                  onChange={(e) => setGroceryForm({ ...groceryForm, unit: e.target.value })}
-                  className="px-3 py-2 bg-slate-900 border border-amber-700 border-opacity-20 rounded text-slate-50 placeholder-slate-500"
-                />
-                <input
-                  type="number"
-                  placeholder="Cost"
-                  step="0.01"
-                  value={groceryForm.estimatedCost}
-                  onChange={(e) =>
-                    setGroceryForm({ ...groceryForm, estimatedCost: parseFloat(e.target.value) })
-                  }
-                  className="px-3 py-2 bg-slate-900 border border-amber-700 border-opacity-20 rounded text-slate-50 placeholder-slate-500"
-                />
-              </div>
-
-              <select
-                value={groceryForm.category}
-                onChange={(e) =>
-                  setGroceryForm({
-                    ...groceryForm,
-                    category: e.target.value as GroceryItem['category'],
-                  })
-                }
-                className="w-full px-3 py-2 bg-slate-900 border border-amber-700 border-opacity-20 rounded text-slate-50 mb-4"
-              >
-                {Object.entries(CATEGORIES).map(([key, label]) => (
-                  <option key={key} value={key}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-
-              <div className="flex gap-2">
-                <button
-                  onClick={handleAddGrocery}
-                  className="flex-1 bg-amber-700 hover:bg-amber-600 px-4 py-2 rounded-lg transition font-semibold"
-                >
-                  Save
-                </button>
-                <button
-                  onClick={() => setShowGroceryForm(false)}
-                  className="flex-1 bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg transition"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Grocery List by Category */}
-          {unpurchasedGroceries.length === 0 ? (
-            <p className="text-slate-400 text-center py-8">All set! Nothing to shop for.</p>
-          ) : (
-            <div className="space-y-3">
-              {Object.entries(CATEGORIES).map(([catKey, catLabel]) => {
-                const catItems = unpurchasedGroceries.filter((g) => g.category === catKey);
-                if (catItems.length === 0) return null;
-
-                return (
-                  <div key={catKey} className="p-3 rounded-lg border border-amber-700 border-opacity-20 bg-slate-800 bg-opacity-30">
-                    <h4 className="text-sm font-semibold text-amber-400 mb-2">{catLabel}</h4>
-                    <div className="space-y-1">
-                      {catItems.map((item) => (
-                        <div
-                          key={item.id}
-                          className="flex items-center justify-between p-2 bg-slate-900 bg-opacity-30 rounded text-sm"
-                        >
-                          <div className="flex items-center gap-2 flex-1">
-                            <button
-                              onClick={() => handleTogglePurchased(item.id)}
-                              className={`flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition ${
-                                item.purchased
-                                  ? 'bg-green-700 border-green-600'
-                                  : 'border-slate-500 hover:border-amber-500'
-                              }`}
-                            >
-                              {item.purchased && <Check size={14} />}
-                            </button>
-                            <div className="flex-1">
-                              <span>{item.name}</span>
-                              <span className="text-xs text-slate-500 ml-1">
-                                ({item.quantity} {item.unit})
-                              </span>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-amber-400 font-semibold">
-                              ${item.estimatedCost.toFixed(2)}
-                            </span>
-                            <button
-                              onClick={() => handleDeleteGrocery(item.id)}
-                              className="text-red-400 hover:text-red-300 transition"
-                            >
-                              <Trash2 size={14} />
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
           )}
         </div>
+      </div>
+
+      {loading && (
+        <p className="text-xs text-center mt-4" style={{ color: 'rgba(255,255,255,0.35)' }}>
+          Loading meals…
+        </p>
       )}
     </div>
   );
