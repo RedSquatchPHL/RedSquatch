@@ -7,9 +7,10 @@ interface AppletModalProps {
   title: string;
   onClose: () => void;
   children: React.ReactNode;
+  wide?: boolean;
 }
 
-export default function AppletModal({ isOpen, title, onClose, children }: AppletModalProps) {
+export default function AppletModal({ isOpen, title, onClose, children, wide }: AppletModalProps) {
   if (!isOpen) return null;
 
   return (
@@ -17,7 +18,7 @@ export default function AppletModal({ isOpen, title, onClose, children }: Applet
       <div className="fixed inset-0 z-50 bg-black/70" onClick={onClose} />
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
         <div
-          className="rounded-2xl w-full max-w-4xl max-h-[85vh] flex flex-col pointer-events-auto overflow-hidden"
+          className={`rounded-2xl w-full ${wide ? 'max-w-6xl' : 'max-w-4xl'} max-h-[85vh] flex flex-col pointer-events-auto overflow-hidden`}
           style={{
             border: '1px solid rgba(184,115,51,0.4)',
             background: 'rgba(10,8,6,0.95)',

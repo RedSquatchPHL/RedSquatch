@@ -15,6 +15,7 @@ const { makeRouter: makeRconRouter } = require('./routes/rcon');
 const { runMigrations: runNotesMigrations, makeRouter: makeNotesRouter } = require('./routes/notes');
 const { runMigrations: runMealsMigrations, makeRouter: makeMealsRouter } = require('./routes/meals');
 const { runMigrations: runSpanishMigrations, makeRouter: makeSpanishRouter } = require('./routes/spanish');
+const { runMigrations: runBillsMigrations, makeRouter: makeBillsRouter } = require('./routes/bills');
 
 const SPORTS_FILE = path.join(__dirname, 'public', 'sports.json');
 
@@ -993,6 +994,7 @@ app.use('/api/client/rcon', makeRconRouter(db));
 app.use('/api/client/notes', makeNotesRouter(db));
 app.use('/api/client/meals', makeMealsRouter(db));
 app.use('/api/client/spanish', makeSpanishRouter(db));
+app.use('/api/client/bills', makeBillsRouter(db));
 
 // ============ TOOLS ============
 
@@ -1048,6 +1050,7 @@ async function initializeApp() {
     await runNotesMigrations(db);
     await runMealsMigrations(db);
     await runSpanishMigrations(db);
+    await runBillsMigrations(db);
 
     app.listen(PORT, () => {
       console.log(`✓ RedSquatch API running on port ${PORT}`);

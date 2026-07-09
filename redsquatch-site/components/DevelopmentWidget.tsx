@@ -25,7 +25,7 @@ import 'prismjs/components/prism-php';
 import 'prismjs/components/prism-ruby';
 import 'prismjs/components/prism-markdown';
 import 'prismjs/themes/prism-tomorrow.css';
-import { Plus, X, Copy, Trash2, Check, Pencil } from 'lucide-react';
+import { Plus, X, Copy, Trash2, Check, Pencil, BookOpen } from 'lucide-react';
 import { API } from '@/lib/api';
 import {
   Select,
@@ -75,6 +75,99 @@ const highlight = (value: string, language: string) => {
   return Prism.highlight(value, grammar, language);
 };
 
+interface LegendEntry {
+  symbol: string;
+  description: string;
+}
+
+const LEGEND: Record<string, LegendEntry[]> = {
+  markdown: [
+    { symbol: '#', description: 'Heading 1' },
+    { symbol: '##', description: 'Heading 2' },
+    { symbol: '###', description: 'Heading 3' },
+    { symbol: '**text**', description: 'Bold' },
+    { symbol: '*text*', description: 'Italic' },
+    { symbol: '~~text~~', description: 'Strikethrough' },
+    { symbol: '`code`', description: 'Inline code' },
+    { symbol: '```', description: 'Code block' },
+    { symbol: '- item', description: 'Bullet list' },
+    { symbol: '1. item', description: 'Numbered list' },
+    { symbol: '[text](url)', description: 'Link' },
+    { symbol: '![alt](url)', description: 'Image' },
+    { symbol: '> quote', description: 'Blockquote' },
+    { symbol: '---', description: 'Horizontal rule' },
+    { symbol: '| a | b |', description: 'Table row' },
+  ],
+  javascript: [
+    { symbol: '//', description: 'Line comment' },
+    { symbol: '/* */', description: 'Block comment' },
+    { symbol: '`${x}`', description: 'Template literal' },
+    { symbol: '=>', description: 'Arrow function' },
+    { symbol: '...', description: 'Spread / rest' },
+    { symbol: '??', description: 'Nullish coalescing' },
+    { symbol: '?.', description: 'Optional chaining' },
+    { symbol: 'const / let', description: 'Block-scoped variable' },
+  ],
+  typescript: [
+    { symbol: ': type', description: 'Type annotation' },
+    { symbol: 'interface', description: 'Object shape' },
+    { symbol: 'prop?:', description: 'Optional property' },
+    { symbol: '//', description: 'Line comment' },
+    { symbol: '/* */', description: 'Block comment' },
+    { symbol: '`${x}`', description: 'Template literal' },
+    { symbol: '=>', description: 'Arrow function' },
+    { symbol: '...', description: 'Spread / rest' },
+  ],
+  python: [
+    { symbol: '#', description: 'Comment' },
+    { symbol: '"""..."""', description: 'Docstring' },
+    { symbol: 'def', description: 'Function definition' },
+    { symbol: ':', description: 'Block start (indent follows)' },
+    { symbol: 'f"{x}"', description: 'f-string interpolation' },
+    { symbol: 'self', description: 'Instance reference' },
+  ],
+  sql: [
+    { symbol: '--', description: 'Line comment' },
+    { symbol: 'SELECT * FROM', description: 'Query all columns' },
+    { symbol: 'WHERE', description: 'Filter rows' },
+    { symbol: 'JOIN ... ON', description: 'Combine tables' },
+    { symbol: 'GROUP BY', description: 'Aggregate rows' },
+    { symbol: 'ORDER BY', description: 'Sort results' },
+  ],
+  bash: [
+    { symbol: '#', description: 'Comment' },
+    { symbol: '$VAR', description: 'Variable' },
+    { symbol: '$(cmd)', description: 'Command substitution' },
+    { symbol: '|', description: 'Pipe' },
+    { symbol: '&&', description: 'Run if previous succeeded' },
+    { symbol: '>', description: 'Redirect output' },
+  ],
+  yaml: [
+    { symbol: '#', description: 'Comment' },
+    { symbol: 'key: value', description: 'Mapping' },
+    { symbol: '- item', description: 'List item' },
+    { symbol: '---', description: 'Document separator' },
+    { symbol: '|', description: 'Literal block scalar' },
+  ],
+  css: [
+    { symbol: '/* */', description: 'Comment' },
+    { symbol: '.class', description: 'Class selector' },
+    { symbol: '#id', description: 'ID selector' },
+    { symbol: ':hover', description: 'Pseudo-class' },
+    { symbol: 'prop: value;', description: 'Declaration' },
+  ],
+  markup: [
+    { symbol: '<!-- -->', description: 'Comment' },
+    { symbol: '<tag>', description: 'Element' },
+    { symbol: 'class=""', description: 'CSS class attribute' },
+    { symbol: 'id=""', description: 'Unique identifier' },
+  ],
+};
+
+const LEGEND_ALIAS: Record<string, string> = { jsx: 'javascript', tsx: 'typescript' };
+
+const getLegend = (language: string): LegendEntry[] | undefined => LEGEND[LEGEND_ALIAS[language] || language];
+
 const timeLabel = (d: Date | null) => (d ? d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '');
 
 export default function DevelopmentWidget() {
@@ -83,6 +176,7 @@ export default function DevelopmentWidget() {
   const [loading, setLoading] = useState(true);
   const [renamingId, setRenamingId] = useState<number | null>(null);
   const [renameValue, setRenameValue] = useState('');
+  const [showLegend, setShowLegend] = useState(false);
   const saveTimers = useRef<Record<number, ReturnType<typeof setTimeout>>>({});
 
   useEffect(() => {
@@ -352,6 +446,13 @@ export default function DevelopmentWidget() {
             <div className="flex-1" />
 
             <button
+              onClick={() => setShowLegend((s) => !s)}
+              className="p-2 rounded hover:bg-white/5 transition-colors"
+              title="Toggle syntax quick reference"
+            >
+              <BookOpen size={14} style={{ color: showLegend ? '#d4a373' : 'rgba(255,255,255,0.4)' }} />
+            </button>
+            <button
               onClick={() => {
                 setRenamingId(activeTab.id);
                 setRenameValue(activeTab.title);
@@ -377,21 +478,57 @@ export default function DevelopmentWidget() {
             </button>
           </div>
 
-          {/* Editor */}
-          <div className="overflow-auto" style={{ height: '440px', background: '#1a1a1a' }}>
-            <Editor
-              value={activeTab.content}
-              onValueChange={(value) => updateActive({ content: value })}
-              highlight={(value) => highlight(value, activeTab.language)}
-              padding={16}
-              placeholder="// Write your code or notes here..."
-              textareaId={`dev-widget-editor-${activeTab.id}`}
-              style={{
-                fontFamily: 'ui-monospace, "Courier New", monospace',
-                fontSize: 13,
-                minHeight: '100%',
-              }}
-            />
+          {/* Editor + legend */}
+          <div className="flex" style={{ height: '440px' }}>
+            <div className="overflow-auto flex-1" style={{ background: '#1a1a1a' }}>
+              <Editor
+                value={activeTab.content}
+                onValueChange={(value) => updateActive({ content: value })}
+                highlight={(value) => highlight(value, activeTab.language)}
+                padding={16}
+                placeholder="// Write your code or notes here..."
+                textareaId={`dev-widget-editor-${activeTab.id}`}
+                style={{
+                  fontFamily: 'ui-monospace, "Courier New", monospace',
+                  fontSize: 13,
+                  minHeight: '100%',
+                }}
+              />
+            </div>
+
+            {showLegend && (
+              <div
+                className="overflow-y-auto flex-shrink-0 p-3"
+                style={{ width: '220px', background: 'rgba(10,10,10,0.6)', borderLeft: '1px solid rgba(184,115,51,0.15)' }}
+              >
+                <h4 className="text-xs font-semibold mb-2" style={{ color: '#d4a373' }}>
+                  {LANGUAGES.find((l) => l.value === activeTab.language)?.label || activeTab.language} reference
+                </h4>
+                {getLegend(activeTab.language) ? (
+                  <div className="space-y-1.5">
+                    {getLegend(activeTab.language)!.map((entry, idx) => (
+                      <div key={idx} className="text-xs">
+                        <code
+                          className="block px-1.5 py-0.5 rounded mb-0.5 w-fit"
+                          style={{
+                            fontFamily: 'ui-monospace, "Courier New", monospace',
+                            background: 'rgba(184,115,51,0.12)',
+                            color: '#d4a373',
+                          }}
+                        >
+                          {entry.symbol}
+                        </code>
+                        <div style={{ color: 'rgba(255,255,255,0.5)' }}>{entry.description}</div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                    No quick reference available for this language yet.
+                  </p>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Footer */}
