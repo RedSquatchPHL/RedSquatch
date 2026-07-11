@@ -12,7 +12,7 @@ import {
   type MotionValue,
 } from 'framer-motion';
 import {
-  BarChart3, Settings, LogOut, ArrowLeftRight,
+  BarChart3, Settings, LogOut, ArrowLeftRight, ClipboardList,
 } from 'lucide-react';
 import { API } from '@/lib/api';
 
@@ -31,8 +31,9 @@ export interface DockSwitchConfig {
 }
 
 const DEFAULT_NAV: DockNavItem[] = [
-  { label: 'Dashboard', icon: BarChart3, href: '/dashboard'         },
-  { label: 'Tools',     icon: Settings,  href: '/dashboard/tools'   },
+  { label: 'Dashboard', icon: BarChart3,     href: '/dashboard'         },
+  { label: 'Intake',    icon: ClipboardList, href: '/dashboard/intake'  },
+  { label: 'Tools',     icon: Settings,      href: '/dashboard/tools'   },
 ];
 
 const BASE     = 48;   // resting icon size (px)
