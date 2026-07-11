@@ -1,9 +1,10 @@
 'use client';
 
+import Link from 'next/link';
 import {
   Signal, Mic2, ThermometerSun, Clock, AlertCircle, CheckCircle,
   Power, ShieldCheck, BellOff, HardDrive, MapPin, Navigation2,
-  Compass, Lock, RadioReceiver, type LucideIcon,
+  Compass, Lock, RadioReceiver, Target, Activity, Wrench, type LucideIcon,
 } from 'lucide-react';
 
 const ICON_MAP: Record<string, LucideIcon> = {
@@ -22,6 +23,9 @@ const ICON_MAP: Record<string, LucideIcon> = {
   'lucide:compass': Compass,
   'lucide:lock': Lock,
   'lucide:antenna': RadioReceiver,
+  'lucide:target': Target,
+  'lucide:activity': Activity,
+  'lucide:wrench': Wrench,
 };
 
 interface StoneTileProps {
@@ -29,23 +33,17 @@ interface StoneTileProps {
   icon: string;
   title: string;
   subtitle: string;
+  href?: string;
 }
 
-export default function StoneTile({ isActive, icon, title, subtitle }: StoneTileProps) {
+export default function StoneTile({ isActive, icon, title, subtitle, href }: StoneTileProps) {
   const Icon = ICON_MAP[icon] ?? Signal;
 
-  return (
-    <div
-      className={`flex flex-col items-center justify-center gap-2 border p-4 text-center ${
-        isActive
-          ? 'border-[var(--copper-1)] bg-[rgba(var(--copper-glow-rgb),0.08)]'
-          : 'border-[var(--stone-3)] bg-[var(--stone-1)]'
-      }`}
-      style={{ borderRadius: '0.5rem' }}
-    >
+  const content = (
+    <>
       <Icon
-        size={20}
-        className={isActive ? 'text-[var(--copper-2)] glow-text' : 'text-[var(--stone-3)]'}
+        size={isActive ? 34 : 20}
+        className={isActive ? 'text-[var(--copper-2)] glow-text' : 'text-[var(--copper-0)]'}
       />
       <div className="mono">
         <div className={`text-[11px] uppercase tracking-[0.1em] ${isActive ? 'text-[var(--copper-2)]' : 'text-[var(--copper-0)]'}`}>
@@ -55,6 +53,20 @@ export default function StoneTile({ isActive, icon, title, subtitle }: StoneTile
           {subtitle}
         </div>
       </div>
-    </div>
+    </>
   );
+
+  const className = `flex w-full flex-col items-center justify-center gap-2 rounded-[14px] p-4 text-center ${
+    isActive ? 'lit-tile' : 'stone-tile'
+  }`;
+
+  if (href) {
+    return (
+      <Link href={href} className={`${className} transition-transform hover:-translate-y-1`}>
+        {content}
+      </Link>
+    );
+  }
+
+  return <div className={className}>{content}</div>;
 }

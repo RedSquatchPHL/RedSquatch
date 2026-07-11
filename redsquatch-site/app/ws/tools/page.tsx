@@ -48,7 +48,7 @@ export default function WSToolsPage() {
         </CopperPanel>
       </div>
 
-      <BottomToolbar activeItem="comms" />
+      <BottomToolbar activeItem="tools" />
     </div>
   );
 }

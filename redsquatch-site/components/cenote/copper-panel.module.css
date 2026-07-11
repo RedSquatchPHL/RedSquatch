@@ -1,13 +1,15 @@
 /* 2026-07-11: Mayan Command Center reskin (SuperDesign project a4505d2b) —
-   carved-stone rounded panel replaces the earlier sharp clip-path corners,
-   per user's explicit "follow the draft exactly" call (supersedes the
-   old no-rounded-corners rule). */
+   carved-stone rounded panel replaced the earlier sharp clip-path corners,
+   per user's explicit "follow the draft exactly" call.
+   2026-07-11 (Cenote Update draft eeaff195): the follow-up draft reverted
+   to angular clip-path cut corners — same "follow the draft exactly"
+   precedent supersedes the rounded-corner version above. */
 .copperPanel {
   position: relative;
   padding: var(--space-lg, 24px);
   background: linear-gradient(135deg, rgba(26, 24, 22, 0.7), rgba(15, 15, 15, 0.9));
   border: 1px solid rgba(var(--copper-glow-rgb), 0.4);
-  border-radius: 0.75rem;
+  clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.05),
     inset 0 -2px 4px rgba(0, 0, 0, 0.3),
@@ -25,9 +27,9 @@
 .copperPanel::before {
   content: '';
   position: absolute;
-  inset: 8px;
+  inset: 10px;
   border: 1px solid rgba(156, 119, 83, 0.25);
-  border-radius: 0.5rem;
+  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
   pointer-events: none;
 }
 

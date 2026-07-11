@@ -65,7 +65,7 @@ export default function WSGoalsPage() {
 
       <MaintenanceDrawer task={logTask} onClose={() => setLogTask(null)} />
 
-      <BottomToolbar activeItem="logs" />
+      <BottomToolbar activeItem="goals" />
     </div>
   );
 }

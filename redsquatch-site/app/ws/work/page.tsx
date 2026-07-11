@@ -223,7 +223,7 @@ export default function WorkItemsPage() {
         )}
       </div>
 
-      <BottomToolbar activeItem="config" />
+      <BottomToolbar activeItem="work" />
     </div>
   );
 }

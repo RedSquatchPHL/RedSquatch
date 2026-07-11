@@ -175,7 +175,7 @@ export default function WSIntakePage() {
         />
       )}
 
-      <BottomToolbar activeItem="maps" />
+      <BottomToolbar activeItem="intake" />
     </div>
   );
 }
