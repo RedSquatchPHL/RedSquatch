@@ -1,0 +1,57 @@
+/* Procedural cenote background — applied to <body>. Pages that paint their
+   own opaque full-viewport background (most existing dashboard pages use
+   bg-gradient-to-br on an inner div) will visually sit on top of this; it
+   shows through on pages without their own background layer. */
+body {
+  background-color: var(--color-void);
+  background-image:
+    /* Cenote water glow (radial, center) */
+    radial-gradient(
+      ellipse 1200px 600px at 50% 40%,
+      rgba(45, 184, 168, 0.12),
+      rgba(29, 122, 122, 0.06) 40%,
+      transparent 70%
+    ),
+    /* Deep cave shadow (top) */
+    linear-gradient(
+      180deg,
+      rgba(15, 15, 15, 0.8),
+      rgba(15, 15, 15, 0.4) 30%,
+      transparent 60%
+    ),
+    /* Stone underlay (subtle noise) */
+    radial-gradient(
+      circle at 20% 80%,
+      rgba(58, 48, 41, 0.2),
+      transparent 40%
+    ),
+    radial-gradient(
+      circle at 80% 60%,
+      rgba(58, 48, 41, 0.15),
+      transparent 35%
+    ),
+    /* Vignette fade to pure black edges */
+    radial-gradient(
+      ellipse at center,
+      transparent 40%,
+      rgba(10, 12, 11, 0.6) 85%,
+      var(--color-obsidian-dark) 100%
+    );
+  background-attachment: fixed;
+  background-size: cover;
+  min-height: 100vh;
+}
+
+/* Horizontal accent stripe beneath content sections */
+.cenote-accent-line {
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(184, 115, 51, 0.4) 10%,
+    rgba(184, 115, 51, 0.6) 50%,
+    rgba(184, 115, 51, 0.4) 90%,
+    transparent
+  );
+  box-shadow: 0 0 12px rgba(184, 115, 51, 0.3);
+}

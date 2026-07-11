@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import CopperPanel from '@/components/cenote/CopperPanel';
 
 import { API } from '@/lib/api';
 
@@ -479,22 +480,22 @@ export default function LincolnPage() {
   return (
     <div className="p-6 space-y-8">
       {/* Header */}
-      <div className="glass-surface rounded-2xl px-6 py-4">
+      <CopperPanel>
         <h1 className="text-2xl font-bold" style={{ color: '#d4a373', textShadow: '0 0 16px rgba(184,115,51,0.3)' }}>
           Lincoln Work Tracker
         </h1>
         <p className="text-xs text-muted-foreground mt-1">
           Log work items and track them through your workflow.
         </p>
-      </div>
+      </CopperPanel>
 
       {/* Intake Form */}
-      <div className="glass-surface rounded-xl p-6">
+      <CopperPanel>
         <h2 className="text-sm font-bold uppercase tracking-widest mb-4" style={{ color: '#b87333' }}>
           New Work Entry
         </h2>
         <IntakeForm onCreated={handleCreated} />
-      </div>
+      </CopperPanel>
 
       {/* Kanban */}
       <div>

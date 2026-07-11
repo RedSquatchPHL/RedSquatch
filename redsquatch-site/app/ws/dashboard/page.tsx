@@ -7,6 +7,7 @@ import { QuoteWidget } from '@/components/QuoteWidget';
 import { HistoryWidget } from '@/components/HistoryWidget';
 import { WeatherWidget } from '@/components/WeatherWidget';
 import ThemeToggle from '@/components/ThemeToggle';
+import CopperPanel from '@/components/cenote/CopperPanel';
 
 export default function WSDashboardPage() {
   const [user,    setUser]    = useState<{ username: string; displayName?: string } | null>(null);
@@ -80,11 +81,13 @@ export default function WSDashboardPage() {
 
       {/* ── Widgets ───────────────────────────────────────────────────────── */}
       <main className="p-6 space-y-5">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <QuoteWidget />
-          <HistoryWidget />
-          <WeatherWidget />
-        </div>
+        <CopperPanel>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <QuoteWidget />
+            <HistoryWidget />
+            <WeatherWidget />
+          </div>
+        </CopperPanel>
       </main>
     </div>
   );

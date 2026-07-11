@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { useRouter }           from 'next/navigation';
 import WorkLogsWidget          from '@/components/WorkLogsWidget';
 import { API }                 from '@/lib/api';
+import CopperPanel             from '@/components/cenote/CopperPanel';
 
 export default function WorkItemsPage() {
   const [checking, setChecking] = useState(true);
@@ -33,15 +34,17 @@ export default function WorkItemsPage() {
     <div className="min-h-screen bg-gradient-to-br from-[#0f0f0f] to-[#1a1a1a] p-8">
       {/* Header */}
       <div className="mb-8 max-w-5xl">
-        <div className="flex items-center gap-3 mb-1">
-          <h1 className="text-4xl font-playfair text-copper">Work Items</h1>
-          <span className="text-xs text-light-copper border border-[rgba(184,115,51,0.25)] rounded px-2 py-0.5 uppercase tracking-wider">
-            Lincoln
-          </span>
-        </div>
-        <p className="text-light-copper text-sm">
-          Log billable work and research sessions for Lincoln Financial Group engagements.
-        </p>
+        <CopperPanel>
+          <div className="flex items-center gap-3 mb-1">
+            <h1 className="text-4xl font-playfair text-copper">Work Items</h1>
+            <span className="text-xs text-light-copper border border-[rgba(184,115,51,0.25)] rounded px-2 py-0.5 uppercase tracking-wider">
+              Lincoln
+            </span>
+          </div>
+          <p className="text-light-copper text-sm">
+            Log billable work and research sessions for Lincoln Financial Group engagements.
+          </p>
+        </CopperPanel>
       </div>
 
       {/* Widget */}

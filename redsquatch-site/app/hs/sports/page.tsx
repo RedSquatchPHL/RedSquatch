@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 
 import { API } from '@/lib/api';
+import CopperPanel from '@/components/cenote/CopperPanel';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -346,11 +347,11 @@ export default function SportsPage() {
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="glass-surface rounded-2xl px-6 py-4">
+      <CopperPanel>
         <h1 className="text-2xl font-bold" style={{ color: '#d4a373', textShadow: '0 0 16px rgba(184,115,51,0.3)' }}>
           Sports Hub
         </h1>
-      </div>
+      </CopperPanel>
 
       {/* States */}
       {loading && (

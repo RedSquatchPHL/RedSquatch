@@ -10,6 +10,7 @@ import RconSection from '@/components/RconSection';
 import { WorldsPanel } from '@/components/WorldsPanel';
 import { useToolModal } from '@/hooks/useToolModal';
 import { ExternalLink, Zap } from 'lucide-react';
+import CopperPanel from '@/components/cenote/CopperPanel';
 
 interface Tool {
   id: string;
@@ -99,13 +100,15 @@ export default function ToolsPage() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-6 space-y-8">
       {/* Header */}
-      <div className="glass-surface rounded-2xl px-6 py-4 w-full max-w-5xl">
-        <h1 className="text-3xl font-bold" style={{ color: '#d4a373', textShadow: '0 0 16px rgba(184,115,51,0.3)' }}>
-          Tools & Services
-        </h1>
-        <p className="text-sm mt-2" style={{ color: 'rgba(255,255,255,0.55)' }}>
-          Quick access to your internal services. Each opens in a new window.
-        </p>
+      <div className="w-full max-w-5xl">
+        <CopperPanel>
+          <h1 className="text-3xl font-bold" style={{ color: '#d4a373', textShadow: '0 0 16px rgba(184,115,51,0.3)' }}>
+            Tools & Services
+          </h1>
+          <p className="text-sm mt-2" style={{ color: 'rgba(255,255,255,0.55)' }}>
+            Quick access to your internal services. Each opens in a new window.
+          </p>
+        </CopperPanel>
       </div>
 
       {/* Embedded Tools */}
@@ -247,13 +250,15 @@ export default function ToolsPage() {
 
       {/* Quick Notes Section */}
       <div className="mt-8 max-w-5xl w-full">
-        <div className="glass-surface rounded-2xl px-6 py-4 mb-4">
-          <h2 className="text-xl font-bold" style={{ color: '#d4a373', textShadow: '0 0 16px rgba(184,115,51,0.3)' }}>
-            Quick Notes
-          </h2>
-          <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.35)' }}>
-            Rich-text editor for quick notes and thoughts
-          </p>
+        <div className="mb-4">
+          <CopperPanel>
+            <h2 className="text-xl font-bold" style={{ color: '#d4a373', textShadow: '0 0 16px rgba(184,115,51,0.3)' }}>
+              Quick Notes
+            </h2>
+            <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.35)' }}>
+              Rich-text editor for quick notes and thoughts
+            </p>
+          </CopperPanel>
         </div>
         <TipTapEditor
           placeholder="Write your notes here... Use formatting buttons for bold, italic, headings, lists, and links."
@@ -263,26 +268,30 @@ export default function ToolsPage() {
 
       {/* Minecraft Server Control */}
       <div className="mt-12 max-w-5xl w-full">
-        <div className="glass-surface rounded-2xl px-6 py-4 mb-4">
-          <h2 className="text-xl font-bold" style={{ color: '#d4a373', textShadow: '0 0 16px rgba(184,115,51,0.3)' }}>
-            Minecraft Server Control
-          </h2>
-          <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.35)' }}>
-            Manage the Minecraft Bedrock server: whitelist, give items, teleport, and control
-          </p>
+        <div className="mb-4">
+          <CopperPanel>
+            <h2 className="text-xl font-bold" style={{ color: '#d4a373', textShadow: '0 0 16px rgba(184,115,51,0.3)' }}>
+              Minecraft Server Control
+            </h2>
+            <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.35)' }}>
+              Manage the Minecraft Bedrock server: whitelist, give items, teleport, and control
+            </p>
+          </CopperPanel>
         </div>
         <RconSection />
       </div>
 
       {/* Minecraft World Management */}
       <div className="mt-12 max-w-5xl w-full mb-8">
-        <div className="glass-surface rounded-2xl px-6 py-4 mb-4">
-          <h2 className="text-xl font-bold" style={{ color: '#d4a373', textShadow: '0 0 16px rgba(184,115,51,0.3)' }}>
-            Minecraft World Management
-          </h2>
-          <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.35)' }}>
-            Manage 3 world slots with automatic backup and restore
-          </p>
+        <div className="mb-4">
+          <CopperPanel>
+            <h2 className="text-xl font-bold" style={{ color: '#d4a373', textShadow: '0 0 16px rgba(184,115,51,0.3)' }}>
+              Minecraft World Management
+            </h2>
+            <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.35)' }}>
+              Manage 3 world slots with automatic backup and restore
+            </p>
+          </CopperPanel>
         </div>
         <WorldsPanel />
       </div>

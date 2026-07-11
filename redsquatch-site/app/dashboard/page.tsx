@@ -8,6 +8,7 @@ import { HistoryWidget } from '@/components/HistoryWidget';
 import { WeatherWidget } from '@/components/WeatherWidget';
 import MagicBento from '@/components/MagicBento';
 import ThemeToggle from '@/components/ThemeToggle';
+import CopperPanel from '@/components/cenote/CopperPanel';
 
 
 export default function DashboardPage() {
@@ -107,11 +108,13 @@ export default function DashboardPage() {
       {!bentoView && (
         <main className="p-6 space-y-5">
           {/* Quick-info widget row */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <QuoteWidget />
-            <HistoryWidget />
-            <WeatherWidget />
-          </div>
+          <CopperPanel>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <QuoteWidget />
+              <HistoryWidget />
+              <WeatherWidget />
+            </div>
+          </CopperPanel>
         </main>
       )}
     </div>

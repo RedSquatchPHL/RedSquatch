@@ -10,6 +10,7 @@ import AppletModal from '@/components/AppletModal';
 import MealPlanner from '@/components/MealPlanner';
 import BillPlanner from '@/components/BillPlanner';
 import SpanishTutor from '@/components/SpanishTutor';
+import CopperPanel from '@/components/cenote/CopperPanel';
 
 type Applet = 'menuplanner' | 'billplanner' | 'spanishtutor' | null;
 
@@ -38,10 +39,12 @@ export default function HSToolsPage() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-6 space-y-8">
       {/* Header */}
-      <div className="glass-surface rounded-2xl px-6 py-4 w-full max-w-5xl">
-        <h1 className="text-3xl font-bold" style={{ color: '#d4a373', textShadow: '0 0 16px rgba(184,115,51,0.3)' }}>
-          Tools
-        </h1>
+      <div className="w-full max-w-5xl">
+        <CopperPanel>
+          <h1 className="text-3xl font-bold" style={{ color: '#d4a373', textShadow: '0 0 16px rgba(184,115,51,0.3)' }}>
+            Tools
+          </h1>
+        </CopperPanel>
       </div>
 
       {/* Tool cards */}

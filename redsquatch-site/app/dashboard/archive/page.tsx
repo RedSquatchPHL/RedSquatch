@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Progress } from '@/components/ui/progress';
+import CopperPanel from '@/components/cenote/CopperPanel';
 
 import { API } from '@/lib/api';
 
@@ -84,14 +85,14 @@ export default function ArchivePage() {
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="glass-surface rounded-2xl px-6 py-4">
+      <CopperPanel>
         <h1 className="text-2xl font-bold" style={{ color: '#d4a373', textShadow: '0 0 16px rgba(184,115,51,0.3)' }}>
           Goal Archive
         </h1>
         <p className="text-muted-foreground text-sm mt-1">
           {goals.length} archived goal{goals.length !== 1 ? 's' : ''} — restore or permanently remove them below.
         </p>
-      </div>
+      </CopperPanel>
 
       {goals.length === 0 && (
         <div className="glass-surface rounded-xl p-8 text-center text-muted-foreground">

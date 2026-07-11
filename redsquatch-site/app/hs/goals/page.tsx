@@ -5,6 +5,7 @@ import { ContextSwitcher, type AppContext } from '@/components/ContextSwitcher';
 import { GoalsPanel } from '@/components/GoalsPanel';
 import { TasksBoard, type Task } from '@/components/TasksBoard';
 import { MaintenanceDrawer } from '@/components/MaintenanceDrawer';
+import CopperPanel from '@/components/cenote/CopperPanel';
 
 const CTX_COLORS: Record<AppContext, { accent: string; dim: string }> = {
   work:     { accent: '#4a5568', dim: 'rgba(74, 85, 104, 0.15)'  },
@@ -25,26 +26,28 @@ export default function HSGoalsPage() {
       className="p-6 space-y-6"
     >
       {/* Page header */}
-      <div className="glass-surface rounded-2xl px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <h1
-          className="text-2xl font-bold"
-          style={{ color: '#d4a373', textShadow: '0 0 16px rgba(184,115,51,0.3)' }}
-        >
-          HomeSquatch Goals &amp; Tasks
-        </h1>
-        <ContextSwitcher value={context} onChange={setContext} />
-      </div>
+      <CopperPanel>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <h1
+            className="text-2xl font-bold"
+            style={{ color: '#d4a373', textShadow: '0 0 16px rgba(184,115,51,0.3)' }}
+          >
+            HomeSquatch Goals &amp; Tasks
+          </h1>
+          <ContextSwitcher value={context} onChange={setContext} />
+        </div>
+      </CopperPanel>
 
       {/* Goals panel */}
-      <section className="glass-surface rounded-2xl p-6">
+      <CopperPanel>
         <GoalsPanel context={context} />
-      </section>
+      </CopperPanel>
 
       {/* Divider */}
       <div className="copper-line" />
 
       {/* Tasks board */}
-      <section className="glass-surface rounded-2xl p-6">
+      <CopperPanel>
         <h2
           className="text-lg font-bold mb-5"
           style={{ color: '#d4a373' }}
@@ -52,7 +55,7 @@ export default function HSGoalsPage() {
           Task Board
         </h2>
         <TasksBoard onOpenLogs={setLogTask} />
-      </section>
+      </CopperPanel>
 
       <MaintenanceDrawer task={logTask} onClose={() => setLogTask(null)} />
     </div>

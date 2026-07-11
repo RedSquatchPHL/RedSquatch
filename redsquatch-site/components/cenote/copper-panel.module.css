@@ -1,0 +1,93 @@
+.copperPanel {
+  position: relative;
+  padding: 16px;
+  background: linear-gradient(
+    180deg,
+    rgba(15, 15, 14, 0.94),
+    rgba(10, 11, 10, 0.96)
+  );
+  border: 1px solid rgba(191, 145, 103, 0.7);
+  box-shadow: 0 0 0 1px rgba(74, 52, 35, 0.8) inset,
+    0 0 18px rgba(239, 179, 124, 0.07),
+    inset 0 0 0 1px rgba(255, 228, 195, 0.03);
+  clip-path: polygon(
+    0 0,
+    calc(100% - 18px) 0,
+    100% 18px,
+    100% 100%,
+    12px 100%,
+    0 calc(100% - 12px)
+  );
+}
+
+.copperPanel::before {
+  content: '';
+  position: absolute;
+  inset: 10px;
+  border: 1px solid rgba(156, 119, 83, 0.45);
+  clip-path: polygon(
+    0 0,
+    calc(100% - 12px) 0,
+    100% 12px,
+    100% 100%,
+    8px 100%,
+    0 calc(100% - 8px)
+  );
+  pointer-events: none;
+}
+
+.title {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--color-copper-bright);
+  text-shadow: 0 0 12px rgba(237, 179, 126, 0.22);
+  font-family: var(--font-mono);
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  font-size: 12px;
+  color: rgba(222, 179, 135, 0.9);
+  font-family: var(--font-mono);
+  margin-bottom: 8px;
+}
+
+.subtext {
+  font-size: 11px;
+  color: rgba(207, 159, 114, 0.9);
+  font-style: italic;
+  font-family: var(--font-mono);
+  margin-bottom: 12px;
+}
+
+/* Deliberately no forced font-size/color here (unlike the original mockup) —
+   this wraps real app content that sets its own typography; the panel only
+   supplies the copper frame, not text styling. */
+.content {
+  position: relative;
+  z-index: 10;
+}
+
+.cornerBottomLeft,
+.cornerBottomRight {
+  position: absolute;
+  bottom: 0;
+  width: 28px;
+  height: 28px;
+  border-color: rgba(125, 101, 78, 0.7);
+}
+
+.cornerBottomLeft {
+  left: 0;
+  border-left: 1px solid;
+  border-bottom: 1px solid;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+}
+
+.cornerBottomRight {
+  right: 0;
+  border-right: 1px solid;
+  border-bottom: 1px solid;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+}

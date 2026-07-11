@@ -1,0 +1,31 @@
+:root {
+  /* Obsidian Core */
+  --color-void: #0f0f0f;
+  --color-obsidian-dark: #0a0c0b;
+  --color-obsidian-light: #1a1816;
+
+  /* Copper/Bronze Accents */
+  --color-copper: #b87333;
+  --color-copper-light: #d4a373;
+  --color-copper-bright: #e6bc90;
+
+  /* Alerts */
+  --color-dark-gold: #996515;
+
+  /* Cenote Water Glow */
+  --color-cenote-teal: #1a4d4a;
+  --color-cenote-cyan: #0d7a7a;
+  --color-cenote-glow: #2db8a8;
+
+  /* Stone/Moss */
+  --color-stone: #3a3029;
+  --color-moss: #4d6347;
+
+  /* Glassmorphism */
+  --glass-light: rgba(255, 255, 255, 0.03);
+  --glass-border: rgba(184, 115, 51, 0.2);
+
+  /* Typography */
+  --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+  --font-display: 'Playfair Display', serif;
+}
