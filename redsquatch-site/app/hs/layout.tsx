@@ -15,7 +15,7 @@ const HS_SWITCH = { label: 'Switch', href: '/ws/dashboard', mode: 'work' as cons
 
 export default function HSLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen">
+    <div className="jungle-bg min-h-screen">
       <main className="pb-32">
         {children}
       </main>
