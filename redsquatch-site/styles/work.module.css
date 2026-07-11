@@ -12,7 +12,7 @@
 }
 
 .header {
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 
 .title {
@@ -28,42 +28,193 @@
   margin: 0;
 }
 
-.tabButtons {
+/* ── Toolbar / filters ─────────────────────────────────────────── */
+
+.toolbar {
   display: flex;
-  gap: 0;
-  border-bottom: 1px solid rgba(184, 115, 51, 0.15);
-  margin-bottom: 2rem;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
 }
 
-.tabButton {
-  background: none;
-  border: none;
-  border-bottom: 2px solid transparent;
+.filterRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.filterGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.filterLabel {
+  color: rgba(212, 163, 115, 0.55);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.filterPills {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.pill {
+  background: rgba(184, 115, 51, 0.06);
+  border: 1px solid rgba(184, 115, 51, 0.25);
+  border-radius: 999px;
   color: #d4a373;
   cursor: pointer;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.75rem;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.pill:hover {
+  background: rgba(184, 115, 51, 0.14);
+  border-color: rgba(184, 115, 51, 0.5);
+}
+
+.pillActive {
+  background: rgba(184, 115, 51, 0.28);
+  border-color: #b87333;
+  color: #fff;
+}
+
+.importWrap {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.hiddenInput {
+  display: none;
+}
+
+.importError {
+  color: #e08a3c;
+  font-size: 0.8rem;
+}
+
+/* ── Table ──────────────────────────────────────────────────────── */
+
+.tableWrap {
+  border-radius: 0.5rem;
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
   font-size: 0.875rem;
-  font-weight: 500;
-  padding: 0.75rem 1.5rem;
-  transition: border-color 0.2s, color 0.2s;
 }
 
-.tabButton:hover:not(.tabActive) {
-  border-bottom: 1px solid #b87333;
+.th {
+  color: rgba(212, 163, 115, 0.7);
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  padding: 0.75rem 1rem;
+  text-align: left;
+  text-transform: uppercase;
+  user-select: none;
+  white-space: nowrap;
+  border-bottom: 1px solid rgba(184, 115, 51, 0.25);
 }
 
-.tabActive {
-  border-bottom: 2px solid #b87333;
+.th:hover {
+  color: #d4a373;
+}
+
+.sortArrow {
   color: #b87333;
 }
 
-.tabContent {
-  animation: tabFadeIn 0.25s ease;
+.row {
+  border-bottom: 1px solid rgba(184, 115, 51, 0.08);
+  transition: background 0.15s ease;
 }
 
-@keyframes tabFadeIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to   { opacity: 1; transform: translateY(0); }
+.row:hover {
+  background: rgba(184, 115, 51, 0.05);
 }
+
+.td {
+  color: rgba(255, 255, 255, 0.85);
+  padding: 0.6rem 1rem;
+  vertical-align: middle;
+}
+
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: #d4a373;
+  white-space: nowrap;
+}
+
+.editableCell {
+  background: none;
+  border: none;
+  border-bottom: 1px dashed transparent;
+  color: rgba(255, 255, 255, 0.85);
+  cursor: pointer;
+  font: inherit;
+  padding: 0.1rem 0;
+  text-align: left;
+}
+
+.editableCell:hover {
+  border-bottom-color: rgba(184, 115, 51, 0.5);
+  color: #d4a373;
+}
+
+.editInput {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #d4a373;
+  color: #d4a373;
+  font: inherit;
+  outline: none;
+  padding: 0.1rem 0;
+  width: 100%;
+}
+
+.placeholder {
+  color: rgba(255, 255, 255, 0.25);
+}
+
+.deleteBtn {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 0.2rem 0.4rem;
+  transition: color 0.15s ease;
+}
+
+.deleteBtn:hover {
+  color: #e08a3c;
+}
+
+.emptyRow {
+  color: rgba(255, 255, 255, 0.4);
+  padding: 2rem 1rem;
+  text-align: center;
+}
+
+.footer {
+  color: rgba(212, 163, 115, 0.4);
+  font-size: 0.75rem;
+  margin-top: 1rem;
+  text-align: right;
+}
+
+/* ── Research tab (still used by components/ResearchTab.tsx) ─────── */
 
 .research-list {
   display: flex;
@@ -92,13 +243,4 @@
 
 .research-tab {
   max-width: 48rem;
-}
-
-.silhouettes {
-  bottom: 0;
-  left: 0;
-  pointer-events: none;
-  position: fixed;
-  right: 0;
-  z-index: 1;
 }

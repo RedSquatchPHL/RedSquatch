@@ -9,7 +9,7 @@ const { Pool } = require('pg');
 const path = require('path');
 const fs = require('fs');
 const { scrapeAll } = require('./sports-scraper');
-const { runMigrations, runInactivityCron, makeRouter: makeWorkItemsRouter } = require('./workItemsRoutes');
+const { runMigrations, makeRouter: makeWorkItemsRouter } = require('./routes/work-items');
 const { runMigrations: runResearchMigrations, makeRouter: makeResearchRouter } = require('./routes/research');
 const { makeRouter: makeRconRouter } = require('./routes/rcon');
 const { runMigrations: runNotesMigrations, makeRouter: makeNotesRouter } = require('./routes/notes');
@@ -1068,11 +1068,6 @@ async function initializeApp() {
       maybeRefresh();
       setInterval(() => scrapeAll().catch(err => console.error('Scheduled refresh failed:', err.message)), EIGHT_HOURS);
 
-      // Work items inactivity cron — run once at startup then daily
-      setTimeout(() => {
-        runInactivityCron(db).catch(err => console.error('Inactivity cron startup error:', err.message));
-        setInterval(() => runInactivityCron(db).catch(err => console.error('Inactivity cron error:', err.message)), ONE_DAY);
-      }, 5000); // brief delay so all connections are ready
     });
 
   } catch (err) {
