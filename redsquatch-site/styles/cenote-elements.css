@@ -308,6 +308,13 @@ button:disabled {
 
 .glow-text { text-shadow: 0 0 10px rgba(var(--copper-glow-rgb), 0.4); }
 
+/* Toolbar hover glow — label text lights up copper on hover, independent of active state */
+.toolbar-tile-label { transition: text-shadow 0.2s, color 0.2s; }
+.toolbar-tile:hover .toolbar-tile-label {
+  color: var(--copper-2);
+  text-shadow: 0 0 10px rgba(var(--copper-glow-rgb), 0.4);
+}
+
 .pulsing-value {
   color: var(--copper-2);
   animation: cenote-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;

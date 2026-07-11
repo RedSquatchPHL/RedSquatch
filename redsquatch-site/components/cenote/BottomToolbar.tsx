@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { LayoutDashboard, Target, Inbox, Briefcase, Wrench, ArrowLeftRight, LogOut } from 'lucide-react';
+import { logout } from '@/lib/api';
 
 type ToolbarItem = 'dashboard' | 'goals' | 'intake' | 'work' | 'tools' | 'logout';
 
@@ -15,8 +16,8 @@ const ITEMS: { key: ToolbarItem; label: string; href: string; icon: typeof Layou
 ];
 
 const tileClass = (isActive: boolean) =>
-  `stone-tile pointer-events-auto mono flex h-[92px] w-[72px] flex-col items-center justify-center gap-2 rounded-[14px] px-2 pb-2 pt-3 text-center text-[10px] uppercase tracking-[0.08em] transition-transform hover:-translate-y-1 ${
-    isActive ? 'text-[var(--copper-2)] glow-text' : 'text-[var(--copper-0)] hover:text-[var(--copper-1)]'
+  `toolbar-tile stone-tile pointer-events-auto mono flex h-[92px] w-[72px] flex-col items-center justify-center gap-2 rounded-[14px] px-2 pb-2 pt-3 text-center text-[10px] uppercase tracking-[0.08em] transition-transform hover:-translate-y-1 ${
+    isActive ? 'text-[var(--copper-2)] glow-text' : 'text-[var(--copper-0)]'
   }`;
 
 interface BottomToolbarProps {
@@ -32,7 +33,7 @@ export default function BottomToolbar({ activeItem }: BottomToolbarProps) {
       {ITEMS.map(({ key, label, href, icon: Icon }) => (
         <Link key={key} href={href} className={tileClass(key === activeItem)}>
           <Icon size={27} />
-          <span>{label}</span>
+          <span className="toolbar-tile-label">{label}</span>
         </Link>
       ))}
 
@@ -44,12 +45,12 @@ export default function BottomToolbar({ activeItem }: BottomToolbarProps) {
         className={tileClass(false)}
       >
         <ArrowLeftRight size={27} />
-        <span>Switch</span>
+        <span className="toolbar-tile-label">Switch</span>
       </Link>
 
-      <Link href="/logout" className={tileClass(activeItem === 'logout')}>
+      <Link href="/logout" onClick={logout} className={tileClass(activeItem === 'logout')}>
         <LogOut size={27} />
-        <span>Logout</span>
+        <span className="toolbar-tile-label">Logout</span>
       </Link>
     </nav>
   );
