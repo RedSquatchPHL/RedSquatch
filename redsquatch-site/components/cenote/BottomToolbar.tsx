@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { LayoutDashboard, Target, Inbox, Briefcase, Wrench, LogOut } from 'lucide-react';
+import { LayoutDashboard, Target, Inbox, Briefcase, Wrench, ArrowLeftRight, LogOut } from 'lucide-react';
 
 type ToolbarItem = 'dashboard' | 'goals' | 'intake' | 'work' | 'tools' | 'logout';
 
@@ -12,8 +12,12 @@ const ITEMS: { key: ToolbarItem; label: string; href: string; icon: typeof Layou
   { key: 'intake', label: 'Intake', href: '/ws/intake', icon: Inbox },
   { key: 'work', label: 'Work', href: '/ws/work', icon: Briefcase },
   { key: 'tools', label: 'Tools', href: '/ws/tools', icon: Wrench },
-  { key: 'logout', label: 'Logout', href: '/logout', icon: LogOut },
 ];
+
+const tileClass = (isActive: boolean) =>
+  `stone-tile pointer-events-auto mono flex h-[92px] w-[72px] flex-col items-center justify-center gap-2 rounded-[14px] px-2 pb-2 pt-3 text-center text-[10px] uppercase tracking-[0.08em] transition-transform hover:-translate-y-1 ${
+    isActive ? 'text-[var(--copper-2)] glow-text' : 'text-[var(--copper-0)] hover:text-[var(--copper-1)]'
+  }`;
 
 interface BottomToolbarProps {
   activeItem: ToolbarItem;
@@ -25,21 +29,28 @@ export default function BottomToolbar({ activeItem }: BottomToolbarProps) {
       className="toolbar-shadow fixed bottom-0 left-0 right-0 z-30 flex justify-center gap-4 pb-6 pointer-events-none"
       aria-label="Bottom toolbar"
     >
-      {ITEMS.map(({ key, label, href, icon: Icon }) => {
-        const isActive = key === activeItem;
-        return (
-          <Link
-            key={key}
-            href={href}
-            className={`stone-tile pointer-events-auto mono flex h-[92px] w-[72px] flex-col items-center justify-center gap-2 rounded-[14px] px-2 pb-2 pt-3 text-center text-[10px] uppercase tracking-[0.08em] transition-transform hover:-translate-y-1 ${
-              isActive ? 'text-[var(--copper-2)] glow-text' : 'text-[var(--copper-0)] hover:text-[var(--copper-1)]'
-            }`}
-          >
-            <Icon size={27} />
-            <span>{label}</span>
-          </Link>
-        );
-      })}
+      {ITEMS.map(({ key, label, href, icon: Icon }) => (
+        <Link key={key} href={href} className={tileClass(key === activeItem)}>
+          <Icon size={27} />
+          <span>{label}</span>
+        </Link>
+      ))}
+
+      {/* Mode switch — mirrors MagnificationDock's DockSwitch on the HS side (localStorage
+          mode flag + navigate), but keeps the WS toolbar's stone-tile visual language. */}
+      <Link
+        href="/hs/dashboard"
+        onClick={() => localStorage.setItem('redsquatch-mode', 'home')}
+        className={tileClass(false)}
+      >
+        <ArrowLeftRight size={27} />
+        <span>Switch</span>
+      </Link>
+
+      <Link href="/logout" className={tileClass(activeItem === 'logout')}>
+        <LogOut size={27} />
+        <span>Logout</span>
+      </Link>
     </nav>
   );
 }
