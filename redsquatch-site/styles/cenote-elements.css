@@ -1,0 +1,168 @@
+/* Cenote vision — global baseline for typography, inputs, buttons, lists,
+   tables, and status badges. Bare element selectors, so anything already
+   styled with explicit Tailwind classes or inline styles keeps winning the
+   cascade (class/inline specificity beats element selectors) — this only
+   fills in a ceremonial default where nothing more specific is set. */
+
+/* ── Typography ─────────────────────────────────────────────────────── */
+
+h1, h2, h3 {
+  font-family: var(--font-header);
+  letter-spacing: 0.05em;
+  color: var(--copper-warm);
+  text-shadow: var(--glow-copper);
+}
+
+h1 { font-size: 2.5rem;  line-height: 1.1; }
+h2 { font-size: 1.75rem; }
+h3 { font-size: 1.25rem; }
+
+p, label {
+  font-family: var(--font-ui);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: rgba(212, 163, 115, 0.9);
+}
+
+.data, code {
+  font-family: var(--font-data);
+  font-size: 0.85rem;
+  color: #a88463;
+  letter-spacing: 0.02em;
+}
+
+/* ── Inputs & Controls ──────────────────────────────────────────────── */
+
+input[type="text"],
+input[type="date"],
+input[type="time"],
+input[type="number"],
+input[type="password"],
+textarea,
+select {
+  background: transparent;
+  border: none;
+  border-bottom: var(--border-copper);
+  color: var(--copper-warm);
+  padding: var(--space-sm) 0;
+  font-family: var(--font-ui);
+  font-size: 0.95rem;
+  transition: none;
+}
+
+input[type="text"]:focus,
+input[type="date"]:focus,
+input[type="time"]:focus,
+input[type="number"]:focus,
+input[type="password"]:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-bottom: var(--border-copper-bold);
+  box-shadow:
+    inset 0 -2px 0 var(--copper-ceremonial),
+    var(--glow-copper);
+  color: var(--copper-ceremonial);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: rgba(139, 111, 86, 0.5);
+}
+
+button, [role="button"] {
+  background: transparent;
+  border: var(--border-copper-bold);
+  color: var(--copper-warm);
+  padding: var(--space-sm) var(--space-md);
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: none;
+  position: relative;
+  overflow: hidden;
+}
+
+button:hover, [role="button"]:hover {
+  border-color: var(--copper-ceremonial);
+  color: var(--copper-ceremonial);
+  background: linear-gradient(135deg, rgba(184, 115, 51, 0.1), transparent);
+  box-shadow: var(--glow-copper);
+}
+
+button:active, [role="button"]:active {
+  background: rgba(184, 115, 51, 0.15);
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  border-color: rgba(184, 115, 51, 0.2);
+}
+
+/* ── Status badges ──────────────────────────────────────────────────── */
+
+.status-badge {
+  display: inline-block;
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid rgba(184, 115, 51, 0.4);
+  background: transparent;
+  color: var(--copper-warm);
+  font-family: var(--font-data);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.status-badge.active  { border-color: var(--copper-ceremonial); color: var(--copper-ceremonial); box-shadow: var(--glow-copper); }
+.status-badge.warning { border-color: var(--gold-relief);       color: var(--gold-relief); }
+.status-badge.jade     { border-color: var(--jade-accent);       color: var(--jade-accent); }
+
+/* ── Lists & Tables ─────────────────────────────────────────────────── */
+
+.cenote-list { list-style: none; padding: 0; margin: 0; }
+.cenote-list li {
+  padding: var(--space-sm) 0 var(--space-sm) var(--space-md);
+  position: relative;
+  color: rgba(212, 163, 115, 0.85);
+}
+.cenote-list li::before {
+  content: '→';
+  position: absolute;
+  left: 0;
+  color: var(--copper-warm);
+}
+
+.cenote-table { width: 100%; border-collapse: collapse; font-family: var(--font-data); font-size: 0.9rem; }
+.cenote-table th {
+  border-bottom: var(--border-copper-bold);
+  padding: var(--space-md);
+  text-align: left;
+  color: var(--copper-ceremonial);
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+}
+.cenote-table td { border-bottom: var(--border-copper); padding: var(--space-md); color: rgba(212, 163, 115, 0.8); }
+.cenote-table tr:hover { background: rgba(184, 115, 51, 0.05); }
+
+/* ── Opt-in layout utilities (not globally forced) ──────────────────── */
+
+.cenote-page-wrapper {
+  background: linear-gradient(180deg, #0a0808 0%, #0d100d 50%, #0a0808 100%);
+  min-height: 100vh;
+  padding: var(--space-2xl);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.cenote-section {
+  background: linear-gradient(135deg, rgba(26, 24, 22, 0.6), rgba(15, 15, 15, 0.8));
+  border: var(--border-copper);
+  padding: var(--space-xl);
+  margin-bottom: var(--space-2xl);
+  box-shadow: var(--shadow-ambient), var(--shadow-inset);
+  position: relative;
+}

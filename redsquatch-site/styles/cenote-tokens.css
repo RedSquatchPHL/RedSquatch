@@ -1,0 +1,46 @@
+/* Cenote design tokens — extends cenote-variables.css with the fuller
+   ceremonial-chamber palette/spacing/shadow scale. Both files' variables
+   coexist; existing code keeps using the original --color-* names,
+   new work can use these. */
+:root {
+  /* Colors */
+  --obsidian-void: #0a0808;
+  --stone-wall: #1a1816;
+  --copper-ceremonial: #b87333;
+  --copper-warm: #d4a373;
+  --jade-accent: #4d6347;
+  --jade-shadow: #2a4a3a;
+  --gold-relief: #996515;
+
+  /* Typography */
+  --font-header: 'Playfair Display', serif;
+  --font-ui: 'Inter', sans-serif;
+  --font-data: 'JetBrains Mono', monospace;
+
+  /* Spacing & Rhythm */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+
+  /* Shadows (Ceremonial Depth) */
+  --shadow-ambient: 0 12px 32px rgba(0, 0, 0, 0.4);
+  --shadow-card: 0 8px 16px rgba(0, 0, 0, 0.3);
+  --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.05),
+                  inset 0 -2px 4px rgba(0, 0, 0, 0.3);
+
+  /* Glows (Ceremonial Light) */
+  --glow-copper: 0 0 12px rgba(184, 115, 51, 0.4);
+  --glow-jade: 0 0 8px rgba(77, 99, 71, 0.2);
+
+  /* Borders */
+  --border-copper: 1px solid rgba(184, 115, 51, 0.3);
+  --border-copper-bold: 1px solid rgba(184, 115, 51, 0.6);
+  --border-jade: 1px solid rgba(77, 99, 71, 0.2);
+
+  /* Radius — sharp, carved aesthetic */
+  --radius-cenote: 0;
+  --radius-cenote-subtle: 2px;
+}

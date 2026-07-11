@@ -11,13 +11,13 @@ interface Props {
   onDelete: (id: number) => void;
 }
 
-const STATUS_COLORS: Record<string, string> = {
-  'In Discovery': 'text-[#d4a373]',
-  'In Planning':  'text-blue-400',
-  'In Build':     'text-yellow-400',
-  'In Test':      'text-purple-400',
-  'Done':         'text-green-400',
-  'On Hold':      'text-white/40',
+const STATUS_BADGE_VARIANT: Record<string, string> = {
+  'In Discovery': 'active',
+  'In Planning':  'active',
+  'In Build':     'active',
+  'In Test':      'active',
+  'Done':         'jade',
+  'On Hold':      'warning',
 };
 
 export default function GroupsList({ groups, loading, selectedGroupId, onSelect, onNew, onDelete }: Props) {
@@ -60,7 +60,9 @@ export default function GroupsList({ groups, loading, selectedGroupId, onSelect,
                         <span title={g.follow_up_date ? `Follow up: ${g.follow_up_date}` : 'Follow up flagged'} className="text-yellow-400 text-xs">●</span>
                       )}
                     </div>
-                    <div className={`text-xs mt-0.5 ${STATUS_COLORS[g.status] ?? 'text-white/40'}`}>{g.status}</div>
+                    <div className="mt-1">
+                      <span className={`status-badge ${STATUS_BADGE_VARIANT[g.status] ?? ''}`}>{g.status}</span>
+                    </div>
                   </div>
                   <button
                     onClick={e => { e.stopPropagation(); onDelete(g.id); }}

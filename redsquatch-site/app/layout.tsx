@@ -3,6 +3,8 @@ import { Inter } from "next/font/google";
 import "@/styles/globals.css";
 import "@/styles/cenote-variables.css";
 import "@/styles/cenote-background.css";
+import "@/styles/cenote-tokens.css";
+import "@/styles/cenote-elements.css";
 import { ThemeProvider } from "@/components/ThemeContext";
 import GlobalEffects from "@/components/GlobalEffects";
 
