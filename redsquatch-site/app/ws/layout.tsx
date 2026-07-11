@@ -1,11 +1,12 @@
 'use client';
 
 import MagnificationDock from '@/components/MagnificationDock';
-import { BarChart3, Target, ClipboardList, Settings } from 'lucide-react';
+import { BarChart3, Target, Inbox, ClipboardList, Settings } from 'lucide-react';
 
 const WS_NAV = [
   { label: 'Dashboard', icon: BarChart3,     href: '/ws/dashboard' },
   { label: 'Goals',     icon: Target,        href: '/ws/goals'     },
+  { label: 'Intake',    icon: Inbox,         href: '/ws/intake'    },
   { label: 'Work',      icon: ClipboardList, href: '/ws/work'      },
   { label: 'Tools',     icon: Settings,      href: '/ws/tools'     },
 ];

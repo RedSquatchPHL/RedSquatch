@@ -14,19 +14,29 @@ export type WorkItem = {
   priority: string;
   imported_at: string;
   updated_at: string;
+  group_id: number | null;
+  group_name: string | null;
 };
+
+export type WorkGroupOption = { id: number; name: string };
 
 type SortColumn = 'type' | 'ticket_number' | 'title' | 'submitter' | 'status' | 'priority';
 type SortDirection = 'asc' | 'desc';
 
 export default function WorkItemsTable({
   items,
+  groups,
   onUpdateSubmitter,
+  onUpdateGroup,
   onDelete,
+  onOpenJournal,
 }: {
   items: WorkItem[];
+  groups: WorkGroupOption[];
   onUpdateSubmitter: (id: number, submitter: string) => void;
+  onUpdateGroup: (id: number, groupId: number | null) => void;
   onDelete: (id: number) => void;
+  onOpenJournal: (item: WorkItem) => void;
 }) {
   const [sortColumn, setSortColumn] = useState<SortColumn>('ticket_number');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
@@ -81,6 +91,7 @@ export default function WorkItemsTable({
                 )}
               </th>
             ))}
+            <th className={styles.th}>Group</th>
             <th className={styles.th} />
           </tr>
         </thead>
@@ -112,6 +123,26 @@ export default function WorkItemsTable({
               <td className={styles.td}>{item.status}</td>
               <td className={styles.td}>{item.priority}</td>
               <td className={styles.td}>
+                <select
+                  value={item.group_id ?? ''}
+                  onChange={e => onUpdateGroup(item.id, e.target.value ? Number(e.target.value) : null)}
+                  className={styles.editInput}
+                >
+                  <option value="">— No group —</option>
+                  {groups.map(g => (
+                    <option key={g.id} value={g.id}>{g.name}</option>
+                  ))}
+                </select>
+              </td>
+              <td className={styles.td}>
+                <button
+                  type="button"
+                  className={styles.editableCell}
+                  onClick={() => onOpenJournal(item)}
+                  title="Journal"
+                >
+                  Journal
+                </button>
                 <button type="button" className={styles.deleteBtn} onClick={() => onDelete(item.id)} title="Delete">
                   ✕
                 </button>
@@ -120,7 +151,7 @@ export default function WorkItemsTable({
           ))}
           {sorted.length === 0 && (
             <tr>
-              <td className={styles.emptyRow} colSpan={columns.length + 1}>No work items match the current filters.</td>
+              <td className={styles.emptyRow} colSpan={columns.length + 2}>No work items match the current filters.</td>
             </tr>
           )}
         </tbody>

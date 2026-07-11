@@ -67,7 +67,7 @@ export default function GroupForm({ group, onClose, onSave }: Props) {
               value={name}
               onChange={e => setName(e.target.value)}
               required
-              className="w-full bg-transparent border-0 border-b border-[rgba(184,115,51,0.3)] text-white px-0 py-1.5 focus:outline-none focus:border-[#d4a373] transition-colors"
+              className="w-full bg-transparent border-0 border-b border-[rgba(184,115,51,0.3)] text-white px-0 py-1.5 focus:outline-none focus:border-[#d4a373]"
             />
           </div>
 
@@ -77,7 +77,7 @@ export default function GroupForm({ group, onClose, onSave }: Props) {
               value={description}
               onChange={e => setDescription(e.target.value)}
               rows={3}
-              className="w-full bg-transparent border-0 border-b border-[rgba(184,115,51,0.3)] text-white px-0 py-1.5 resize-none focus:outline-none focus:border-[#d4a373] transition-colors"
+              className="w-full bg-transparent border-0 border-b border-[rgba(184,115,51,0.3)] text-white px-0 py-1.5 resize-none focus:outline-none focus:border-[#d4a373]"
             />
           </div>
 
@@ -86,7 +86,7 @@ export default function GroupForm({ group, onClose, onSave }: Props) {
             <select
               value={status}
               onChange={e => setStatus(e.target.value as GroupStatus)}
-              className="w-full bg-[#0f0f0f] border border-[rgba(184,115,51,0.3)] text-white px-2 py-1.5 focus:outline-none focus:border-[#d4a373] transition-colors"
+              className="w-full bg-[#0f0f0f] border border-[rgba(184,115,51,0.3)] text-white px-2 py-1.5 focus:outline-none focus:border-[#d4a373]"
             >
               {GROUP_STATUSES.map(s => (
                 <option key={s} value={s}>{s}</option>
@@ -112,7 +112,7 @@ export default function GroupForm({ group, onClose, onSave }: Props) {
                 type="date"
                 value={followUpDate}
                 onChange={e => setFollowUpDate(e.target.value)}
-                className="w-full bg-transparent border-0 border-b border-[rgba(184,115,51,0.3)] text-white px-0 py-1.5 focus:outline-none focus:border-[#d4a373] transition-colors"
+                className="w-full bg-transparent border-0 border-b border-[rgba(184,115,51,0.3)] text-white px-0 py-1.5 focus:outline-none focus:border-[#d4a373]"
               />
             </div>
           )}
@@ -121,14 +121,14 @@ export default function GroupForm({ group, onClose, onSave }: Props) {
             <button
               type="button"
               onClick={onClose}
-              className="text-sm text-white/50 hover:text-white px-3 py-1.5 transition-colors"
+              className="text-sm text-white/50 hover:text-white px-3 py-1.5"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={saving || !name.trim()}
-              className="text-sm bg-[#b87333] hover:bg-[#b87333]/80 text-[#0f0f0f] font-semibold px-4 py-1.5 disabled:opacity-50 transition-colors"
+              className="text-sm bg-[#b87333] hover:bg-[#b87333]/80 text-[#0f0f0f] font-semibold px-4 py-1.5 disabled:opacity-50"
             >
               {saving ? 'Saving...' : group ? 'Save' : 'Create'}
             </button>

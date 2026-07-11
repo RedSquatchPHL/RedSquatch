@@ -2,34 +2,27 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { API } from '@/lib/api';
 import GroupsList from '@/components/intake/GroupsList';
 import GroupForm from '@/components/intake/GroupForm';
 import DiscoveryForm from '@/components/intake/DiscoveryForm';
 import DemandForm from '@/components/intake/DemandForm';
-import ReportPanel from '@/components/intake/ReportPanel';
-import type { WorkGroup, DiscoveryForm as DiscoveryFormType, GroupStatus } from '@/components/intake/types';
 import CopperPanel from '@/components/cenote/CopperPanel';
+import type { WorkGroup, DiscoveryForm as DiscoveryFormType, GroupStatus } from '@/components/intake/types';
 
-type Tab = 'discovery' | 'demand';
-
-export default function IntakePage() {
+export default function WSIntakePage() {
   const [checking, setChecking] = useState(true);
   const router = useRouter();
 
   const [groups, setGroups] = useState<WorkGroup[]>([]);
   const [groupsLoading, setGroupsLoading] = useState(true);
   const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null);
-  const [activeTab, setActiveTab] = useState<Tab>('discovery');
   const [currentDiscovery, setCurrentDiscovery] = useState<DiscoveryFormType | null>(null);
 
   const [showGroupForm, setShowGroupForm] = useState(false);
   const [editingGroup, setEditingGroup] = useState<WorkGroup | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [view, setView] = useState<'groups' | 'report'>('groups');
 
-  // Auth guard — same pattern as work-items/page.tsx
   useEffect(() => {
     fetch(`${API}/api/client/session`, { credentials: 'include' })
       .then(r => r.json())
@@ -45,8 +38,7 @@ export default function IntakePage() {
     try {
       const res = await fetch(`${API}/api/client/groups`, { credentials: 'include' });
       if (!res.ok) throw new Error('Failed to load groups');
-      const data = await res.json();
-      setGroups(data);
+      setGroups(await res.json());
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load groups');
     } finally {
@@ -55,25 +47,12 @@ export default function IntakePage() {
   }, []);
 
   useEffect(() => { if (!checking) fetchGroups(); }, [checking, fetchGroups]);
-
-  useEffect(() => {
-    setActiveTab('discovery');
-    setCurrentDiscovery(null);
-  }, [selectedGroupId]);
+  useEffect(() => { setCurrentDiscovery(null); }, [selectedGroupId]);
 
   const selectedGroup = groups.find(g => g.id === selectedGroupId) ?? null;
-  const discoveryUnlocked = currentDiscovery?.status === 'Locked' || currentDiscovery?.status === 'Ready for Demand';
 
-  const handleCreateGroup = () => {
-    setEditingGroup(null);
-    setShowGroupForm(true);
-  };
-
-  const handleEditGroup = () => {
-    if (!selectedGroup) return;
-    setEditingGroup(selectedGroup);
-    setShowGroupForm(true);
-  };
+  const handleCreateGroup = () => { setEditingGroup(null); setShowGroupForm(true); };
+  const handleEditGroup = () => { if (selectedGroup) { setEditingGroup(selectedGroup); setShowGroupForm(true); } };
 
   const handleSaveGroup = async (data: {
     name: string;
@@ -123,47 +102,20 @@ export default function IntakePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0f0f0f] to-[#1a1a1a]">
-      <div className="max-w-6xl mx-auto p-4 sm:p-8">
-        <div className="mb-6 flex items-start justify-between flex-wrap gap-3">
-          <div>
-            <h1 className="text-4xl font-playfair text-[#b87333]">Intake &amp; Groups</h1>
-            <p className="text-[#d4a373] text-sm mt-1">Discovery and demand intake, organized by work group.</p>
-          </div>
-          <div className="flex border-b border-[rgba(184,115,51,0.2)]">
-            <button
-              onClick={() => setView('groups')}
-              className={`px-4 py-2 text-sm border-b-2 -mb-px ${
-                view === 'groups' ? 'text-[#d4a373] border-[#d4a373]' : 'text-white/40 border-transparent hover:text-white/70'
-              }`}
-            >
-              Groups
-            </button>
-            <button
-              onClick={() => setView('report')}
-              className={`px-4 py-2 text-sm border-b-2 -mb-px ${
-                view === 'report' ? 'text-[#d4a373] border-[#d4a373]' : 'text-white/40 border-transparent hover:text-white/70'
-              }`}
-            >
-              Report
-            </button>
-          </div>
+      <div className="max-w-7xl mx-auto p-4 sm:p-8">
+        <div className="mb-6">
+          <h1 className="text-4xl text-[#b87333]">Work Intake</h1>
+          <p className="text-[#d4a373] text-sm mt-1">Discovery and Demand, side by side.</p>
         </div>
 
         {error && (
           <p className="text-red-400 text-sm border border-red-400/20 bg-red-400/5 px-3 py-2 mb-4">{error}</p>
         )}
 
-        {view === 'report' ? (
-          <CopperPanel>
-            <div className="p-6">
-              <ReportPanel />
-            </div>
-          </CopperPanel>
-        ) : (
         <CopperPanel>
           <div className="flex flex-col md:flex-row min-h-[600px]">
-            {/* Sidebar */}
-            <div className="w-full md:w-72 md:border-r border-b md:border-b-0 border-[rgba(184,115,51,0.2)] max-h-[300px] md:max-h-none">
+            {/* Group rail */}
+            <div className="w-full md:w-64 md:border-r border-b md:border-b-0 border-[rgba(184,115,51,0.2)] max-h-[300px] md:max-h-none shrink-0">
               <GroupsList
                 groups={groups}
                 loading={groupsLoading}
@@ -174,14 +126,14 @@ export default function IntakePage() {
               />
             </div>
 
-            {/* Main content */}
-            <div className="flex-1 p-6">
+            {/* Split-pane forms */}
+            <div className="flex-1 p-6 min-w-0">
               {!selectedGroup ? (
                 <div className="flex items-center justify-center h-full min-h-[400px] text-white/40 text-sm">
                   Select a group, or create a new one, to get started.
                 </div>
               ) : (
-                <div className="space-y-6">
+                <div className="space-y-4">
                   <div className="flex items-start justify-between flex-wrap gap-3">
                     <div>
                       <h2 className="text-2xl text-white">{selectedGroup.name}</h2>
@@ -189,61 +141,27 @@ export default function IntakePage() {
                         <p className="text-white/40 text-sm mt-1">{selectedGroup.description}</p>
                       )}
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Link
-                        href={`/dashboard/groups/${selectedGroup.id}`}
-                        className="text-xs border border-[rgba(184,115,51,0.3)] text-[#d4a373] hover:bg-[rgba(184,115,51,0.1)] px-3 py-1.5"
-                      >
-                        View Dashboard
-                      </Link>
-                      <button
-                        onClick={handleEditGroup}
-                        className="text-xs border border-[rgba(184,115,51,0.3)] text-[#d4a373] hover:bg-[rgba(184,115,51,0.1)] px-3 py-1.5"
-                      >
-                        Edit Group
-                      </button>
+                    <button
+                      onClick={handleEditGroup}
+                      className="text-xs border border-[rgba(184,115,51,0.3)] text-[#d4a373] hover:bg-[rgba(184,115,51,0.1)] px-3 py-1.5"
+                    >
+                      Edit Group
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div className="lg:border-r border-[rgba(184,115,51,0.15)] lg:pr-8">
+                      <DiscoveryForm groupId={selectedGroup.id} onFormReady={setCurrentDiscovery} />
+                    </div>
+                    <div>
+                      <DemandForm groupId={selectedGroup.id} discoveryForm={currentDiscovery} />
                     </div>
                   </div>
-
-                  {/* Tabs */}
-                  <div className="flex border-b border-[rgba(184,115,51,0.2)]">
-                    <button
-                      onClick={() => setActiveTab('discovery')}
-                      className={`px-4 py-2 text-sm border-b-2 -mb-px ${
-                        activeTab === 'discovery'
-                          ? 'text-[#d4a373] border-[#d4a373]'
-                          : 'text-white/40 border-transparent hover:text-white/70'
-                      }`}
-                    >
-                      Discovery
-                    </button>
-                    <button
-                      onClick={() => discoveryUnlocked && setActiveTab('demand')}
-                      disabled={!discoveryUnlocked}
-                      title={!discoveryUnlocked ? 'Lock the discovery form to unlock demand' : undefined}
-                      className={`px-4 py-2 text-sm border-b-2 -mb-px ${
-                        activeTab === 'demand'
-                          ? 'text-[#d4a373] border-[#d4a373]'
-                          : discoveryUnlocked
-                            ? 'text-white/40 border-transparent hover:text-white/70'
-                            : 'text-white/15 border-transparent cursor-not-allowed'
-                      }`}
-                    >
-                      Demand
-                    </button>
-                  </div>
-
-                  {activeTab === 'discovery' ? (
-                    <DiscoveryForm groupId={selectedGroup.id} onFormReady={setCurrentDiscovery} />
-                  ) : (
-                    <DemandForm groupId={selectedGroup.id} discoveryForm={currentDiscovery} />
-                  )}
                 </div>
               )}
             </div>
           </div>
         </CopperPanel>
-        )}
       </div>
 
       {showGroupForm && (

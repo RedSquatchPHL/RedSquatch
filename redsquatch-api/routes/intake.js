@@ -1,5 +1,8 @@
 'use strict';
 
+const express = require('express');
+const { parseDemandXml } = require('../lib/parse-demand-xml');
+
 // Intake + Groups MVP — discovery/demand forms grouped under work_groups.
 const SCHEMA_STATEMENTS = [
   `CREATE TABLE IF NOT EXISTS work_groups (
@@ -181,18 +184,73 @@ function makeRouter(db) {
     }
   });
 
+  // GET /groups/report?start_date=YYYY-MM-DD&end_date=YYYY-MM-DD
+  // Must be defined before /groups/:id so "report" isn't matched as an id.
+  router.get('/groups/report', auth, async (req, res) => {
+    try {
+      const { start_date, end_date } = req.query;
+      if (!start_date || !end_date) {
+        return res.status(400).json({ error: 'start_date and end_date are required' });
+      }
+
+      const groups = await db.query('SELECT * FROM work_groups ORDER BY updated_at DESC');
+
+      const report = await Promise.all(
+        groups.rows.map(async (group) => {
+          const journals = await db.query(
+            `SELECT wj.* FROM work_journal wj
+             JOIN work_items wi ON wi.id = wj.work_item_id
+             WHERE wi.group_id = $1 AND wj.session_date BETWEEN $2 AND $3
+             ORDER BY wj.session_date DESC, wj.created_at DESC`,
+            [group.id, start_date, end_date]
+          );
+
+          const items = await db.query('SELECT * FROM work_items WHERE group_id = $1', [group.id]);
+
+          return {
+            group,
+            journal_count: journals.rows.length,
+            item_count: items.rows.length,
+            recent_updates: journals.rows.slice(0, 3),
+          };
+        })
+      );
+
+      const active = report.filter(r => r.journal_count > 0);
+      const inactive = report.filter(r => r.journal_count === 0);
+
+      res.json({
+        period: { start_date, end_date },
+        active,
+        inactive,
+        summary: { total_groups: report.length, active_count: active.length },
+      });
+    } catch (err) {
+      console.error('Groups report error:', err.message);
+      res.status(500).json({ error: 'Failed to generate report' });
+    }
+  });
+
   router.get('/groups/:id', auth, async (req, res) => {
     try {
       const groupResult = await db.query('SELECT * FROM work_groups WHERE id = $1', [req.params.id]);
       if (groupResult.rows.length === 0) {
         return res.status(404).json({ error: 'Group not found' });
       }
-      const [discovery, demand, workItems] = await Promise.all([
+      const [discovery, demand, workItems, journal] = await Promise.all([
         db.query('SELECT * FROM discovery_forms WHERE group_id = $1 ORDER BY created_at ASC', [req.params.id]),
         db.query('SELECT * FROM demand_forms WHERE group_id = $1 ORDER BY created_at ASC', [req.params.id]),
         db.query(
           `SELECT id, type, ticket_number, title, submitter, status, priority
            FROM work_items WHERE group_id = $1 AND deleted_at IS NULL ORDER BY ticket_number ASC`,
+          [req.params.id]
+        ),
+        db.query(
+          `SELECT wj.*, wi.ticket_number, wi.title AS item_title
+           FROM work_journal wj
+           JOIN work_items wi ON wi.id = wj.work_item_id
+           WHERE wi.group_id = $1
+           ORDER BY wj.session_date DESC, wj.created_at DESC`,
           [req.params.id]
         ),
       ]);
@@ -201,6 +259,7 @@ function makeRouter(db) {
         discovery_forms: discovery.rows,
         demand_forms: demand.rows,
         work_items: workItems.rows,
+        journal_entries: journal.rows,
       });
     } catch (err) {
       console.error('Group detail fetch error:', err.message);
@@ -419,6 +478,19 @@ function makeRouter(db) {
     } catch (err) {
       console.error('Demand update error:', err.message);
       res.status(500).json({ error: 'Failed to update demand form' });
+    }
+  });
+
+  // Parses a ServiceNow dmn_demand XML export into demand_forms fields.
+  // Pure extraction — no DB write; the caller PUTs the result to
+  // /demand/:id itself so the existing save/patch flow stays the single
+  // write path for demand forms.
+  router.post('/demand/parse-xml', auth, express.text({ type: () => true, limit: '5mb' }), (req, res) => {
+    try {
+      const extracted = parseDemandXml(req.body || '');
+      res.json(extracted);
+    } catch (err) {
+      res.status(400).json({ error: err.message || 'Failed to parse XML' });
     }
   });
 

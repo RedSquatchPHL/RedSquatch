@@ -24,43 +24,24 @@ export default function WSToolsPage() {
     })();
   }, [router]);
 
-  if (loading) return null;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-[#b87333] text-lg">Loading...</div>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-6 space-y-8">
-      {/* Header */}
-      <div className="w-full max-w-5xl">
-        <CopperPanel>
-          <h1 className="text-3xl font-bold" style={{ color: '#d4a373', textShadow: '0 0 16px rgba(184,115,51,0.3)' }}>
-            Tools
-          </h1>
-        </CopperPanel>
-      </div>
-
-      {/* Development */}
-      <div className="max-w-5xl w-full">
-        <div className="mb-4">
-          <CopperPanel>
-            <h2 className="text-xl font-bold" style={{ color: '#d4a373', textShadow: '0 0 16px rgba(184,115,51,0.3)' }}>
-              Development
-            </h2>
-            <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.35)' }}>
-              Multi-tab code & text scratchpad, auto-saved as you type
-            </p>
-          </CopperPanel>
+    <div className="min-h-screen bg-gradient-to-br from-[#0f0f0f] to-[#1a1a1a]">
+      <div className="max-w-5xl mx-auto p-4 sm:p-8 space-y-8">
+        <div>
+          <h1 className="text-4xl text-[#b87333]">Tools</h1>
+          <p className="text-[#d4a373] text-sm mt-1">Multi-tab scratchpad, auto-saved as you type.</p>
         </div>
-        <DevelopmentWidget />
-      </div>
 
-      {/* Curriculum Tracker (placeholder) */}
-      <div className="max-w-5xl w-full mb-8">
         <CopperPanel>
-          <h2 className="text-xl font-bold" style={{ color: '#d4a373', textShadow: '0 0 16px rgba(184,115,51,0.3)' }}>
-            Curriculum Tracker
-          </h2>
-          <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.35)' }}>
-            Coming soon
-          </p>
+          <DevelopmentWidget />
         </CopperPanel>
       </div>
     </div>

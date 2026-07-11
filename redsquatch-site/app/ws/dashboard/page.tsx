@@ -6,7 +6,6 @@ import { API } from '@/lib/api';
 import { QuoteWidget } from '@/components/QuoteWidget';
 import { HistoryWidget } from '@/components/HistoryWidget';
 import { WeatherWidget } from '@/components/WeatherWidget';
-import ThemeToggle from '@/components/ThemeToggle';
 import CopperPanel from '@/components/cenote/CopperPanel';
 
 export default function WSDashboardPage() {
@@ -29,66 +28,47 @@ export default function WSDashboardPage() {
     })();
   }, [router]);
 
-  if (loading) return (
-    <div className="flex items-center justify-center h-screen">
-      <div
-        className="glass-surface rounded-2xl px-10 py-8 text-center"
-        style={{ minWidth: 220 }}
-      >
-        <div
-          className="w-8 h-8 rounded-full border-2 mx-auto mb-4 animate-spin"
-          style={{ borderColor: 'rgba(184,115,51,0.2)', borderTopColor: '#b87333' }}
-        />
-        <p className="text-sm" style={{ color: 'rgba(255,255,255,0.45)' }}>Loading dashboard…</p>
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-[#b87333] text-lg">Loading...</div>
       </div>
-    </div>
-  );
+    );
+  }
 
   return (
-    <div className="min-h-screen">
-      {/* ── Glass header ──────────────────────────────────────────────────── */}
-      <header className="glass-header sticky top-0 z-20 px-6 py-3.5">
-        <div className="flex justify-between items-center gap-4">
-
-          {/* Title */}
+    <div className="min-h-screen bg-gradient-to-br from-[#0f0f0f] to-[#1a1a1a]">
+      <div className="max-w-5xl mx-auto p-4 sm:p-8 space-y-8">
+        <div className="flex items-start justify-between flex-wrap gap-3">
           <div>
-            <h1
-              className="text-xl font-bold leading-tight"
-              style={{ color: '#d4a373', textShadow: '0 0 20px rgba(184,115,51,0.35)' }}
-            >
-              WorkSquatch Dashboard
-            </h1>
+            <h1 className="text-4xl text-[#b87333]">Dashboard</h1>
             {user && (
-              <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.38)' }}>
-                Welcome back, <span style={{ color: 'rgba(212,163,115,0.8)' }}>{user.displayName || user.username}</span>
+              <p className="text-[#d4a373] text-sm mt-1">
+                Welcome back, {user.displayName || user.username}
               </p>
             )}
           </div>
-
-          {/* Controls */}
-          <div className="flex items-center gap-3">
-            <ThemeToggle />
-            <button
-              onClick={() => router.push('/settings')}
-              className="glass-btn px-3.5 py-1.5 text-sm rounded-xl font-medium"
-              title="Settings"
-            >
-              ⚙ Settings
-            </button>
-          </div>
+          <button
+            onClick={() => router.push('/settings')}
+            className="text-xs border border-[rgba(184,115,51,0.3)] text-[#d4a373] hover:bg-[rgba(184,115,51,0.1)] px-3 py-1.5"
+          >
+            Settings
+          </button>
         </div>
-      </header>
 
-      {/* ── Widgets ───────────────────────────────────────────────────────── */}
-      <main className="p-6 space-y-5">
         <CopperPanel>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <QuoteWidget />
-            <HistoryWidget />
-            <WeatherWidget />
-          </div>
+          <QuoteWidget />
         </CopperPanel>
-      </main>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <CopperPanel>
+            <HistoryWidget />
+          </CopperPanel>
+          <CopperPanel>
+            <WeatherWidget />
+          </CopperPanel>
+        </div>
+      </div>
     </div>
   );
 }

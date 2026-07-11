@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { API } from '@/lib/api';
-import { exportDemandAsMarkdown, downloadMarkdown } from '@/lib/export-utils';
+import { exportDemandAsMarkdown, exportDemandAsPdf, exportDemandAsDocx, downloadMarkdown } from '@/lib/export-utils';
 import type { DemandForm as DemandFormType, DemandStatus, DiscoveryForm as DiscoveryFormType } from './types';
 import { DEMAND_STATUSES } from './types';
 
@@ -23,7 +23,7 @@ const FIELD_LABELS: { key: keyof DemandFormType; label: string; rows: number }[]
 
 const textareaClass =
   'w-full bg-transparent border-0 border-b border-[rgba(184,115,51,0.25)] text-white px-0 py-2 resize-none ' +
-  'focus:outline-none focus:border-[#d4a373] transition-colors placeholder:text-white/20';
+  'focus:outline-none focus:border-[#d4a373] placeholder:text-white/20';
 
 export default function DemandForm({ groupId, discoveryForm }: Props) {
   const [form, setForm] = useState<DemandFormType | null>(null);
@@ -31,6 +31,8 @@ export default function DemandForm({ groupId, discoveryForm }: Props) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [savedAt, setSavedAt] = useState<number | null>(null);
+  const [importing, setImporting] = useState(false);
+  const [importError, setImportError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -94,9 +96,44 @@ export default function DemandForm({ groupId, discoveryForm }: Props) {
     }
   };
 
-  const handleExport = () => {
+  const handleExportMd = () => {
     if (!form) return;
     downloadMarkdown(`demand-${form.id}.md`, exportDemandAsMarkdown(form, discoveryForm));
+  };
+  const handleExportPdf = () => { if (form) exportDemandAsPdf(form, discoveryForm); };
+  const handleExportDocx = () => { if (form) exportDemandAsDocx(form, discoveryForm); };
+
+  const handleImportXml = async (file: File) => {
+    setImporting(true);
+    setImportError(null);
+    try {
+      const xmlText = await file.text();
+      const res = await fetch(`${API}/api/client/demand/parse-xml`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'text/plain' },
+        body: xmlText,
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || 'Failed to parse XML');
+      }
+      const extracted = await res.json();
+      const fields: Partial<DemandFormType> = {
+        business_case: extracted.business_case,
+        assumptions: extracted.assumptions,
+        enablers: extracted.enablers,
+        in_scope: extracted.in_scope,
+        out_of_scope: extracted.out_of_scope,
+        barriers: extracted.barriers,
+      };
+      patch(fields);
+      await save(fields);
+    } catch (err) {
+      setImportError(err instanceof Error ? err.message : 'Failed to import XML');
+    } finally {
+      setImporting(false);
+    }
   };
 
   if (loading) {
@@ -128,6 +165,29 @@ export default function DemandForm({ groupId, discoveryForm }: Props) {
       {error && (
         <p className="text-red-400 text-sm border border-red-400/20 bg-red-400/5 px-3 py-2">{error}</p>
       )}
+      {importError && (
+        <p className="text-red-400 text-sm border border-red-400/20 bg-red-400/5 px-3 py-2">{importError}</p>
+      )}
+
+      <div className="flex items-center gap-3">
+        <label
+          className={`text-xs border border-[rgba(184,115,51,0.3)] text-[#d4a373] hover:bg-[rgba(184,115,51,0.1)] px-3 py-1.5 cursor-pointer ${importing ? 'opacity-40 pointer-events-none' : ''}`}
+        >
+          {importing ? 'Importing...' : 'Import ServiceNow Demand XML'}
+          <input
+            type="file"
+            accept=".xml,text/xml"
+            className="hidden"
+            disabled={importing}
+            onChange={e => {
+              const file = e.target.files?.[0];
+              if (file) handleImportXml(file);
+              e.target.value = '';
+            }}
+          />
+        </label>
+        <span className="text-xs text-white/30">Pre-fills the fields below from a dmn_demand export</span>
+      </div>
 
       {discoveryForm && (
         <div className="text-xs text-white/40 border-l-2 border-[rgba(184,115,51,0.3)] pl-3">
@@ -150,10 +210,22 @@ export default function DemandForm({ groupId, discoveryForm }: Props) {
 
       <div className="flex justify-end gap-3 pt-2">
         <button
-          onClick={handleExport}
-          className="text-sm border border-[rgba(184,115,51,0.3)] text-[#d4a373] hover:bg-[rgba(184,115,51,0.1)] px-4 py-1.5 transition-colors"
+          onClick={handleExportMd}
+          className="text-sm border border-[rgba(184,115,51,0.3)] text-[#d4a373] hover:bg-[rgba(184,115,51,0.1)] px-4 py-1.5"
         >
-          Export as Markdown
+          MD
+        </button>
+        <button
+          onClick={handleExportPdf}
+          className="text-sm border border-[rgba(184,115,51,0.3)] text-[#d4a373] hover:bg-[rgba(184,115,51,0.1)] px-4 py-1.5"
+        >
+          PDF
+        </button>
+        <button
+          onClick={handleExportDocx}
+          className="text-sm border border-[rgba(184,115,51,0.3)] text-[#d4a373] hover:bg-[rgba(184,115,51,0.1)] px-4 py-1.5"
+        >
+          DOC
         </button>
       </div>
     </div>

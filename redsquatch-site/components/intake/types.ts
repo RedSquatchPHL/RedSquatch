@@ -17,6 +17,7 @@ export interface WorkGroupDetail extends WorkGroup {
   discovery_forms: DiscoveryForm[];
   demand_forms: DemandForm[];
   work_items: { id: number; type: string; ticket_number: string; title: string; status: string; priority: string }[];
+  journal_entries: (JournalEntrySummary & { ticket_number: string; item_title: string })[];
 }
 
 export interface DiscoveryForm {
@@ -49,6 +50,28 @@ export interface DemandForm {
   status: DemandStatus;
   created_at: string;
   updated_at: string;
+}
+
+export interface JournalEntrySummary {
+  id: number;
+  work_item_id: number;
+  session_date: string;
+  session_status: string;
+  why: string | null;
+}
+
+export interface GroupReportRow {
+  group: WorkGroup;
+  journal_count: number;
+  item_count: number;
+  recent_updates: JournalEntrySummary[];
+}
+
+export interface GroupsReport {
+  period: { start_date: string; end_date: string };
+  active: GroupReportRow[];
+  inactive: GroupReportRow[];
+  summary: { total_groups: number; active_count: number };
 }
 
 export const GROUP_STATUSES: GroupStatus[] = ['In Discovery', 'In Planning', 'In Build', 'In Test', 'Done', 'On Hold'];

@@ -27,7 +27,7 @@ export default function GroupsList({ groups, loading, selectedGroupId, onSelect,
         <h2 className="text-xs font-semibold uppercase tracking-wider text-[#d4a373]">Groups</h2>
         <button
           onClick={onNew}
-          className="text-xs px-2 py-1 rounded bg-[rgba(184,115,51,0.2)] hover:bg-[rgba(184,115,51,0.35)] text-[#b87333] border border-[rgba(184,115,51,0.3)] transition-colors"
+          className="text-xs px-2 py-1 bg-[rgba(184,115,51,0.2)] hover:bg-[rgba(184,115,51,0.35)] text-[#b87333] border border-[rgba(184,115,51,0.3)]"
         >
           + New Group
         </button>
@@ -47,7 +47,7 @@ export default function GroupsList({ groups, loading, selectedGroupId, onSelect,
               <li key={g.id}>
                 <div
                   onClick={() => onSelect(g.id)}
-                  className={`group flex items-start justify-between gap-2 px-4 py-3 cursor-pointer border-b border-[rgba(255,255,255,0.05)] transition-colors ${
+                  className={`group flex items-start justify-between gap-2 px-4 py-3 cursor-pointer border-b border-[rgba(255,255,255,0.05)] ${
                     selectedGroupId === g.id
                       ? 'bg-[rgba(184,115,51,0.15)]'
                       : 'hover:bg-[rgba(255,255,255,0.03)]'
@@ -66,7 +66,7 @@ export default function GroupsList({ groups, loading, selectedGroupId, onSelect,
                   </div>
                   <button
                     onClick={e => { e.stopPropagation(); onDelete(g.id); }}
-                    className="opacity-0 group-hover:opacity-100 text-white/30 hover:text-red-400 text-xs px-1.5 py-1 transition-opacity"
+                    className="opacity-0 group-hover:opacity-100 text-white/30 hover:text-red-400 text-xs px-1.5 py-1"
                     aria-label="Delete group"
                   >
                     ✕

@@ -75,27 +75,29 @@ function makeRouter(db) {
   router.get('/', auth, async (req, res) => {
     try {
       const { type, status, priority } = req.query;
-      const conditions = ['deleted_at IS NULL'];
+      const conditions = ['wi.deleted_at IS NULL'];
       const values = [];
 
       if (type) {
         values.push(type);
-        conditions.push(`type = $${values.length}`);
+        conditions.push(`wi.type = $${values.length}`);
       }
       if (status) {
         values.push(status);
-        conditions.push(`status = $${values.length}`);
+        conditions.push(`wi.status = $${values.length}`);
       }
       if (priority) {
         values.push(priority);
-        conditions.push(`priority = $${values.length}`);
+        conditions.push(`wi.priority = $${values.length}`);
       }
 
       const result = await db.query(
-        `SELECT id, type, ticket_number, title, submitter, status, priority, imported_at, updated_at
-         FROM work_items
+        `SELECT wi.id, wi.type, wi.ticket_number, wi.title, wi.submitter, wi.status, wi.priority,
+                wi.imported_at, wi.updated_at, wi.group_id, wg.name AS group_name
+         FROM work_items wi
+         LEFT JOIN work_groups wg ON wg.id = wi.group_id
          WHERE ${conditions.join(' AND ')}
-         ORDER BY ticket_number ASC`,
+         ORDER BY wi.ticket_number ASC`,
         values
       );
       res.json({ items: result.rows });
@@ -105,16 +107,17 @@ function makeRouter(db) {
     }
   });
 
-  // PUT /:id — body: { submitter?, status?, priority? }
+  // PUT /:id — body: { submitter?, status?, priority?, group_id? }
   router.put('/:id', auth, async (req, res) => {
     try {
-      const { submitter, status, priority } = req.body || {};
+      const { submitter, status, priority, group_id } = req.body || {};
       const cols = [];
       const values = [];
 
       if (submitter !== undefined) { values.push(submitter); cols.push(`submitter = $${values.length}`); }
       if (status !== undefined)    { values.push(status);    cols.push(`status = $${values.length}`); }
       if (priority !== undefined)  { values.push(priority);  cols.push(`priority = $${values.length}`); }
+      if (group_id !== undefined)  { values.push(group_id);  cols.push(`group_id = $${values.length}`); }
 
       if (cols.length === 0) {
         return res.status(400).json({ error: 'No fields to update' });
@@ -124,7 +127,7 @@ function makeRouter(db) {
       const result = await db.query(
         `UPDATE work_items SET ${cols.join(', ')}, updated_at = NOW()
          WHERE id = $${values.length} AND deleted_at IS NULL
-         RETURNING id, type, ticket_number, title, submitter, status, priority, imported_at, updated_at`,
+         RETURNING id, type, ticket_number, title, submitter, status, priority, imported_at, updated_at, group_id`,
         values
       );
 
@@ -135,6 +138,84 @@ function makeRouter(db) {
     } catch (err) {
       console.error('Work items update error:', err.message);
       res.status(500).json({ error: 'Failed to update work item' });
+    }
+  });
+
+  // GET /relationships — all parent/child links, with ticket labels joined in
+  router.get('/relationships', auth, async (req, res) => {
+    try {
+      const result = await db.query(
+        `SELECT r.id, r.parent_id, r.child_id, r.relationship_type, r.created_at,
+                p.ticket_number AS parent_ticket, p.title AS parent_title,
+                c.ticket_number AS child_ticket, c.title AS child_title
+         FROM work_item_relationships r
+         JOIN work_items p ON p.id = r.parent_id
+         JOIN work_items c ON c.id = r.child_id
+         ORDER BY r.created_at ASC`
+      );
+      res.json(result.rows);
+    } catch (err) {
+      console.error('Relationships fetch error:', err.message);
+      res.status(500).json({ error: 'Failed to fetch relationships' });
+    }
+  });
+
+  // POST /relationships — body: { parent_id, child_id, relationship_type? }
+  router.post('/relationships', auth, async (req, res) => {
+    try {
+      const { parent_id, child_id, relationship_type } = req.body || {};
+      if (!parent_id || !child_id) {
+        return res.status(400).json({ error: 'parent_id and child_id are required' });
+      }
+      if (Number(parent_id) === Number(child_id)) {
+        return res.status(400).json({ error: 'An item cannot be its own parent' });
+      }
+      const result = await db.query(
+        `INSERT INTO work_item_relationships (parent_id, child_id, relationship_type)
+         VALUES ($1, $2, $3) RETURNING *`,
+        [parent_id, child_id, relationship_type || null]
+      );
+      res.json(result.rows[0]);
+    } catch (err) {
+      console.error('Relationship create error:', err.message);
+      res.status(500).json({ error: 'Failed to create relationship' });
+    }
+  });
+
+  // DELETE /relationships/:id
+  router.delete('/relationships/:id', auth, async (req, res) => {
+    try {
+      const result = await db.query(
+        `DELETE FROM work_item_relationships WHERE id = $1 RETURNING id`,
+        [req.params.id]
+      );
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Relationship not found' });
+      }
+      res.json({ success: true });
+    } catch (err) {
+      console.error('Relationship delete error:', err.message);
+      res.status(500).json({ error: 'Failed to delete relationship' });
+    }
+  });
+
+  // POST /link-group — body: { ids: number[], group_id: number|null }
+  router.post('/link-group', auth, async (req, res) => {
+    try {
+      const { ids, group_id } = req.body || {};
+      if (!Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).json({ error: 'ids must be a non-empty array' });
+      }
+      const result = await db.query(
+        `UPDATE work_items SET group_id = $1, updated_at = NOW()
+         WHERE id = ANY($2::int[]) AND deleted_at IS NULL
+         RETURNING id`,
+        [group_id ?? null, ids]
+      );
+      res.json({ success: true, linked: result.rows.length });
+    } catch (err) {
+      console.error('Work items link-group error:', err.message);
+      res.status(500).json({ error: 'Failed to link work items to group' });
     }
   });
 

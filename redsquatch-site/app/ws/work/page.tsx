@@ -3,19 +3,25 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { API } from '@/lib/api';
-import WorkItemsTable, { WorkItem } from '@/components/WorkItemsTable';
+import WorkItemsTable, { WorkItem, WorkGroupOption } from '@/components/WorkItemsTable';
+import WorkItemsTree, { Relationship } from '@/components/WorkItemsTree';
 import WorkItemImportButton from '@/components/WorkItemImportButton';
 import FilterPills from '@/components/FilterPills';
+import JournalPanel from '@/components/JournalPanel';
 import styles from '@/styles/work.module.css';
 
 export default function WorkItemsPage() {
   const [checking, setChecking] = useState(true);
   const [items, setItems] = useState<WorkItem[]>([]);
+  const [groups, setGroups] = useState<WorkGroupOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [typeFilter, setTypeFilter] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [priorityFilter, setPriorityFilter] = useState<string | null>(null);
+  const [journalItem, setJournalItem] = useState<WorkItem | null>(null);
+  const [relationships, setRelationships] = useState<Relationship[]>([]);
+  const [viewMode, setViewMode] = useState<'table' | 'tree'>('table');
   const router = useRouter();
 
   useEffect(() => {
@@ -40,9 +46,41 @@ export default function WorkItemsPage() {
     }
   }
 
+  async function loadGroups() {
+    const res = await fetch(`${API}/api/client/groups`, { credentials: 'include' });
+    if (res.ok) setGroups(await res.json());
+  }
+
+  async function loadRelationships() {
+    const res = await fetch(`${API}/api/client/work-items/relationships`, { credentials: 'include' });
+    if (res.ok) setRelationships(await res.json());
+  }
+
   useEffect(() => {
-    if (!checking) loadItems();
+    if (!checking) {
+      loadItems();
+      loadGroups();
+      loadRelationships();
+    }
   }, [checking]);
+
+  async function handleLinkRelationship(parentId: number, childId: number) {
+    await fetch(`${API}/api/client/work-items/relationships`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ parent_id: parentId, child_id: childId }),
+    });
+    loadRelationships();
+  }
+
+  async function handleUnlinkRelationship(relationshipId: number) {
+    await fetch(`${API}/api/client/work-items/relationships/${relationshipId}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    });
+    loadRelationships();
+  }
 
   const { types, statuses, priorities } = useMemo(() => {
     const types = new Set<string>();
@@ -79,6 +117,17 @@ export default function WorkItemsPage() {
     setLastUpdated(new Date());
   }
 
+  async function handleUpdateGroup(id: number, groupId: number | null) {
+    setItems(prev => prev.map(i => (i.id === id ? { ...i, group_id: groupId } : i)));
+    await fetch(`${API}/api/client/work-items/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ group_id: groupId }),
+    });
+    setLastUpdated(new Date());
+  }
+
   async function handleDelete(id: number) {
     setItems(prev => prev.filter(i => i.id !== id));
     await fetch(`${API}/api/client/work-items/${id}`, {
@@ -102,28 +151,71 @@ export default function WorkItemsPage() {
 
   return (
     <div className={`work-page ${styles.workPage}`}>
-      <div className={styles.content}>
-        <header className={styles.header}>
-          <h1 className={styles.title}>Work Items</h1>
-          <p className={styles.subheader}>
-            {loading ? 'Loading…' : `${items.length} item${items.length === 1 ? '' : 's'} imported from ServiceNow`}
-          </p>
-        </header>
+      <div className="flex min-h-screen">
+        <div className={`${styles.content} flex-1 min-w-0`}>
+          <header className={styles.header}>
+            <h1 className={styles.title}>Work Items</h1>
+            <p className={styles.subheader}>
+              {loading ? 'Loading…' : `${items.length} item${items.length === 1 ? '' : 's'} imported from ServiceNow`}
+            </p>
+          </header>
 
-        <div className={styles.toolbar}>
-          <WorkItemImportButton onImported={() => loadItems()} />
-          <div className={styles.filterRow}>
-            <FilterPills label="Type" options={types} active={typeFilter} onToggle={v => toggle(setTypeFilter, typeFilter, v)} />
-            <FilterPills label="Status" options={statuses} active={statusFilter} onToggle={v => toggle(setStatusFilter, statusFilter, v)} />
-            <FilterPills label="Priority" options={priorities} active={priorityFilter} onToggle={v => toggle(setPriorityFilter, priorityFilter, v)} />
+          <div className={styles.toolbar}>
+            <WorkItemImportButton onImported={() => loadItems()} />
+            <div className="flex border border-[rgba(184,115,51,0.3)]">
+              <button
+                type="button"
+                onClick={() => setViewMode('table')}
+                className={`text-xs px-3 py-1.5 ${viewMode === 'table' ? 'bg-[rgba(184,115,51,0.2)] text-[#d4a373]' : 'text-white/40'}`}
+              >
+                Table
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode('tree')}
+                className={`text-xs px-3 py-1.5 ${viewMode === 'tree' ? 'bg-[rgba(184,115,51,0.2)] text-[#d4a373]' : 'text-white/40'}`}
+              >
+                Tree
+              </button>
+            </div>
+            <div className={styles.filterRow}>
+              <FilterPills label="Type" options={types} active={typeFilter} onToggle={v => toggle(setTypeFilter, typeFilter, v)} />
+              <FilterPills label="Status" options={statuses} active={statusFilter} onToggle={v => toggle(setStatusFilter, statusFilter, v)} />
+              <FilterPills label="Priority" options={priorities} active={priorityFilter} onToggle={v => toggle(setPriorityFilter, priorityFilter, v)} />
+            </div>
           </div>
+
+          {viewMode === 'table' ? (
+            <WorkItemsTable
+              items={filtered}
+              groups={groups}
+              onUpdateSubmitter={handleUpdateSubmitter}
+              onUpdateGroup={handleUpdateGroup}
+              onDelete={handleDelete}
+              onOpenJournal={setJournalItem}
+            />
+          ) : (
+            <WorkItemsTree
+              items={filtered}
+              relationships={relationships}
+              onLink={handleLinkRelationship}
+              onUnlink={handleUnlinkRelationship}
+            />
+          )}
+
+          <footer className={styles.footer}>
+            {lastUpdated && `Last updated: ${lastUpdated.toLocaleString()}`}
+          </footer>
         </div>
 
-        <WorkItemsTable items={filtered} onUpdateSubmitter={handleUpdateSubmitter} onDelete={handleDelete} />
-
-        <footer className={styles.footer}>
-          {lastUpdated && `Last updated: ${lastUpdated.toLocaleString()}`}
-        </footer>
+        {journalItem && (
+          <JournalPanel
+            workItemId={journalItem.id}
+            workItemLabel={`${journalItem.ticket_number} — ${journalItem.title}`}
+            groups={groups}
+            onClose={() => setJournalItem(null)}
+          />
+        )}
       </div>
     </div>
   );

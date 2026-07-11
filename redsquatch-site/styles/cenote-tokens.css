@@ -13,7 +13,7 @@
   --gold-relief: #996515;
 
   /* Typography */
-  --font-header: 'Playfair Display', serif;
+  --font-header: 'Space Mono', monospace;
   --font-ui: 'Inter', sans-serif;
   --font-data: 'JetBrains Mono', monospace;
 

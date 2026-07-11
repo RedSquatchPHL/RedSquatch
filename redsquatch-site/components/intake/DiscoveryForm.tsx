@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { API } from '@/lib/api';
-import { exportDiscoveryAsMarkdown, downloadMarkdown } from '@/lib/export-utils';
+import { exportDiscoveryAsMarkdown, exportDiscoveryAsPdf, exportDiscoveryAsDocx, downloadMarkdown } from '@/lib/export-utils';
 import type { DiscoveryForm as DiscoveryFormType, DiscoveryStatus } from './types';
 import { DISCOVERY_STATUSES } from './types';
 
@@ -21,7 +21,7 @@ const FIELD_LABELS: { key: keyof DiscoveryFormType; label: string; rows: number 
 
 const textareaClass =
   'w-full bg-transparent border-0 border-b border-[rgba(184,115,51,0.25)] text-white px-0 py-2 resize-none ' +
-  'focus:outline-none focus:border-[#d4a373] transition-colors placeholder:text-white/20';
+  'focus:outline-none focus:border-[#d4a373] placeholder:text-white/20';
 
 export default function DiscoveryForm({ groupId, onFormReady }: Props) {
   const [form, setForm] = useState<DiscoveryFormType | null>(null);
@@ -101,10 +101,12 @@ export default function DiscoveryForm({ groupId, onFormReady }: Props) {
     save({ status: 'Ready for Demand' as DiscoveryStatus });
   };
 
-  const handleExport = () => {
+  const handleExportMd = () => {
     if (!form) return;
     downloadMarkdown(`discovery-${form.snwr_number || form.id}.md`, exportDiscoveryAsMarkdown(form));
   };
+  const handleExportPdf = () => { if (form) exportDiscoveryAsPdf(form); };
+  const handleExportDocx = () => { if (form) exportDiscoveryAsDocx(form); };
 
   if (loading) {
     return <div className="text-white/40 text-sm py-8 text-center">Loading discovery form...</div>;
@@ -146,7 +148,7 @@ export default function DiscoveryForm({ groupId, onFormReady }: Props) {
             value={form.snwr_number ?? ''}
             onChange={e => patch({ snwr_number: e.target.value })}
             onBlur={e => save({ snwr_number: e.target.value })}
-            className="w-full bg-transparent border-0 border-b border-[rgba(184,115,51,0.25)] text-white px-0 py-1.5 focus:outline-none focus:border-[#d4a373] transition-colors"
+            className="w-full bg-transparent border-0 border-b border-[rgba(184,115,51,0.25)] text-white px-0 py-1.5 focus:outline-none focus:border-[#d4a373]"
           />
         </div>
         <div className="space-y-1">
@@ -156,7 +158,7 @@ export default function DiscoveryForm({ groupId, onFormReady }: Props) {
             value={form.requester_name ?? ''}
             onChange={e => patch({ requester_name: e.target.value })}
             onBlur={e => save({ requester_name: e.target.value })}
-            className="w-full bg-transparent border-0 border-b border-[rgba(184,115,51,0.25)] text-white px-0 py-1.5 focus:outline-none focus:border-[#d4a373] transition-colors"
+            className="w-full bg-transparent border-0 border-b border-[rgba(184,115,51,0.25)] text-white px-0 py-1.5 focus:outline-none focus:border-[#d4a373]"
           />
         </div>
         <div className="space-y-1">
@@ -166,7 +168,7 @@ export default function DiscoveryForm({ groupId, onFormReady }: Props) {
             value={form.requester_dept ?? ''}
             onChange={e => patch({ requester_dept: e.target.value })}
             onBlur={e => save({ requester_dept: e.target.value })}
-            className="w-full bg-transparent border-0 border-b border-[rgba(184,115,51,0.25)] text-white px-0 py-1.5 focus:outline-none focus:border-[#d4a373] transition-colors"
+            className="w-full bg-transparent border-0 border-b border-[rgba(184,115,51,0.25)] text-white px-0 py-1.5 focus:outline-none focus:border-[#d4a373]"
           />
         </div>
       </div>
@@ -187,15 +189,27 @@ export default function DiscoveryForm({ groupId, onFormReady }: Props) {
 
       <div className="flex justify-end gap-3 pt-2">
         <button
-          onClick={handleExport}
-          className="text-sm border border-[rgba(184,115,51,0.3)] text-[#d4a373] hover:bg-[rgba(184,115,51,0.1)] px-4 py-1.5 transition-colors"
+          onClick={handleExportMd}
+          className="text-sm border border-[rgba(184,115,51,0.3)] text-[#d4a373] hover:bg-[rgba(184,115,51,0.1)] px-4 py-1.5"
         >
-          Export as Markdown
+          MD
+        </button>
+        <button
+          onClick={handleExportPdf}
+          className="text-sm border border-[rgba(184,115,51,0.3)] text-[#d4a373] hover:bg-[rgba(184,115,51,0.1)] px-4 py-1.5"
+        >
+          PDF
+        </button>
+        <button
+          onClick={handleExportDocx}
+          className="text-sm border border-[rgba(184,115,51,0.3)] text-[#d4a373] hover:bg-[rgba(184,115,51,0.1)] px-4 py-1.5"
+        >
+          DOC
         </button>
         {!locked && (
           <button
             onClick={handleLock}
-            className="text-sm bg-[#b87333] hover:bg-[#b87333]/80 text-[#0f0f0f] font-semibold px-4 py-1.5 transition-colors"
+            className="text-sm bg-[#b87333] hover:bg-[#b87333]/80 text-[#0f0f0f] font-semibold px-4 py-1.5"
           >
             Lock
           </button>
