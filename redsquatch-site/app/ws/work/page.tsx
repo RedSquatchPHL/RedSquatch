@@ -8,6 +8,8 @@ import WorkItemsTree, { Relationship } from '@/components/WorkItemsTree';
 import WorkItemImportButton from '@/components/WorkItemImportButton';
 import FilterPills from '@/components/FilterPills';
 import JournalPanel from '@/components/JournalPanel';
+import HeaderBrand from '@/components/cenote/HeaderBrand';
+import BottomToolbar from '@/components/cenote/BottomToolbar';
 import styles from '@/styles/work.module.css';
 
 export default function WorkItemsPage() {
@@ -150,7 +152,10 @@ export default function WorkItemsPage() {
   }
 
   return (
-    <div className={`work-page ${styles.workPage}`}>
+    <div className={`work-page jungle-bg ${styles.workPage} pb-28`}>
+      <div className="max-w-[1400px] mx-auto mb-6">
+        <HeaderBrand version="7.4" showVersion />
+      </div>
       <div className="flex min-h-screen">
         <div className={`${styles.content} flex-1 min-w-0`}>
           <header className={styles.header}>
@@ -217,6 +222,8 @@ export default function WorkItemsPage() {
           />
         )}
       </div>
+
+      <BottomToolbar activeItem="config" />
     </div>
   );
 }

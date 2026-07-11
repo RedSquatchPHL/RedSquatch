@@ -18,9 +18,6 @@ export default function CopperPanel({ title, subtitle, subtext, children }: Copp
       {subtext && <div className={styles.subtext}>{subtext}</div>}
 
       <div className={styles.content}>{children}</div>
-
-      <div className={styles.cornerBottomLeft} />
-      <div className={styles.cornerBottomRight} />
     </section>
   );
 }

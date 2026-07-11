@@ -1,21 +1,44 @@
 /* Cenote design tokens — extends cenote-variables.css with the fuller
    ceremonial-chamber palette/spacing/shadow scale. Both files' variables
    coexist; existing code keeps using the original --color-* names,
-   new work can use these. */
+   new work can use these.
+
+   2026-07-11: repointed the *values* to the "Mayan Command Center" palette
+   (from SuperDesign project a4505d2b) while keeping the old *names* as
+   aliases, so every existing page using var(--copper-warm) etc. picks up
+   the new look automatically. New granular stone-0..3 / copper-0..2 names
+   added for the new command-center components (HeaderBrand, StoneTile,
+   BottomToolbar, etc.) to reference directly. NOTE: several existing
+   components (DiscoveryForm, DemandForm, WorkItemsTable, work.module.css,
+   etc.) use hardcoded hex literals instead of these vars and will NOT pick
+   up this change — see COMPLETE_BUILD_HANDOFF follow-up notes. */
 :root {
-  /* Colors */
-  --obsidian-void: #0a0808;
-  --stone-wall: #1a1816;
-  --copper-ceremonial: #b87333;
-  --copper-warm: #d4a373;
-  --jade-accent: #4d6347;
-  --jade-shadow: #2a4a3a;
+  /* Colors — Mayan Command Center palette */
+  --stone-0: #141210;
+  --stone-1: #231c18;
+  --stone-2: #3a3029;
+  --stone-3: #5f4c3c;
+  --copper-0: #8e633f;
+  --copper-1: #b88b63;
+  --copper-2: #ddb08a;
+  --copper-glow-rgb: 237, 179, 126;
+  --moss: #4d6347;
+  --jade: #1a3d35;
+
+  /* Aliases — old names, new values (keeps existing pages in sync) */
+  --obsidian-void: #0d100d;
+  --stone-wall: var(--stone-1);
+  --copper-ceremonial: var(--copper-0);
+  --copper-warm: var(--copper-2);
+  --jade-accent: var(--moss);
+  --jade-shadow: var(--jade);
   --gold-relief: #996515;
 
   /* Typography */
-  --font-header: 'Space Mono', monospace;
+  --font-header: 'Stardom', serif;
   --font-ui: 'Inter', sans-serif;
   --font-data: 'JetBrains Mono', monospace;
+  --font-console: 'JetBrains Mono', monospace;
 
   /* Spacing & Rhythm */
   --space-xs: 4px;
@@ -32,15 +55,17 @@
                   inset 0 -2px 4px rgba(0, 0, 0, 0.3);
 
   /* Glows (Ceremonial Light) */
-  --glow-copper: 0 0 12px rgba(184, 115, 51, 0.4);
+  --copper-glow: rgba(var(--copper-glow-rgb), 0.38);
+  --glow-copper: 0 0 12px rgba(var(--copper-glow-rgb), 0.4);
   --glow-jade: 0 0 8px rgba(77, 99, 71, 0.2);
 
   /* Borders */
-  --border-copper: 1px solid rgba(184, 115, 51, 0.3);
-  --border-copper-bold: 1px solid rgba(184, 115, 51, 0.6);
+  --border-copper: 1px solid rgba(var(--copper-glow-rgb), 0.3);
+  --border-copper-bold: 1px solid rgba(var(--copper-glow-rgb), 0.6);
   --border-jade: 1px solid rgba(77, 99, 71, 0.2);
 
-  /* Radius — sharp, carved aesthetic */
+  /* Radius — sharp (existing components) vs carved-stone rounded (new command-center chrome) */
   --radius-cenote: 0;
   --radius-cenote-subtle: 2px;
+  --radius-command: 1rem;
 }

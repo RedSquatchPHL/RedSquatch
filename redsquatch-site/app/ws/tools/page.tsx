@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { API } from '@/lib/api';
 import DevelopmentWidget from '@/components/DevelopmentWidget';
 import CopperPanel from '@/components/cenote/CopperPanel';
+import HeaderBrand from '@/components/cenote/HeaderBrand';
+import BottomToolbar from '@/components/cenote/BottomToolbar';
 
 export default function WSToolsPage() {
   const [loading, setLoading] = useState(true);
@@ -33,8 +35,9 @@ export default function WSToolsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0f0f0f] to-[#1a1a1a]">
+    <div className="jungle-bg min-h-screen pb-28">
       <div className="max-w-5xl mx-auto p-4 sm:p-8 space-y-8">
+        <HeaderBrand version="7.4" showVersion />
         <div>
           <h1 className="text-4xl text-[#b87333]">Tools</h1>
           <p className="text-[#d4a373] text-sm mt-1">Multi-tab scratchpad, auto-saved as you type.</p>
@@ -44,6 +47,8 @@ export default function WSToolsPage() {
           <DevelopmentWidget />
         </CopperPanel>
       </div>
+
+      <BottomToolbar activeItem="comms" />
     </div>
   );
 }

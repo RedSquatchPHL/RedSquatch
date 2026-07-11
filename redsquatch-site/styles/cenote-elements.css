@@ -167,3 +167,42 @@ button:disabled {
   box-shadow: var(--shadow-ambient), var(--shadow-inset);
   position: relative;
 }
+
+/* ── Mayan Command Center chrome (SuperDesign project a4505d2b) ──────── */
+/* Opt-in only — used by the new HeaderBrand/StoneTile/CopperPanel-v2/
+   BottomToolbar command-center components, not applied globally. */
+
+.mono { font-family: var(--font-console); }
+.glyph { font-family: var(--font-header); }
+
+.jungle-bg {
+  background-image:
+    radial-gradient(circle at 50% 55%, rgba(85, 120, 90, 0.18), transparent 22%),
+    linear-gradient(rgba(6, 10, 8, 0.7), rgba(6, 10, 8, 0.85)),
+    url('/images/mayan-command-bg.png');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+}
+
+.stone-board {
+  background: linear-gradient(180deg, rgba(68, 54, 43, 0.18), rgba(12, 10, 9, 0.4)),
+              linear-gradient(135deg, #181513, #0d0c0b 45%, #1b1714 100%);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55),
+              inset 0 1px 0 rgba(255, 226, 194, 0.06),
+              inset 0 -2px 0 rgba(0, 0, 0, 0.65);
+  border: 2px solid var(--stone-1);
+  border-radius: var(--radius-command);
+}
+
+.glow-text { text-shadow: 0 0 10px rgba(var(--copper-glow-rgb), 0.4); }
+
+.pulsing-value {
+  color: var(--copper-2);
+  animation: cenote-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes cenote-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}

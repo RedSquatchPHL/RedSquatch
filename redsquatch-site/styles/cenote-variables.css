@@ -1,13 +1,13 @@
 :root {
   /* Obsidian Core */
-  --color-void: #0f0f0f;
+  --color-void: #0d100d;
   --color-obsidian-dark: #0a0c0b;
   --color-obsidian-light: #1a1816;
 
-  /* Copper/Bronze Accents */
-  --color-copper: #b87333;
-  --color-copper-light: #d4a373;
-  --color-copper-bright: #e6bc90;
+  /* Copper/Bronze Accents — repointed to Mayan Command Center palette 2026-07-11 */
+  --color-copper: #8e633f;
+  --color-copper-light: #b88b63;
+  --color-copper-bright: #ddb08a;
 
   /* Alerts */
   --color-dark-gold: #996515;
@@ -27,5 +27,5 @@
 
   /* Typography */
   --font-mono: 'JetBrains Mono', 'Courier New', monospace;
-  --font-display: 'Space Mono', monospace;
+  --font-display: 'Stardom', serif;
 }
