@@ -7,10 +7,20 @@ import WorkItemsTable, { WorkItem, WorkGroupOption } from '@/components/WorkItem
 import WorkItemsTree, { Relationship } from '@/components/WorkItemsTree';
 import WorkItemImportButton from '@/components/WorkItemImportButton';
 import FilterPills from '@/components/FilterPills';
+import CollapsibleFilterGroup from '@/components/CollapsibleFilterGroup';
 import JournalPanel from '@/components/JournalPanel';
 import HeaderBrand from '@/components/cenote/HeaderBrand';
 import BottomToolbar from '@/components/cenote/BottomToolbar';
 import styles from '@/styles/work.module.css';
+
+const TYPE_LABELS: Record<string, string> = {
+  DFCT: 'Defect',
+  ENHC: 'Enhancement',
+  RLSE: 'Release',
+  SNWR: 'ServiceNow Request',
+  STRY: 'Story',
+  STSK: 'Scrum Task',
+};
 
 export default function WorkItemsPage() {
   const [checking, setChecking] = useState(true);
@@ -24,7 +34,17 @@ export default function WorkItemsPage() {
   const [journalItem, setJournalItem] = useState<WorkItem | null>(null);
   const [relationships, setRelationships] = useState<Relationship[]>([]);
   const [viewMode, setViewMode] = useState<'table' | 'tree'>('table');
+  const [expandedFilters, setExpandedFilters] = useState<Set<string>>(new Set());
   const router = useRouter();
+
+  function toggleExpanded(key: string) {
+    setExpandedFilters(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  }
 
   useEffect(() => {
     fetch(`${API}/api/client/session`, { credentials: 'include' })
@@ -194,23 +214,33 @@ export default function WorkItemsPage() {
                 Tree
               </button>
             </div>
-            <div className={styles.filterRow}>
-              <FilterPills label="Type" options={types} active={typeFilter} onToggle={v => toggle(setTypeFilter, typeFilter, v)} />
-              <FilterPills label="Status" options={statuses} active={statusFilter} onToggle={v => toggle(setStatusFilter, statusFilter, v)} />
-              <FilterPills label="Priority" options={priorities} active={priorityFilter} onToggle={v => toggle(setPriorityFilter, priorityFilter, v)} />
-            </div>
           </div>
 
           {viewMode === 'table' ? (
-            <WorkItemsTable
-              items={filtered}
-              groups={groups}
-              onUpdateSubmitter={handleUpdateSubmitter}
-              onUpdateGroup={handleUpdateGroup}
-              onUpdateStatus={handleUpdateStatus}
-              onDelete={handleDelete}
-              onOpenJournal={setJournalItem}
-            />
+            <div className={styles.tableViewLayout}>
+              <div className={styles.filterSidebarCol}>
+                <div className={styles.filterSidebar}>
+                  <CollapsibleFilterGroup title="Type" expanded={expandedFilters.has('type')} onToggle={() => toggleExpanded('type')}>
+                    <FilterPills options={types} active={typeFilter} onToggle={v => toggle(setTypeFilter, typeFilter, v)} labels={TYPE_LABELS} />
+                  </CollapsibleFilterGroup>
+                  <CollapsibleFilterGroup title="Status" expanded={expandedFilters.has('status')} onToggle={() => toggleExpanded('status')}>
+                    <FilterPills options={statuses} active={statusFilter} onToggle={v => toggle(setStatusFilter, statusFilter, v)} />
+                  </CollapsibleFilterGroup>
+                  <CollapsibleFilterGroup title="Priority" expanded={expandedFilters.has('priority')} onToggle={() => toggleExpanded('priority')}>
+                    <FilterPills options={priorities} active={priorityFilter} onToggle={v => toggle(setPriorityFilter, priorityFilter, v)} />
+                  </CollapsibleFilterGroup>
+                </div>
+              </div>
+              <WorkItemsTable
+                items={filtered}
+                groups={groups}
+                onUpdateSubmitter={handleUpdateSubmitter}
+                onUpdateGroup={handleUpdateGroup}
+                onUpdateStatus={handleUpdateStatus}
+                onDelete={handleDelete}
+                onOpenJournal={setJournalItem}
+              />
+            </div>
           ) : (
             <WorkItemsTree
               items={filtered}

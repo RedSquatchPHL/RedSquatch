@@ -38,43 +38,25 @@
   margin-bottom: 1.5rem;
 }
 
-.filterRow {
+.filterPillsVertical {
   display: flex;
-  flex-wrap: wrap;
-  gap: 1.5rem;
-}
-
-.filterGroup {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.filterLabel {
-  color: rgba(212, 163, 115, 0.55);
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.filterPills {
-  display: flex;
+  flex-direction: column;
   gap: 0.4rem;
-  flex-wrap: wrap;
 }
 
-.pill {
-  background: rgba(184, 115, 51, 0.06);
+.pillVertical {
+  background: rgba(15, 15, 15, 0.5);
   border: 1px solid rgba(184, 115, 51, 0.25);
   color: #d4a373;
   cursor: pointer;
-  font-size: 0.75rem;
-  padding: 0.25rem 0.75rem;
+  font-size: 0.8125rem;
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  width: 100%;
 }
 
-.pill:hover {
-  background: rgba(184, 115, 51, 0.14);
+.pillVertical:hover {
+  background: rgba(15, 15, 15, 0.65);
   border-color: rgba(184, 115, 51, 0.5);
 }
 
@@ -82,6 +64,42 @@
   background: rgba(184, 115, 51, 0.28);
   border-color: #b87333;
   color: #fff;
+}
+
+/* ── Collapsible filter sidebar (Type/Status/Priority accordions) ─── */
+
+.filterSidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.filterAccordion {
+  border-bottom: 1px solid rgba(184, 115, 51, 0.15);
+  padding-bottom: 0.75rem;
+}
+
+.filterAccordionHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: rgba(212, 163, 115, 0.75);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.25rem 0;
+}
+
+.filterAccordionHeader:hover {
+  color: #d4a373;
+}
+
+.filterAccordionContent {
+  margin-top: 0.5rem;
 }
 
 .importWrap {
@@ -99,10 +117,24 @@
   font-size: 0.8rem;
 }
 
+/* ── Table view layout (filter sidebar + table) ────────────────────── */
+
+.tableViewLayout {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+}
+
+.filterSidebarCol {
+  flex: 0 0 200px;
+}
+
 /* ── Table ──────────────────────────────────────────────────────── */
 
 .tableWrap {
   overflow-x: auto;
+  flex: 1;
+  min-width: 0;
 }
 
 .table {
