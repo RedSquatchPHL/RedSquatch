@@ -130,6 +130,17 @@ export default function WorkItemsPage() {
     setLastUpdated(new Date());
   }
 
+  async function handleUpdateStatus(id: number, status: string) {
+    setItems(prev => prev.map(i => (i.id === id ? { ...i, status } : i)));
+    await fetch(`${API}/api/client/work-items/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ status }),
+    });
+    setLastUpdated(new Date());
+  }
+
   async function handleDelete(id: number) {
     setItems(prev => prev.filter(i => i.id !== id));
     await fetch(`${API}/api/client/work-items/${id}`, {
@@ -196,6 +207,7 @@ export default function WorkItemsPage() {
               groups={groups}
               onUpdateSubmitter={handleUpdateSubmitter}
               onUpdateGroup={handleUpdateGroup}
+              onUpdateStatus={handleUpdateStatus}
               onDelete={handleDelete}
               onOpenJournal={setJournalItem}
             />

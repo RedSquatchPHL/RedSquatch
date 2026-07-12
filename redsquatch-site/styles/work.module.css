@@ -210,6 +210,39 @@
   text-align: right;
 }
 
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border-top: 1px solid rgba(184, 115, 51, 0.15);
+}
+
+.pageBtn {
+  background: rgba(184, 115, 51, 0.06);
+  border: 1px solid rgba(184, 115, 51, 0.25);
+  color: #d4a373;
+  cursor: pointer;
+  font-size: 0.75rem;
+  padding: 0.35rem 0.9rem;
+}
+
+.pageBtn:hover:not(:disabled) {
+  background: rgba(184, 115, 51, 0.14);
+  border-color: rgba(184, 115, 51, 0.5);
+}
+
+.pageBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.pageInfo {
+  color: rgba(212, 163, 115, 0.7);
+  font-size: 0.75rem;
+}
+
 /* ── Research tab (still used by components/ResearchTab.tsx) ─────── */
 
 .research-list {

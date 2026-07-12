@@ -22,6 +22,16 @@
   overflow: hidden;
 }
 
+/* Pin the jungle-bg image to the viewport instead of scrolling with the
+   (potentially long) work items list. background-attachment: fixed also
+   sizes background-size: cover against the viewport rather than the full
+   scrollable document height, so it never gets scaled/stretched to cover
+   an arbitrarily tall page — pagination on the table (see WorkItemsTable)
+   keeps the page itself from growing unbounded in the first place. */
+.work-page.jungle-bg {
+  background-attachment: fixed;
+}
+
 /* Tab buttons */
 .work-page .tab-buttons {
   display: flex;

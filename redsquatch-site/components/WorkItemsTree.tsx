@@ -24,6 +24,12 @@ export default function WorkItemsTree({
 }) {
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
   const [linkingFor, setLinkingFor] = useState<number | null>(null);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+
+  function selectRow(id: number) {
+    setSelectedId(prev => (prev === id ? null : id));
+    setLinkingFor(null);
+  }
 
   const { childrenOf, relByPair, childIds } = useMemo(() => {
     const childrenOf = new Map<number, number[]>();
@@ -57,13 +63,20 @@ export default function WorkItemsTree({
       i => i.id !== item.id && !ancestry.has(i.id) && !childIds.has(i.id)
     );
 
+    const isSelected = selectedId === item.id;
+
     return (
       <div key={item.id} style={{ marginLeft: depth * 20 }} className="border-l border-[rgba(184,115,51,0.15)] pl-3 py-1">
-        <div className="flex items-center gap-2">
+        <div
+          onClick={() => selectRow(item.id)}
+          className={`flex items-center gap-2 cursor-pointer px-1.5 py-1 rounded ${
+            isSelected ? 'bg-[rgba(184,115,51,0.14)] border border-[rgba(184,115,51,0.4)]' : 'border border-transparent hover:bg-[rgba(184,115,51,0.05)]'
+          }`}
+        >
           {children.length > 0 ? (
             <button
               type="button"
-              onClick={() => toggle(item.id)}
+              onClick={e => { e.stopPropagation(); toggle(item.id); }}
               className="text-[#d4a373] text-xs w-4"
             >
               {isExpanded ? '▾' : '▸'}
@@ -74,13 +87,15 @@ export default function WorkItemsTree({
           <TypeBadge type={item.type} />
           <span className="text-white/80 text-xs font-mono">{item.ticket_number}</span>
           <span className="text-white/60 text-sm">{item.title}</span>
-          <button
-            type="button"
-            onClick={() => setLinkingFor(linkingFor === item.id ? null : item.id)}
-            className="text-xs text-[#d4a373] hover:underline ml-auto"
-          >
-            + Add child
-          </button>
+          {isSelected && (
+            <button
+              type="button"
+              onClick={e => { e.stopPropagation(); setLinkingFor(linkingFor === item.id ? null : item.id); }}
+              className="text-xs text-[#d4a373] hover:underline ml-auto"
+            >
+              + Add child
+            </button>
+          )}
         </div>
 
         {linkingFor === item.id && (

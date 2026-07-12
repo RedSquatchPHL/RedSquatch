@@ -1,8 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import TypeBadge from '@/components/TypeBadge';
 import styles from '@/styles/work.module.css';
+
+const PAGE_SIZE = 25;
 
 export type WorkItem = {
   id: number;
@@ -28,6 +30,7 @@ export default function WorkItemsTable({
   groups,
   onUpdateSubmitter,
   onUpdateGroup,
+  onUpdateStatus,
   onDelete,
   onOpenJournal,
 }: {
@@ -35,6 +38,7 @@ export default function WorkItemsTable({
   groups: WorkGroupOption[];
   onUpdateSubmitter: (id: number, submitter: string) => void;
   onUpdateGroup: (id: number, groupId: number | null) => void;
+  onUpdateStatus: (id: number, status: string) => void;
   onDelete: (id: number) => void;
   onOpenJournal: (item: WorkItem) => void;
 }) {
@@ -42,6 +46,13 @@ export default function WorkItemsTable({
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [editingId, setEditingId] = useState<number | null>(null);
   const [draftSubmitter, setDraftSubmitter] = useState('');
+  const [editingStatusId, setEditingStatusId] = useState<number | null>(null);
+  const [draftStatus, setDraftStatus] = useState('');
+  const [page, setPage] = useState(1);
+
+  // Land back on page 1 whenever the underlying item set changes (e.g. filters), so
+  // we never render "page 4" against a list that no longer has a page 4.
+  useEffect(() => { setPage(1); }, [items]);
 
   function toggleSort(column: SortColumn) {
     if (column === sortColumn) {
@@ -59,6 +70,9 @@ export default function WorkItemsTable({
     return sortDirection === 'asc' ? cmp : -cmp;
   });
 
+  const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
+  const pageItems = sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
   function startEdit(item: WorkItem) {
     setEditingId(item.id);
     setDraftSubmitter(item.submitter ?? '');
@@ -67,6 +81,16 @@ export default function WorkItemsTable({
   function commitEdit(id: number) {
     onUpdateSubmitter(id, draftSubmitter);
     setEditingId(null);
+  }
+
+  function startEditStatus(item: WorkItem) {
+    setEditingStatusId(item.id);
+    setDraftStatus(item.status ?? '');
+  }
+
+  function commitEditStatus(id: number) {
+    if (draftStatus.trim()) onUpdateStatus(id, draftStatus.trim());
+    setEditingStatusId(null);
   }
 
   const columns: { key: SortColumn; label: string }[] = [
@@ -96,7 +120,7 @@ export default function WorkItemsTable({
           </tr>
         </thead>
         <tbody>
-          {sorted.map(item => (
+          {pageItems.map(item => (
             <tr key={item.id} className={styles.row}>
               <td className={styles.td}><TypeBadge type={item.type} /></td>
               <td className={`${styles.td} ${styles.mono}`}>{item.ticket_number}</td>
@@ -120,7 +144,25 @@ export default function WorkItemsTable({
                   </button>
                 )}
               </td>
-              <td className={styles.td}>{item.status}</td>
+              <td className={styles.td}>
+                {editingStatusId === item.id ? (
+                  <input
+                    autoFocus
+                    className={styles.editInput}
+                    value={draftStatus}
+                    onChange={e => setDraftStatus(e.target.value)}
+                    onBlur={() => commitEditStatus(item.id)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') commitEditStatus(item.id);
+                      if (e.key === 'Escape') setEditingStatusId(null);
+                    }}
+                  />
+                ) : (
+                  <button type="button" className={styles.editableCell} onClick={() => startEditStatus(item)} title="Click to change status">
+                    {item.status || <span className={styles.placeholder}>—</span>}
+                  </button>
+                )}
+              </td>
               <td className={styles.td}>{item.priority}</td>
               <td className={styles.td}>
                 <select
@@ -156,6 +198,30 @@ export default function WorkItemsTable({
           )}
         </tbody>
       </table>
+
+      {sorted.length > PAGE_SIZE && (
+        <div className={styles.pagination}>
+          <button
+            type="button"
+            className={styles.pageBtn}
+            onClick={() => setPage(p => Math.max(1, p - 1))}
+            disabled={page === 1}
+          >
+            ← Prev
+          </button>
+          <span className={styles.pageInfo}>
+            Page {page} of {totalPages} ({sorted.length} items)
+          </span>
+          <button
+            type="button"
+            className={styles.pageBtn}
+            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+            disabled={page === totalPages}
+          >
+            Next →
+          </button>
+        </div>
+      )}
     </div>
   );
 }
