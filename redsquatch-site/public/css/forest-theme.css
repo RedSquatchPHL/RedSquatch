@@ -13,9 +13,10 @@
   --color-dark-gold: #996515;
 }
 
-/* Work page background */
+/* Structural only — the actual background image comes from the .jungle-bg
+   class already on this element; this used to also set a flat obsidian
+   background here, which painted over it. */
 .work-page {
-  background: var(--color-obsidian);
   min-height: 100vh;
   position: relative;
   overflow: hidden;
