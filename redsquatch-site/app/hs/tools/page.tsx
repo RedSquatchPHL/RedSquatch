@@ -10,9 +10,10 @@ import AppletModal from '@/components/AppletModal';
 import MealPlanner from '@/components/MealPlanner';
 import BillPlanner from '@/components/BillPlanner';
 import SpanishTutor from '@/components/SpanishTutor';
+import MexicoCitizenshipTracker from '@/components/MexicoCitizenshipTracker';
 import CopperPanel from '@/components/cenote/CopperPanel';
 
-type Applet = 'menuplanner' | 'billplanner' | 'spanishtutor' | null;
+type Applet = 'menuplanner' | 'billplanner' | 'spanishtutor' | 'citizenship' | null;
 
 export default function HSToolsPage() {
   const [loading, setLoading] = useState(true);
@@ -56,11 +57,12 @@ export default function HSToolsPage() {
             { key: 'menuplanner' as const, label: 'Menu Planner', description: 'Weekly meals & grocery list',                kind: 'applet' as const },
             { key: 'billplanner' as const, label: 'Bill Planner', description: 'Balances, recurring bills & BNPL',           kind: 'applet' as const },
             { key: 'spanishtutor' as const,label: 'Spanish Tutor',description: 'Daily drills with spaced repetition',        kind: 'applet' as const },
+            { key: 'citizenship' as const, label: 'Citizenship Tracker', description: 'Mexico citizenship document checklist', kind: 'applet' as const },
           ]).map((t) => {
             const CardTag = t.kind === 'link' ? 'a' : 'button';
             const cardProps = t.kind === 'link'
               ? { href: t.url, target: '_blank', rel: 'noopener noreferrer' }
-              : { onClick: () => (t.kind === 'tool' ? openTool('grampsweb') : setActiveApplet(t.key as 'menuplanner' | 'billplanner' | 'spanishtutor')) };
+              : { onClick: () => (t.kind === 'tool' ? openTool('grampsweb') : setActiveApplet(t.key as 'menuplanner' | 'billplanner' | 'spanishtutor' | 'citizenship')) };
             return (
               <CardTag
                 key={t.key}
@@ -123,6 +125,10 @@ export default function HSToolsPage() {
 
       <AppletModal isOpen={activeApplet === 'spanishtutor'} title="Spanish Tutor" onClose={() => setActiveApplet(null)}>
         <SpanishTutor />
+      </AppletModal>
+
+      <AppletModal isOpen={activeApplet === 'citizenship'} title="Mexico Citizenship Tracker" onClose={() => setActiveApplet(null)} wide>
+        <MexicoCitizenshipTracker />
       </AppletModal>
     </div>
   );

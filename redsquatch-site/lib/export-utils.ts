@@ -210,3 +210,66 @@ export async function exportDemandAsDocx(form: DemandForm, discovery?: Discovery
   const blob = await buildDocx('Demand Form', meta, demandSections(form));
   downloadBlob(`demand-${form.id}.docx`, blob);
 }
+
+// ── Citizenship tracker ──────────────────────────────────────────────
+
+export interface CitizenshipDoc {
+  id: number;
+  doc_id: string;
+  copy_number: number;
+  title: string;
+  category: string;
+  status: 'not_started' | 'pending_scan' | 'obtained' | 'archived';
+  storage_location: string | null;
+  scan_url: string | null;
+  notes: string | null;
+  updated_at: string;
+}
+
+const STATUS_LABEL: Record<CitizenshipDoc['status'], string> = {
+  not_started: 'Not Started',
+  pending_scan: 'Pending Scan',
+  obtained: 'Obtained',
+  archived: 'Archived',
+};
+
+function csvField(value: string | number | null | undefined): string {
+  const s = String(value ?? '');
+  return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+
+export function exportCitizenshipAsPdf(
+  documents: CitizenshipDoc[],
+  categoryLabels: Record<string, string>,
+  categoryOrder: string[],
+) {
+  const total = documents.length;
+  const completed = documents.filter(d => d.status === 'obtained' || d.status === 'archived').length;
+  const pct = total ? Math.round((completed / total) * 100) : 0;
+
+  const meta = [
+    `Progress: ${completed} / ${total} completed (${pct}%)`,
+    `Generated: ${new Date().toLocaleString()}`,
+  ];
+
+  const sections: Section[] = categoryOrder
+    .map(cat => {
+      const docs = documents.filter(d => d.category === cat);
+      if (docs.length === 0) return null;
+      const body = docs
+        .map(d => `${d.status === 'obtained' || d.status === 'archived' ? '[x]' : '[ ]'} ${d.title} (Copy ${d.copy_number}) — ${STATUS_LABEL[d.status]}`)
+        .join('\n');
+      return { heading: `${categoryLabels[cat] ?? cat} (${docs.filter(d => d.status === 'obtained' || d.status === 'archived').length}/${docs.length})`, body };
+    })
+    .filter((s): s is Section => s !== null);
+
+  buildPdf('Mexico Citizenship Tracker', meta, sections).save(`citizenship-tracker-${new Date().toISOString().split('T')[0]}.pdf`);
+}
+
+export function exportCitizenshipAsCsv(documents: CitizenshipDoc[], filename = 'citizenship-tracker.csv') {
+  const header = 'Category,Document,Copy,Status,Storage,DateUpdated';
+  const rows = documents.map(d => [
+    d.category, d.title, d.copy_number, STATUS_LABEL[d.status], d.storage_location || '', d.updated_at,
+  ].map(csvField).join(','));
+  downloadBlob(filename, new Blob([[header, ...rows].join('\n')], { type: 'text/csv;charset=utf-8' }));
+}
