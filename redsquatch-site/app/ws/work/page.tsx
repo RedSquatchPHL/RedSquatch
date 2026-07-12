@@ -22,6 +22,12 @@ const TYPE_LABELS: Record<string, string> = {
   STSK: 'Scrum Task',
 };
 
+// Status is freeform text from the ServiceNow import (no fixed vocabulary), so match
+// loosely rather than against one exact literal — catches "Closed", "Closed - Complete", etc.
+function isClosed(item: WorkItem) {
+  return (item.status ?? '').toLowerCase().includes('closed');
+}
+
 export default function WorkItemsPage() {
   const [checking, setChecking] = useState(true);
   const [items, setItems] = useState<WorkItem[]>([]);
@@ -33,7 +39,7 @@ export default function WorkItemsPage() {
   const [priorityFilter, setPriorityFilter] = useState<string | null>(null);
   const [journalItem, setJournalItem] = useState<WorkItem | null>(null);
   const [relationships, setRelationships] = useState<Relationship[]>([]);
-  const [viewMode, setViewMode] = useState<'table' | 'tree'>('table');
+  const [viewMode, setViewMode] = useState<'table' | 'tree' | 'archive'>('table');
   const [expandedFilters, setExpandedFilters] = useState<Set<string>>(new Set());
   const router = useRouter();
 
@@ -122,11 +128,14 @@ export default function WorkItemsPage() {
 
   const filtered = useMemo(() => {
     return items.filter(item =>
+      !isClosed(item) &&
       (!typeFilter || item.type === typeFilter) &&
       (!statusFilter || item.status === statusFilter) &&
       (!priorityFilter || item.priority === priorityFilter)
     );
   }, [items, typeFilter, statusFilter, priorityFilter]);
+
+  const closedItems = useMemo(() => items.filter(isClosed), [items]);
 
   async function handleUpdateSubmitter(id: number, submitter: string) {
     setItems(prev => prev.map(i => (i.id === id ? { ...i, submitter } : i)));
@@ -213,40 +222,62 @@ export default function WorkItemsPage() {
               >
                 Tree
               </button>
+              <button
+                type="button"
+                onClick={() => setViewMode('archive')}
+                className={`text-xs px-3 py-1.5 ${viewMode === 'archive' ? 'bg-[rgba(184,115,51,0.2)] text-[#d4a373]' : 'text-white/40'}`}
+              >
+                Archive ({closedItems.length})
+              </button>
             </div>
           </div>
 
-          {viewMode === 'table' ? (
-            <div className={styles.tableViewLayout}>
-              <div className={styles.filterSidebarCol}>
-                <div className={styles.filterSidebar}>
-                  <CollapsibleFilterGroup title="Type" expanded={expandedFilters.has('type')} onToggle={() => toggleExpanded('type')}>
-                    <FilterPills options={types} active={typeFilter} onToggle={v => toggle(setTypeFilter, typeFilter, v)} labels={TYPE_LABELS} />
-                  </CollapsibleFilterGroup>
-                  <CollapsibleFilterGroup title="Status" expanded={expandedFilters.has('status')} onToggle={() => toggleExpanded('status')}>
-                    <FilterPills options={statuses} active={statusFilter} onToggle={v => toggle(setStatusFilter, statusFilter, v)} />
-                  </CollapsibleFilterGroup>
-                  <CollapsibleFilterGroup title="Priority" expanded={expandedFilters.has('priority')} onToggle={() => toggleExpanded('priority')}>
-                    <FilterPills options={priorities} active={priorityFilter} onToggle={v => toggle(setPriorityFilter, priorityFilter, v)} />
-                  </CollapsibleFilterGroup>
-                </div>
+          {viewMode === 'table' && (
+            <div className={styles.filterSidebarCol}>
+              <div className={styles.filterSidebar}>
+                <CollapsibleFilterGroup title="Type" expanded={expandedFilters.has('type')} onToggle={() => toggleExpanded('type')}>
+                  <FilterPills options={types} active={typeFilter} onToggle={v => toggle(setTypeFilter, typeFilter, v)} labels={TYPE_LABELS} />
+                </CollapsibleFilterGroup>
+                <CollapsibleFilterGroup title="Status" expanded={expandedFilters.has('status')} onToggle={() => toggleExpanded('status')}>
+                  <FilterPills options={statuses} active={statusFilter} onToggle={v => toggle(setStatusFilter, statusFilter, v)} />
+                </CollapsibleFilterGroup>
+                <CollapsibleFilterGroup title="Priority" expanded={expandedFilters.has('priority')} onToggle={() => toggleExpanded('priority')}>
+                  <FilterPills options={priorities} active={priorityFilter} onToggle={v => toggle(setPriorityFilter, priorityFilter, v)} />
+                </CollapsibleFilterGroup>
               </div>
-              <WorkItemsTable
-                items={filtered}
-                groups={groups}
-                onUpdateSubmitter={handleUpdateSubmitter}
-                onUpdateGroup={handleUpdateGroup}
-                onUpdateStatus={handleUpdateStatus}
-                onDelete={handleDelete}
-                onOpenJournal={setJournalItem}
-              />
             </div>
-          ) : (
+          )}
+
+          {viewMode === 'table' && (
+            <WorkItemsTable
+              items={filtered}
+              groups={groups}
+              onUpdateSubmitter={handleUpdateSubmitter}
+              onUpdateGroup={handleUpdateGroup}
+              onUpdateStatus={handleUpdateStatus}
+              onDelete={handleDelete}
+              onOpenJournal={setJournalItem}
+            />
+          )}
+
+          {viewMode === 'tree' && (
             <WorkItemsTree
               items={filtered}
               relationships={relationships}
               onLink={handleLinkRelationship}
               onUnlink={handleUnlinkRelationship}
+            />
+          )}
+
+          {viewMode === 'archive' && (
+            <WorkItemsTable
+              items={closedItems}
+              groups={groups}
+              onUpdateSubmitter={handleUpdateSubmitter}
+              onUpdateGroup={handleUpdateGroup}
+              onUpdateStatus={handleUpdateStatus}
+              onDelete={handleDelete}
+              onOpenJournal={setJournalItem}
             />
           )}
 

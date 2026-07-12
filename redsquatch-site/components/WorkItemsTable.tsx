@@ -170,7 +170,7 @@ export default function WorkItemsTable({
                   onChange={e => onUpdateGroup(item.id, e.target.value ? Number(e.target.value) : null)}
                   className={styles.editInput}
                 >
-                  <option value="">— No group —</option>
+                  <option value="">None</option>
                   {groups.map(g => (
                     <option key={g.id} value={g.id}>{g.name}</option>
                   ))}

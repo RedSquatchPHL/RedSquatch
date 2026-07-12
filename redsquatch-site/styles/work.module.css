@@ -117,24 +117,25 @@
   font-size: 0.8rem;
 }
 
-/* ── Table view layout (filter sidebar + table) ────────────────────── */
-
-.tableViewLayout {
-  display: flex;
-  gap: 1.5rem;
-  align-items: flex-start;
-}
+/* ── Filter sidebar ─────────────────────────────────────────────────
+   Pinned to the viewport's left edge and taken out of document flow
+   entirely, so it never competes with the table for width in the
+   center pane. */
 
 .filterSidebarCol {
-  flex: 0 0 200px;
+  position: fixed;
+  left: 1.5rem;
+  top: 220px;
+  width: 200px;
+  max-height: calc(100vh - 260px);
+  overflow-y: auto;
+  z-index: 10;
 }
 
 /* ── Table ──────────────────────────────────────────────────────── */
 
 .tableWrap {
   overflow-x: auto;
-  flex: 1;
-  min-width: 0;
 }
 
 .table {
