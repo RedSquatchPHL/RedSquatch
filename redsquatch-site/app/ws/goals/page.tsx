@@ -28,7 +28,7 @@ export default function WSGoalsPage() {
       className="jungle-bg p-6 space-y-6 pb-28 min-h-screen"
     >
       <div className="max-w-[1400px] mx-auto">
-        <HeaderBrand version="7.4" showVersion />
+        <HeaderBrand version="2.3" showVersion />
       </div>
 
       {/* Page header */}

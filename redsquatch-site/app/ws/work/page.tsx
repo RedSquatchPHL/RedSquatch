@@ -194,7 +194,7 @@ export default function WorkItemsPage() {
   return (
     <div className={`work-page jungle-bg ${styles.workPage} pb-28`}>
       <div className="max-w-[1400px] mx-auto mb-6">
-        <HeaderBrand version="7.4" showVersion />
+        <HeaderBrand version="2.3" showVersion />
       </div>
       <div className="flex min-h-screen">
         <div className={`${styles.content} flex-1 min-w-0`}>

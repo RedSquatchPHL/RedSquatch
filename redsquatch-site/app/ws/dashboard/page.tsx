@@ -24,6 +24,12 @@ interface WorkItem {
   status: string;
 }
 
+// Status is freeform text from the ServiceNow import (no fixed vocabulary), so match
+// loosely rather than against one exact literal — catches "Closed", "Closed - Complete", etc.
+function isClosed(item: WorkItem) {
+  return (item.status ?? '').toLowerCase().includes('closed');
+}
+
 export default function WSDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [goals, setGoals] = useState<Goal[]>([]);
@@ -61,10 +67,12 @@ export default function WSDashboardPage() {
     );
   }
 
+  const openWorkItems = workItems.filter(item => !isClosed(item));
+
   return (
     <div className="jungle-bg min-h-screen flex items-center justify-center p-6">
       <div className="stone-board stone-noise mono relative w-full max-w-[1200px] p-6 pb-24 text-[12px] text-[var(--copper-1)]">
-        <HeaderBrand version="7.4" showVersion label="Overview" />
+        <HeaderBrand version="2.3" showVersion label="Overview" />
 
         <div className="grid grid-cols-1 lg:grid-cols-[88px_1fr_1fr] gap-6 mt-6">
           {/* Quick nav rail */}
@@ -99,12 +107,12 @@ export default function WSDashboardPage() {
           </CopperPanel>
 
           {/* Work items summary */}
-          <CopperPanel title="Work Items" subtitle={workItems.length ? `${workItems.length} total` : undefined}>
-            {workItems.length === 0 ? (
-              <div className="py-2 text-[var(--copper-0)]">No work items yet.</div>
+          <CopperPanel title="Work Items" subtitle={openWorkItems.length ? `${openWorkItems.length} open` : undefined}>
+            {openWorkItems.length === 0 ? (
+              <div className="py-2 text-[var(--copper-0)]">No open work items.</div>
             ) : (
-              <div className="space-y-2">
-                {workItems.slice(0, 6).map(item => (
+              <div className="space-y-2 max-h-[280px] overflow-y-auto pr-1">
+                {openWorkItems.map(item => (
                   <div key={item.id} className="flex items-center justify-between gap-3 border-b border-[var(--stone-3)] py-1.5 last:border-0">
                     <div className="min-w-0">
                       <span className="text-[var(--copper-0)]">{item.ticket_number}</span>{' '}

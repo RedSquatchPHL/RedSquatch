@@ -305,15 +305,18 @@ export default function DiscoveryForm({ groupId, onFormReady }: Props) {
         ))}
       </div>
 
-      <div className="flex justify-end gap-3 pt-2">
-        {!locked && (
+      {!locked && (
+        <div className="flex justify-end pt-2">
           <button
             onClick={handleSaveForm}
             className="text-sm border border-[#d4a373] text-[#d4a373] hover:bg-[rgba(184,115,51,0.1)] px-4 py-1.5"
           >
             Save Discovery Form
           </button>
-        )}
+        </div>
+      )}
+
+      <div className="flex justify-end gap-3 pt-2">
         <button
           onClick={handleExportMd}
           className="text-sm border border-[rgba(184,115,51,0.3)] text-[#d4a373] hover:bg-[rgba(184,115,51,0.1)] px-4 py-1.5"
