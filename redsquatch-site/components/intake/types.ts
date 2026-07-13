@@ -20,6 +20,11 @@ export interface WorkGroupDetail extends WorkGroup {
   journal_entries: (JournalEntrySummary & { ticket_number: string; item_title: string })[];
 }
 
+export interface DiscoveryCustomQuestion {
+  question: string;
+  answer: string;
+}
+
 export interface DiscoveryForm {
   id: number;
   group_id: number;
@@ -31,6 +36,7 @@ export interface DiscoveryForm {
   pain_points: string | null;
   ideal_method: string | null;
   your_interpretation: string | null;
+  custom_questions: DiscoveryCustomQuestion[];
   status: DiscoveryStatus;
   created_at: string;
   updated_at: string;

@@ -10,6 +10,7 @@ const discoverySections = (form: DiscoveryForm): Section[] => [
   { heading: 'Pain Points', body: form.pain_points || '' },
   { heading: 'Ideal Method', body: form.ideal_method || '' },
   { heading: 'Your Interpretation', body: form.your_interpretation || '' },
+  ...(form.custom_questions || []).map(q => ({ heading: q.question || 'Untitled Question', body: q.answer || '' })),
 ];
 
 const demandSections = (form: DemandForm): Section[] => [
@@ -43,7 +44,10 @@ ${form.ideal_method || ''}
 
 ## Your Interpretation
 ${form.your_interpretation || ''}
-
+${(form.custom_questions || []).map(q => `
+## ${q.question || 'Untitled Question'}
+${q.answer || ''}
+`).join('')}
 ---
 *Status: ${form.status}*
 `;

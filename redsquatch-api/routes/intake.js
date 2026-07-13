@@ -26,6 +26,7 @@ const SCHEMA_STATEMENTS = [
     pain_points          TEXT,
     ideal_method         TEXT,
     your_interpretation  TEXT,
+    custom_questions     JSONB DEFAULT '[]'::jsonb,
     status               VARCHAR(50) DEFAULT 'In Progress',
     created_at           TIMESTAMP DEFAULT NOW(),
     updated_at           TIMESTAMP DEFAULT NOW()
@@ -60,6 +61,7 @@ const SCHEMA_STATEMENTS = [
     created_at         TIMESTAMP DEFAULT NOW()
   )`,
   `ALTER TABLE work_items ADD COLUMN IF NOT EXISTS group_id INT REFERENCES work_groups(id) ON DELETE SET NULL`,
+  `ALTER TABLE discovery_forms ADD COLUMN IF NOT EXISTS custom_questions JSONB DEFAULT '[]'::jsonb`,
   `CREATE INDEX IF NOT EXISTS idx_work_groups_status ON work_groups(status)`,
   `CREATE INDEX IF NOT EXISTS idx_discovery_forms_group ON discovery_forms(group_id)`,
   `CREATE INDEX IF NOT EXISTS idx_demand_forms_group ON demand_forms(group_id)`,
@@ -96,7 +98,10 @@ ${form.ideal_method || ''}
 
 ## Your Interpretation
 ${form.your_interpretation || ''}
-
+${(form.custom_questions || []).map(q => `
+## ${q.question || 'Untitled Question'}
+${q.answer || ''}
+`).join('')}
 ---
 *Status: ${form.status}*
 `;
@@ -322,18 +327,21 @@ function makeRouter(db) {
       const {
         snwr_number, requester_name, requester_dept,
         their_process, expected_outcome, pain_points, ideal_method, your_interpretation,
+        custom_questions,
       } = req.body || {};
       const result = await db.query(
         `INSERT INTO discovery_forms
            (group_id, snwr_number, requester_name, requester_dept,
-            their_process, expected_outcome, pain_points, ideal_method, your_interpretation)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+            their_process, expected_outcome, pain_points, ideal_method, your_interpretation,
+            custom_questions)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
          RETURNING *`,
         [
           req.params.id,
           snwr_number ?? null, requester_name ?? null, requester_dept ?? null,
           their_process ?? null, expected_outcome ?? null, pain_points ?? null,
           ideal_method ?? null, your_interpretation ?? null,
+          JSON.stringify(custom_questions ?? []),
         ]
       );
       res.status(201).json(result.rows[0]);
@@ -360,13 +368,14 @@ function makeRouter(db) {
     try {
       const fields = [
         'snwr_number', 'requester_name', 'requester_dept', 'their_process',
-        'expected_outcome', 'pain_points', 'ideal_method', 'your_interpretation', 'status',
+        'expected_outcome', 'pain_points', 'ideal_method', 'your_interpretation',
+        'custom_questions', 'status',
       ];
       const cols = [];
       const values = [];
       for (const f of fields) {
         if (req.body?.[f] !== undefined) {
-          values.push(req.body[f]);
+          values.push(f === 'custom_questions' ? JSON.stringify(req.body[f]) : req.body[f]);
           cols.push(`${f} = $${values.length}`);
         }
       }

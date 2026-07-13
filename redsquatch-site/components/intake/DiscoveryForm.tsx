@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { API } from '@/lib/api';
 import { exportDiscoveryAsMarkdown, exportDiscoveryAsPdf, exportDiscoveryAsDocx, downloadMarkdown } from '@/lib/export-utils';
-import type { DiscoveryForm as DiscoveryFormType, DiscoveryStatus } from './types';
+import type { DiscoveryForm as DiscoveryFormType, DiscoveryCustomQuestion, DiscoveryStatus } from './types';
 import { DISCOVERY_STATUSES } from './types';
 
 interface Props {
@@ -101,6 +101,46 @@ export default function DiscoveryForm({ groupId, onFormReady }: Props) {
     save({ status: 'Ready for Demand' as DiscoveryStatus });
   };
 
+  const addCustomQuestion = () => {
+    if (!form) return;
+    patch({ custom_questions: [...(form.custom_questions ?? []), { question: '', answer: '' }] });
+  };
+
+  const updateCustomQuestion = (index: number, fields: Partial<DiscoveryCustomQuestion>) => {
+    if (!form) return;
+    patch({
+      custom_questions: (form.custom_questions ?? []).map((q, i) => (i === index ? { ...q, ...fields } : q)),
+    });
+  };
+
+  const commitCustomQuestions = () => {
+    if (!form) return;
+    save({ custom_questions: form.custom_questions ?? [] });
+  };
+
+  const removeCustomQuestion = (index: number) => {
+    if (!form) return;
+    const updated = (form.custom_questions ?? []).filter((_, i) => i !== index);
+    patch({ custom_questions: updated });
+    save({ custom_questions: updated });
+  };
+
+  const handleSaveForm = () => {
+    if (!form) return;
+    save({
+      snwr_number: form.snwr_number,
+      requester_name: form.requester_name,
+      requester_dept: form.requester_dept,
+      their_process: form.their_process,
+      expected_outcome: form.expected_outcome,
+      pain_points: form.pain_points,
+      ideal_method: form.ideal_method,
+      your_interpretation: form.your_interpretation,
+      custom_questions: form.custom_questions ?? [],
+      status: form.status,
+    });
+  };
+
   const handleExportMd = () => {
     if (!form) return;
     downloadMarkdown(`discovery-${form.snwr_number || form.id}.md`, exportDiscoveryAsMarkdown(form));
@@ -187,7 +227,61 @@ export default function DiscoveryForm({ groupId, onFormReady }: Props) {
         </div>
       ))}
 
+      <div className="space-y-4 pt-2 border-t border-[rgba(184,115,51,0.2)]">
+        <div className="flex items-center justify-between">
+          <h4 className="text-xs font-semibold uppercase tracking-wider text-[#d4a373]">Custom Questions</h4>
+          <button
+            onClick={addCustomQuestion}
+            disabled={locked}
+            className="text-sm border border-[rgba(184,115,51,0.3)] text-[#d4a373] hover:bg-[rgba(184,115,51,0.1)] px-3 py-1 disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            + Add Question
+          </button>
+        </div>
+
+        {(form.custom_questions ?? []).map((cq, i) => (
+          <div key={i} className="space-y-2 border border-[rgba(184,115,51,0.15)] p-3">
+            <div className="flex items-center gap-3">
+              <input
+                type="text"
+                placeholder="Question"
+                value={cq.question}
+                onChange={e => updateCustomQuestion(i, { question: e.target.value })}
+                onBlur={commitCustomQuestions}
+                disabled={locked}
+                className="flex-1 bg-transparent border-0 border-b border-[rgba(184,115,51,0.25)] text-white px-0 py-1.5 focus:outline-none focus:border-[#d4a373] placeholder:text-white/20"
+              />
+              {!locked && (
+                <button
+                  onClick={() => removeCustomQuestion(i)}
+                  className="text-sm text-red-400/80 hover:text-red-400 px-2 py-1"
+                >
+                  Delete
+                </button>
+              )}
+            </div>
+            <textarea
+              placeholder="Answer"
+              value={cq.answer}
+              onChange={e => updateCustomQuestion(i, { answer: e.target.value })}
+              onBlur={commitCustomQuestions}
+              rows={3}
+              disabled={locked}
+              className={textareaClass}
+            />
+          </div>
+        ))}
+      </div>
+
       <div className="flex justify-end gap-3 pt-2">
+        {!locked && (
+          <button
+            onClick={handleSaveForm}
+            className="text-sm border border-[#d4a373] text-[#d4a373] hover:bg-[rgba(184,115,51,0.1)] px-4 py-1.5"
+          >
+            Save Discovery Form
+          </button>
+        )}
         <button
           onClick={handleExportMd}
           className="text-sm border border-[rgba(184,115,51,0.3)] text-[#d4a373] hover:bg-[rgba(184,115,51,0.1)] px-4 py-1.5"
