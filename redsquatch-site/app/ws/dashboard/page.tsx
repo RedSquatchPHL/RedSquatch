@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Target } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Target } from 'lucide-react';
 import { API } from '@/lib/api';
 import HeaderBrand from '@/components/cenote/HeaderBrand';
 import StoneTile from '@/components/cenote/StoneTile';
@@ -34,7 +34,9 @@ export default function WSDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [goals, setGoals] = useState<Goal[]>([]);
   const [workItems, setWorkItems] = useState<WorkItem[]>([]);
+  const [workItemsPage, setWorkItemsPage] = useState(0);
   const router = useRouter();
+  const WORK_ITEMS_PAGE_SIZE = 6;
 
   useEffect(() => {
     (async () => {
@@ -68,6 +70,12 @@ export default function WSDashboardPage() {
   }
 
   const openWorkItems = workItems.filter(item => !isClosed(item));
+  const workItemsPageCount = Math.max(1, Math.ceil(openWorkItems.length / WORK_ITEMS_PAGE_SIZE));
+  const currentWorkItemsPage = Math.min(workItemsPage, workItemsPageCount - 1);
+  const pagedWorkItems = openWorkItems.slice(
+    currentWorkItemsPage * WORK_ITEMS_PAGE_SIZE,
+    currentWorkItemsPage * WORK_ITEMS_PAGE_SIZE + WORK_ITEMS_PAGE_SIZE
+  );
 
   return (
     <div className="jungle-bg min-h-screen flex items-center justify-center p-6">
@@ -111,8 +119,8 @@ export default function WSDashboardPage() {
             {openWorkItems.length === 0 ? (
               <div className="py-2 text-[var(--copper-0)]">No open work items.</div>
             ) : (
-              <div className="space-y-2 max-h-[280px] overflow-y-auto pr-1">
-                {openWorkItems.map(item => (
+              <div className="space-y-2">
+                {pagedWorkItems.map(item => (
                   <div key={item.id} className="flex items-center justify-between gap-3 border-b border-[var(--stone-3)] py-1.5 last:border-0">
                     <div className="min-w-0">
                       <span className="text-[var(--copper-0)]">{item.ticket_number}</span>{' '}
@@ -121,6 +129,27 @@ export default function WSDashboardPage() {
                     <span className="text-[var(--copper-1)] text-[11px] whitespace-nowrap">{item.status}</span>
                   </div>
                 ))}
+              </div>
+            )}
+            {workItemsPageCount > 1 && (
+              <div className="mt-3 flex items-center justify-between">
+                <button
+                  onClick={() => setWorkItemsPage(p => Math.max(0, p - 1))}
+                  disabled={currentWorkItemsPage === 0}
+                  className="flex items-center gap-1 text-[var(--copper-1)] hover:text-[var(--copper-2)] disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  <ChevronLeft size={14} /> Prev
+                </button>
+                <span className="text-[var(--copper-0)] text-[11px]">
+                  {currentWorkItemsPage + 1} / {workItemsPageCount}
+                </span>
+                <button
+                  onClick={() => setWorkItemsPage(p => Math.min(workItemsPageCount - 1, p + 1))}
+                  disabled={currentWorkItemsPage === workItemsPageCount - 1}
+                  className="flex items-center gap-1 text-[var(--copper-1)] hover:text-[var(--copper-2)] disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  Next <ChevronRight size={14} />
+                </button>
               </div>
             )}
             <Link href="/ws/work" className="mt-3 inline-block text-[var(--copper-1)] hover:text-[var(--copper-2)]">
