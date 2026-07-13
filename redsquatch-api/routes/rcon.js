@@ -1,8 +1,58 @@
 const express = require('express');
-const dgram = require('dgram');
+const http = require('http');
 
-const RCON_HOST = process.env.RCON_HOST || 'minecraft-bedrock';
-const RCON_PORT = process.env.RCON_PORT || 19132;
+const PLAYER_NAME_RE = /^[a-zA-Z0-9_]{1,16}$/;
+const ITEM_ID_RE = /^[a-z0-9_]{1,64}$/;
+
+const MC_BRIDGE_URL = process.env.MC_BRIDGE_URL || 'http://mc-console-bridge:3100/send-command';
+const MC_BRIDGE_SECRET = process.env.MC_BRIDGE_SECRET || '';
+
+function toFiniteNumber(v) {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+
+// Sends a real console command to the Bedrock server via the mc-console-bridge
+// sidecar (no RCON exists on Bedrock; the bridge writes directly to the
+// server's stdin via a PID namespace it shares with minecraft-bedrock, kept
+// isolated from this container on purpose - see docker-compose).
+function sendConsoleCommand(command) {
+  if (/[\r\n]/.test(command)) {
+    throw new Error('Command must not contain newlines');
+  }
+  return new Promise((resolve, reject) => {
+    const body = JSON.stringify({ command });
+    const url = new URL(MC_BRIDGE_URL);
+    const req = http.request({
+      hostname: url.hostname,
+      port: url.port,
+      path: url.pathname,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(body),
+        'X-Bridge-Secret': MC_BRIDGE_SECRET
+      },
+      timeout: 3000
+    }, (res) => {
+      let data = '';
+      res.on('data', (chunk) => { data += chunk; });
+      res.on('end', () => {
+        let parsed = {};
+        try { parsed = JSON.parse(data); } catch { /* ignore */ }
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          resolve(parsed);
+        } else {
+          reject(new Error(parsed.error || `Console bridge returned ${res.statusCode}`));
+        }
+      });
+    });
+    req.on('timeout', () => req.destroy(new Error('Minecraft console bridge timed out')));
+    req.on('error', (err) => reject(new Error(`Minecraft console unavailable: ${err.message}`)));
+    req.write(body);
+    req.end();
+  });
+}
 
 function makeRouter(db) {
   const router = express.Router();
@@ -16,79 +66,13 @@ function makeRouter(db) {
     next();
   });
 
-// Helper to send Minecraft Bedrock RCON command via UDP
-const executeRconCommand = (command) => {
-  return new Promise((resolve, reject) => {
-    const client = dgram.createSocket('udp4');
-    const timeout = setTimeout(() => {
-      client.close();
-      reject(new Error('RCON command timed out'));
-    }, 3000);
-
-    try {
-      // Minecraft Bedrock RCON format: 4-byte BE int (packet ID) + 1-byte request type + null-terminated string
-      const buf = Buffer.alloc(10 + command.length);
-      let offset = 0;
-
-      // Packet ID (random)
-      buf.writeUInt32BE(Math.floor(Math.random() * 0x7fffffff), offset);
-      offset += 4;
-
-      // Request type: 2 = command
-      buf.writeUInt8(2, offset);
-      offset += 1;
-
-      // Command string (null-terminated)
-      buf.write(command, offset, command.length, 'utf8');
-      offset += command.length;
-      buf.writeUInt8(0, offset); // null terminator
-
-      client.send(buf, 0, buf.length, RCON_PORT, RCON_HOST, (err) => {
-        if (err) {
-          clearTimeout(timeout);
-          client.close();
-          reject(err);
-        } else {
-          // Wait for response
-          const responseTimeout = setTimeout(() => {
-            client.close();
-            clearTimeout(timeout);
-            resolve('Command sent'); // Default response if no reply
-          }, 500);
-
-          client.once('message', (msg) => {
-            clearTimeout(responseTimeout);
-            clearTimeout(timeout);
-            client.close();
-            resolve(msg.toString('utf8').slice(6)); // Skip header, return message
-          });
-        }
-      });
-    } catch (error) {
-      clearTimeout(timeout);
-      client.close();
-      reject(error);
-    }
-  });
-};
-
 // Execute raw command
 router.post('/execute', async (req, res) => {
   try {
     const { command } = req.body;
-    if (!command) return res.status(400).json({ error: 'Command is required' });
-    const result = await executeRconCommand(command);
-    res.json({ success: true, result });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Get online players
-router.get('/players', async (req, res) => {
-  try {
-    const result = await executeRconCommand('list');
-    res.json({ success: true, players: result });
+    if (!command || typeof command !== 'string') return res.status(400).json({ error: 'Command is required' });
+    await sendConsoleCommand(command);
+    res.json({ success: true, result: 'Command sent' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -99,9 +83,11 @@ router.post('/give-item', async (req, res) => {
   try {
     const { player, item, amount } = req.body;
     if (!player || !item) return res.status(400).json({ error: 'Player and item are required' });
-    const command = `give @a[name="${player}"] ${item} ${amount || 1}`;
-    const result = await executeRconCommand(command);
-    res.json({ success: true, result });
+    if (!PLAYER_NAME_RE.test(player)) return res.status(400).json({ error: 'Invalid player name' });
+    if (!ITEM_ID_RE.test(item)) return res.status(400).json({ error: 'Invalid item id' });
+    const qty = Math.min(64, Math.max(1, parseInt(amount, 10) || 1));
+    await sendConsoleCommand(`give @a[name="${player}"] ${item} ${qty}`);
+    res.json({ success: true, result: 'Command sent' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -114,9 +100,11 @@ router.post('/teleport', async (req, res) => {
     if (!player || x === undefined || y === undefined || z === undefined) {
       return res.status(400).json({ error: 'Player and coordinates are required' });
     }
-    const command = `tp @a[name="${player}"] ${x} ${y} ${z}`;
-    const result = await executeRconCommand(command);
-    res.json({ success: true, result });
+    if (!PLAYER_NAME_RE.test(player)) return res.status(400).json({ error: 'Invalid player name' });
+    const nx = toFiniteNumber(x), ny = toFiniteNumber(y), nz = toFiniteNumber(z);
+    if (nx === null || ny === null || nz === null) return res.status(400).json({ error: 'Invalid coordinates' });
+    await sendConsoleCommand(`tp @a[name="${player}"] ${nx} ${ny} ${nz}`);
+    res.json({ success: true, result: 'Command sent' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -125,8 +113,8 @@ router.post('/teleport', async (req, res) => {
 // Restart server
 router.post('/restart', async (req, res) => {
   try {
-    await executeRconCommand('say Server restarting in 10 seconds...');
-    const result = await executeRconCommand('stop');
+    await sendConsoleCommand('say Server restarting in 10 seconds...');
+    await sendConsoleCommand('stop');
     res.json({ success: true, message: 'Server restarting' });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -179,9 +167,12 @@ router.post('/whitelist/add', async (req, res) => {
       whitelist.push({ name: username, xuid: '' });
       await fs.writeFile(allowlistPath, JSON.stringify(whitelist, null, 2));
 
-      // Restart server
-      await sendRconCommand('say Whitelist updated');
-      setTimeout(() => sendRconCommand('stop'), 500);
+      // Tell the running server to pick up the change without a restart
+      try {
+        await sendConsoleCommand('allowlist reload');
+      } catch (reloadErr) {
+        console.warn('allowlist reload warning:', reloadErr.message);
+      }
 
       res.json({ success: true, message: `Added ${username} to whitelist`, whitelist });
     } catch (err) {
@@ -213,9 +204,12 @@ router.post('/whitelist/remove', async (req, res) => {
 
       await fs.writeFile(allowlistPath, JSON.stringify(filtered, null, 2));
 
-      // Restart server
-      await sendRconCommand('say Whitelist updated');
-      setTimeout(() => sendRconCommand('stop'), 500);
+      // Tell the running server to pick up the change without a restart
+      try {
+        await sendConsoleCommand('allowlist reload');
+      } catch (reloadErr) {
+        console.warn('allowlist reload warning:', reloadErr.message);
+      }
 
       res.json({ success: true, message: `Removed ${username} from whitelist`, whitelist: filtered });
     } catch (err) {
