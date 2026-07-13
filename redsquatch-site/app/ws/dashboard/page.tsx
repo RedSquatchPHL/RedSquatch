@@ -30,13 +30,40 @@ function isClosed(item: WorkItem) {
   return (item.status ?? '').toLowerCase().includes('closed');
 }
 
+function PagerControls({ page, pageCount, onPrev, onNext }: { page: number; pageCount: number; onPrev: () => void; onNext: () => void }) {
+  if (pageCount <= 1) return null;
+  return (
+    <div className="mt-3 flex items-center justify-between">
+      <button
+        onClick={onPrev}
+        disabled={page === 0}
+        className="flex items-center gap-1 text-[var(--copper-1)] hover:text-[var(--copper-2)] disabled:opacity-30 disabled:cursor-not-allowed"
+      >
+        <ChevronLeft size={14} /> Prev
+      </button>
+      <span className="text-[var(--copper-0)] text-[11px]">
+        {page + 1} / {pageCount}
+      </span>
+      <button
+        onClick={onNext}
+        disabled={page === pageCount - 1}
+        className="flex items-center gap-1 text-[var(--copper-1)] hover:text-[var(--copper-2)] disabled:opacity-30 disabled:cursor-not-allowed"
+      >
+        Next <ChevronRight size={14} />
+      </button>
+    </div>
+  );
+}
+
 export default function WSDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [goals, setGoals] = useState<Goal[]>([]);
   const [workItems, setWorkItems] = useState<WorkItem[]>([]);
   const [workItemsPage, setWorkItemsPage] = useState(0);
+  const [goalsPage, setGoalsPage] = useState(0);
   const router = useRouter();
   const WORK_ITEMS_PAGE_SIZE = 6;
+  const GOALS_PAGE_SIZE = 5;
 
   useEffect(() => {
     (async () => {
@@ -77,6 +104,13 @@ export default function WSDashboardPage() {
     currentWorkItemsPage * WORK_ITEMS_PAGE_SIZE + WORK_ITEMS_PAGE_SIZE
   );
 
+  const goalsPageCount = Math.max(1, Math.ceil(goals.length / GOALS_PAGE_SIZE));
+  const currentGoalsPage = Math.min(goalsPage, goalsPageCount - 1);
+  const pagedGoals = goals.slice(
+    currentGoalsPage * GOALS_PAGE_SIZE,
+    currentGoalsPage * GOALS_PAGE_SIZE + GOALS_PAGE_SIZE
+  );
+
   return (
     <div className="jungle-bg min-h-screen flex items-center justify-center p-6">
       <div className="stone-board stone-noise mono relative w-full max-w-[1200px] p-6 pb-24 text-[12px] text-[var(--copper-1)]">
@@ -96,7 +130,7 @@ export default function WSDashboardPage() {
               <div className="py-2 text-[var(--copper-0)]">No goals yet.</div>
             ) : (
               <div className="space-y-3">
-                {goals.slice(0, 5).map(goal => (
+                {pagedGoals.map(goal => (
                   <div key={goal.id} className="border-b border-[var(--stone-3)] pb-2 last:border-0">
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-[var(--copper-2)]">{goal.title}</span>
@@ -109,6 +143,12 @@ export default function WSDashboardPage() {
                 ))}
               </div>
             )}
+            <PagerControls
+              page={currentGoalsPage}
+              pageCount={goalsPageCount}
+              onPrev={() => setGoalsPage(p => Math.max(0, p - 1))}
+              onNext={() => setGoalsPage(p => Math.min(goalsPageCount - 1, p + 1))}
+            />
             <Link href="/ws/goals" className="mt-3 inline-flex items-center gap-1 text-[var(--copper-1)] hover:text-[var(--copper-2)]">
               <Target size={14} /> View all goals
             </Link>
@@ -131,27 +171,12 @@ export default function WSDashboardPage() {
                 ))}
               </div>
             )}
-            {workItemsPageCount > 1 && (
-              <div className="mt-3 flex items-center justify-between">
-                <button
-                  onClick={() => setWorkItemsPage(p => Math.max(0, p - 1))}
-                  disabled={currentWorkItemsPage === 0}
-                  className="flex items-center gap-1 text-[var(--copper-1)] hover:text-[var(--copper-2)] disabled:opacity-30 disabled:cursor-not-allowed"
-                >
-                  <ChevronLeft size={14} /> Prev
-                </button>
-                <span className="text-[var(--copper-0)] text-[11px]">
-                  {currentWorkItemsPage + 1} / {workItemsPageCount}
-                </span>
-                <button
-                  onClick={() => setWorkItemsPage(p => Math.min(workItemsPageCount - 1, p + 1))}
-                  disabled={currentWorkItemsPage === workItemsPageCount - 1}
-                  className="flex items-center gap-1 text-[var(--copper-1)] hover:text-[var(--copper-2)] disabled:opacity-30 disabled:cursor-not-allowed"
-                >
-                  Next <ChevronRight size={14} />
-                </button>
-              </div>
-            )}
+            <PagerControls
+              page={currentWorkItemsPage}
+              pageCount={workItemsPageCount}
+              onPrev={() => setWorkItemsPage(p => Math.max(0, p - 1))}
+              onNext={() => setWorkItemsPage(p => Math.min(workItemsPageCount - 1, p + 1))}
+            />
             <Link href="/ws/work" className="mt-3 inline-block text-[var(--copper-1)] hover:text-[var(--copper-2)]">
               View all work items
             </Link>
