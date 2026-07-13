@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { API } from '@/lib/api';
 import { exportDiscoveryAsMarkdown, exportDiscoveryAsPdf, exportDiscoveryAsDocx, downloadMarkdown } from '@/lib/export-utils';
 import type { DiscoveryForm as DiscoveryFormType, DiscoveryCustomQuestion, DiscoveryStatus } from './types';
@@ -29,6 +29,7 @@ export default function DiscoveryForm({ groupId, onFormReady }: Props) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [savedAt, setSavedAt] = useState<number | null>(null);
+  const saveSeqRef = useRef(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -73,8 +74,19 @@ export default function DiscoveryForm({ groupId, onFormReady }: Props) {
     setForm(prev => (prev ? { ...prev, ...fields } : prev));
   };
 
+  // A save's response can land after a *further* local edit has already been made
+  // (e.g. typing a custom question's answer right after its label, before the
+  // label's own save round-trip finishes). Blindly applying the response would
+  // silently wipe that newer edit. Instead, merge per-field: only accept the
+  // server's value for a field if our local copy hasn't changed since this
+  // particular request was sent (compared by reference — every local edit goes
+  // through patch(), which always produces a new object/array for the field it
+  // touches). saveSeqRef only guards the saving/error indicators from flickering
+  // when an older request resolves after a newer one already has.
   const save = async (fields: Partial<DiscoveryFormType>) => {
     if (!form) return;
+    const seq = ++saveSeqRef.current;
+    const sentSnapshot = form;
     setSaving(true);
     setError(null);
     try {
@@ -85,14 +97,34 @@ export default function DiscoveryForm({ groupId, onFormReady }: Props) {
         body: JSON.stringify(fields),
       });
       if (!res.ok) throw new Error('Failed to save discovery form');
-      const updated = await res.json();
-      setForm(updated);
-      onFormReady(updated);
-      setSavedAt(Date.now());
+      const updated: DiscoveryFormType = await res.json();
+
+      let merged: DiscoveryFormType = updated;
+      setForm(prev => {
+        if (!prev) return prev;
+        const next = { ...prev } as Record<string, unknown>;
+        const prevRec = prev as unknown as Record<string, unknown>;
+        const sentRec = sentSnapshot as unknown as Record<string, unknown>;
+        const updatedRec = updated as unknown as Record<string, unknown>;
+        Object.keys(updatedRec).forEach(key => {
+          if (prevRec[key] === sentRec[key]) {
+            next[key] = updatedRec[key];
+          }
+        });
+        merged = next as unknown as DiscoveryFormType;
+        return merged;
+      });
+
+      if (seq === saveSeqRef.current) {
+        onFormReady(merged);
+        setSavedAt(Date.now());
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save discovery form');
+      if (seq === saveSeqRef.current) {
+        setError(err instanceof Error ? err.message : 'Failed to save discovery form');
+      }
     } finally {
-      setSaving(false);
+      if (seq === saveSeqRef.current) setSaving(false);
     }
   };
 
