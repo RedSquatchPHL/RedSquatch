@@ -1,0 +1,384 @@
+/* HomeSquatch "Evening Shift" — the Downtime Mode palette, split into three
+   time-of-night sub-phases (lib/homesquatch-gate.ts): dusk (5-10PM), midnight
+   (10PM-3AM), predawn (3-8AM). Applied via .homesquatch-theme +
+   .homesquatch-phase-{dusk,midnight,predawn} on <html> (see boot script in
+   app/layout.tsx). Overrides the exact same custom-property names that
+   cenote-tokens.css / cenote-variables.css / globals.css already define, so
+   every component that reads var(--copper-warm) etc. (instead of a hardcoded
+   hex) picks up whichever phase is active automatically — no component
+   changes required. Structural tokens (spacing, radius, fonts) are
+   intentionally left alone; only color/shadow/glow tokens are repointed.
+
+   :root.homesquatch-theme (rather than plain .homesquatch-theme) is used so
+   this always outranks the base :root rules regardless of stylesheet import
+   order. The base block below doubles as the 'predawn' defaults (matches
+   EveningShift3AM.png) — already verified live, so it's left untouched; the
+   dusk/midnight phase blocks further down override only what differs. */
+
+:root.homesquatch-theme {
+  /* Colors — predawn default: deep indigo/teal, sand text, soft amber/coral.
+     Deliberately not pitch black (--stone-0 keeps a visible blue-teal cast). */
+  --stone-0: #0f1b24;
+  --stone-1: #16242e;
+  --stone-2: #33505c;
+  --stone-3: #5c7d84;
+  --copper-0: #c98a5e;
+  --copper-1: #e2a672;
+  --copper-2: #f2d9b8;
+  --copper-glow-rgb: 226, 121, 92;
+  --moss: #3f6b63;
+  --jade: #123b3f;
+
+  /* Aliases — old names, beach values */
+  --obsidian-void: #0f1b24;
+  --stone-wall: var(--stone-1);
+  --copper-ceremonial: var(--copper-0);
+  --copper-warm: var(--copper-2);
+  --jade-accent: var(--moss);
+  --jade-shadow: var(--jade);
+  --gold-relief: #e2795c;
+
+  /* Shadows */
+  --shadow-ambient: 0 12px 32px rgba(0, 0, 0, 0.45);
+  --shadow-card: 0 8px 16px rgba(0, 0, 0, 0.35);
+  --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.05),
+                  inset 0 -2px 4px rgba(0, 0, 0, 0.25);
+
+  /* Glows */
+  --copper-glow: rgba(var(--copper-glow-rgb), 0.35);
+  --glow-copper: 0 0 12px rgba(var(--copper-glow-rgb), 0.4);
+  --glow-jade: 0 0 10px rgba(63, 107, 99, 0.25);
+
+  /* Borders */
+  --border-copper: 1px solid rgba(var(--copper-glow-rgb), 0.3);
+  --border-copper-bold: 1px solid rgba(var(--copper-glow-rgb), 0.6);
+  --border-jade: 1px solid rgba(63, 107, 99, 0.25);
+
+  /* cenote-variables.css original --color-* names */
+  --color-void: #0f1b24;
+  --color-obsidian-dark: #0c1620;
+  --color-obsidian-light: #1c2e3a;
+  --color-copper: #c98a5e;
+  --color-copper-light: #e2a672;
+  --color-copper-bright: #f2d9b8;
+  --color-dark-gold: #e2795c;
+  --color-cenote-teal: #16424a;
+  --color-cenote-cyan: #2a95a3;
+  --color-cenote-glow: #5fd1c4;
+  --color-stone: #33505c;
+  --color-moss: #3f6b63;
+  --glass-light: rgba(255, 255, 255, 0.03);
+  --glass-border: rgba(226, 166, 114, 0.22);
+
+  /* Tailwind/shadcn HSL tokens (globals.css) — keeps components/ui/* in sync too */
+  --background: 209 37% 12%;
+  --foreground: 34 69% 84%;
+  --muted: 200 34% 21%;
+  --muted-foreground: 30 21% 57%;
+  --popover: 209 37% 12%;
+  --popover-foreground: 34 69% 84%;
+  --border: 28 66% 67%;
+  --input: 205 35% 13%;
+  --card: 204 35% 17%;
+  --card-foreground: 34 69% 84%;
+  --primary: 13 70% 62%;
+  --primary-foreground: 207 39% 9%;
+  --secondary: 28 66% 67%;
+  --secondary-foreground: 207 39% 9%;
+  --accent: 13 70% 62%;
+  --accent-foreground: 36 73% 88%;
+  --ring: 13 70% 62%;
+}
+
+/* ── Dusk phase (5-10PM) — golden hour: warm amber/gold, sampled from
+   EveningShift5PM.png's sunset-over-turquoise-water palette. ─────────── */
+:root.homesquatch-theme.homesquatch-phase-dusk {
+  --stone-0: #241d14;
+  --stone-1: #2e2419;
+  --stone-2: #5c4a35;
+  --stone-3: #8a7256;
+  --copper-0: #d9995c;
+  --copper-1: #f0b578;
+  --copper-2: #fbe3c2;
+  --copper-glow-rgb: 230, 150, 70;
+  --moss: #3f8a86;
+  --jade: #1a4a48;
+
+  --obsidian-void: #241d14;
+  --gold-relief: #e8a94f;
+
+  --color-void: #241d14;
+  --color-obsidian-dark: #1c160f;
+  --color-obsidian-light: #362b1d;
+  --color-copper: #d9995c;
+  --color-copper-light: #f0b578;
+  --color-copper-bright: #fbe3c2;
+  --color-dark-gold: #e8a94f;
+  --color-cenote-teal: #2f6b68;
+  --color-cenote-cyan: #4fa39e;
+  --color-cenote-glow: #7fd4c9;
+  --color-stone: #5c4a35;
+  --color-moss: #3f8a86;
+  --glass-border: rgba(240, 181, 120, 0.24);
+
+  --background: 34 29% 11%;
+  --foreground: 35 88% 87%;
+  --muted: 34 27% 18%;
+  --muted-foreground: 32 35% 63%;
+  --popover: 34 29% 11%;
+  --popover-foreground: 35 88% 87%;
+  --border: 31 80% 71%;
+  --input: 34 28% 10%;
+  --card: 31 30% 14%;
+  --card-foreground: 35 88% 87%;
+  --primary: 35 77% 61%;
+  --primary-foreground: 32 30% 8%;
+  --secondary: 31 80% 71%;
+  --secondary-foreground: 32 30% 8%;
+  --accent: 35 77% 61%;
+  --accent-foreground: 34 90% 92%;
+  --ring: 35 77% 61%;
+}
+
+/* ── Midnight phase (10PM-3AM) — deep navy + Milky Way violet, sampled from
+   EveningShift10PM.png. Alert/gold color stays warm on purpose, echoing the
+   distant shore lights on the horizon — semantic alerts should still read as
+   "warm = attention" against a cool palette. ──────────────────────────── */
+:root.homesquatch-theme.homesquatch-phase-midnight {
+  --stone-0: #0b1220;
+  --stone-1: #131f33;
+  --stone-2: #2b3f5c;
+  --stone-3: #55719a;
+  --copper-0: #6f7fb5;
+  --copper-1: #8ea3d1;
+  --copper-2: #dfe6f5;
+  --copper-glow-rgb: 130, 150, 210;
+  --moss: #2e4f4a;
+  --jade: #0f2a2e;
+
+  --obsidian-void: #0b1220;
+  --gold-relief: #d98a4f;
+
+  --color-void: #0b1220;
+  --color-obsidian-dark: #08101c;
+  --color-obsidian-light: #16253d;
+  --color-copper: #6f7fb5;
+  --color-copper-light: #8ea3d1;
+  --color-copper-bright: #dfe6f5;
+  --color-dark-gold: #d98a4f;
+  --color-cenote-teal: #1c3f66;
+  --color-cenote-cyan: #3f76a8;
+  --color-cenote-glow: #7fb8e0;
+  --color-stone: #2b3f5c;
+  --color-moss: #2e4f4a;
+  --glass-border: rgba(142, 163, 209, 0.24);
+
+  --background: 220 49% 8%;
+  --foreground: 221 52% 92%;
+  --muted: 218 40% 18%;
+  --muted-foreground: 223 30% 65%;
+  --popover: 220 49% 8%;
+  --popover-foreground: 221 52% 92%;
+  --border: 221 42% 69%;
+  --input: 220 49% 11%;
+  --card: 218 46% 14%;
+  --card-foreground: 221 52% 92%;
+  --primary: 221 42% 69%;
+  --primary-foreground: 220 49% 8%;
+  --secondary: 226 32% 57%;
+  --secondary-foreground: 220 49% 8%;
+  --accent: 221 42% 69%;
+  --accent-foreground: 226 62% 96%;
+  --ring: 221 42% 69%;
+}
+
+/* ── Hardcoded chrome overrides ───────────────────────────────────────
+   cenote-elements.css's base typography/buttons/tables/lists/page-wrapper
+   bake color values directly instead of reading the tokens above — the
+   :root override blocks above do nothing for them on their own. These are
+   written against var()/color-mix() (not literal hex), so a single block
+   here covers all three phases automatically — whichever phase block above
+   is active supplies the actual values. color-mix() derives translucent
+   variants from the solid hex tokens without needing a separate -rgb
+   sibling for each one (only --copper-glow-rgb has that, for the glow/hover
+   accent specifically). html.homesquatch-theme <sel> (element+class) safely
+   outranks the plain-class base rules regardless of import order. */
+
+html.homesquatch-theme p,
+html.homesquatch-theme label {
+  color: color-mix(in srgb, var(--copper-2) 85%, transparent);
+}
+
+html.homesquatch-theme .data,
+html.homesquatch-theme code {
+  color: var(--copper-0);
+}
+
+html.homesquatch-theme input::placeholder,
+html.homesquatch-theme textarea::placeholder {
+  color: color-mix(in srgb, var(--copper-2) 40%, transparent);
+}
+
+html.homesquatch-theme button:hover,
+html.homesquatch-theme [role="button"]:hover {
+  background: linear-gradient(135deg, rgba(var(--copper-glow-rgb), 0.14), transparent);
+}
+
+html.homesquatch-theme button:active,
+html.homesquatch-theme [role="button"]:active {
+  background: rgba(var(--copper-glow-rgb), 0.18);
+}
+
+html.homesquatch-theme button:disabled {
+  border-color: rgba(var(--copper-glow-rgb), 0.22);
+}
+
+html.homesquatch-theme .status-badge {
+  border-color: rgba(var(--copper-glow-rgb), 0.4);
+}
+
+html.homesquatch-theme .cenote-list li,
+html.homesquatch-theme .cenote-table td {
+  color: color-mix(in srgb, var(--copper-2) 80%, transparent);
+}
+
+html.homesquatch-theme .cenote-table tr:hover {
+  background: rgba(var(--copper-glow-rgb), 0.06);
+}
+
+html.homesquatch-theme .cenote-page-wrapper {
+  background: linear-gradient(180deg, var(--stone-1) 0%, var(--stone-0) 50%, var(--stone-1) 100%);
+}
+
+html.homesquatch-theme .cenote-section {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--stone-1) 60%, transparent),
+              color-mix(in srgb, var(--stone-0) 85%, transparent));
+}
+
+/* ── Background photo + hand-tuned panel/tile art per phase ──────────────
+   Unlike the chrome above, these are genuinely distinct decorative
+   compositions per source photo (not simple recolors), so each phase gets
+   its own explicit block rather than being derived from tokens. Predawn
+   (below, on the plain .homesquatch-theme selector) is the already-verified
+   default; dusk/midnight use the extra .homesquatch-phase-* class for
+   higher specificity so they safely override it. */
+
+html.homesquatch-theme .jungle-bg {
+  background-image:
+    radial-gradient(ellipse 1400px 500px at 50% 82%, rgba(226, 121, 92, 0.1), transparent 60%),
+    linear-gradient(180deg, rgba(12, 22, 32, 0.55) 0%, rgba(12, 22, 32, 0.22) 35%, rgba(12, 22, 32, 0.45) 100%),
+    url('/images/mayan-beach-night-bg.png');
+  background-size: cover;
+  background-position: center;
+}
+
+html.homesquatch-theme .stone-board {
+  background: linear-gradient(180deg, rgba(51, 80, 92, 0.18), rgba(15, 27, 36, 0.4)),
+              linear-gradient(135deg, #16242e, #0f1b24 45%, #18262f 100%);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55),
+              inset 0 1px 0 rgba(242, 217, 184, 0.06),
+              inset 0 -2px 0 rgba(0, 0, 0, 0.65);
+}
+
+html.homesquatch-theme .lit-tile {
+  background:
+    radial-gradient(circle at 50% 35%, rgba(226, 121, 92, 0.2), transparent 65%),
+    linear-gradient(180deg, #2c4a54 0%, #1a2f38 20%, #0f1b24 100%);
+  border: 1px solid rgba(242, 217, 184, 0.42);
+  box-shadow:
+    0 0 0 1px rgba(242, 217, 184, 0.08) inset,
+    0 0 18px rgba(226, 121, 92, 0.22),
+    inset 0 -8px 18px rgba(0, 0, 0, 0.4);
+}
+
+html.homesquatch-theme .stone-tile {
+  background: linear-gradient(180deg, #3a5560 0%, #26404a 30%, #16242e 100%);
+  border: 1px solid rgba(92, 125, 132, 0.85);
+}
+
+html.homesquatch-theme.homesquatch-phase-dusk .jungle-bg {
+  background-image:
+    radial-gradient(ellipse 1400px 500px at 50% 78%, rgba(230, 150, 70, 0.16), transparent 60%),
+    linear-gradient(180deg, rgba(36, 29, 20, 0.4) 0%, rgba(36, 29, 20, 0.12) 35%, rgba(36, 29, 20, 0.38) 100%),
+    url('/images/evening-shift-5pm-bg.png');
+  background-size: cover;
+  background-position: center;
+}
+
+html.homesquatch-theme.homesquatch-phase-dusk .stone-board {
+  background: linear-gradient(180deg, rgba(138, 114, 86, 0.18), rgba(36, 29, 20, 0.4)),
+              linear-gradient(135deg, #2e2419, #241d14 45%, #362b1c 100%);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5),
+              inset 0 1px 0 rgba(251, 227, 194, 0.08),
+              inset 0 -2px 0 rgba(0, 0, 0, 0.6);
+}
+
+html.homesquatch-theme.homesquatch-phase-dusk .lit-tile {
+  background:
+    radial-gradient(circle at 50% 35%, rgba(230, 150, 70, 0.24), transparent 65%),
+    linear-gradient(180deg, #5c4a35 0%, #3a2f21 20%, #241d14 100%);
+  border: 1px solid rgba(251, 227, 194, 0.45);
+  box-shadow:
+    0 0 0 1px rgba(251, 227, 194, 0.1) inset,
+    0 0 18px rgba(230, 150, 70, 0.26),
+    inset 0 -8px 18px rgba(0, 0, 0, 0.35);
+}
+
+html.homesquatch-theme.homesquatch-phase-dusk .stone-tile {
+  background: linear-gradient(180deg, #8a7256 0%, #5c4a35 30%, #2e2419 100%);
+  border: 1px solid rgba(138, 114, 86, 0.85);
+}
+
+html.homesquatch-theme.homesquatch-phase-midnight .jungle-bg {
+  background-image:
+    radial-gradient(ellipse 1400px 500px at 50% 78%, rgba(130, 150, 210, 0.14), transparent 60%),
+    linear-gradient(180deg, rgba(8, 14, 28, 0.5) 0%, rgba(8, 14, 28, 0.2) 35%, rgba(8, 14, 28, 0.42) 100%),
+    url('/images/evening-shift-10pm-bg.png');
+  background-size: cover;
+  background-position: center;
+}
+
+html.homesquatch-theme.homesquatch-phase-midnight .stone-board {
+  background: linear-gradient(180deg, rgba(43, 63, 92, 0.18), rgba(11, 18, 32, 0.42)),
+              linear-gradient(135deg, #131f33, #0b1220 45%, #16233a 100%);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55),
+              inset 0 1px 0 rgba(223, 230, 245, 0.06),
+              inset 0 -2px 0 rgba(0, 0, 0, 0.65);
+}
+
+html.homesquatch-theme.homesquatch-phase-midnight .lit-tile {
+  background:
+    radial-gradient(circle at 50% 35%, rgba(130, 150, 210, 0.22), transparent 65%),
+    linear-gradient(180deg, #2b3f5c 0%, #182742 20%, #0b1220 100%);
+  border: 1px solid rgba(223, 230, 245, 0.4);
+  box-shadow:
+    0 0 0 1px rgba(223, 230, 245, 0.08) inset,
+    0 0 18px rgba(130, 150, 210, 0.24),
+    inset 0 -8px 18px rgba(0, 0, 0, 0.4);
+}
+
+html.homesquatch-theme.homesquatch-phase-midnight .stone-tile {
+  background: linear-gradient(180deg, #55719a 0%, #35507a 30%, #131f33 100%);
+  border: 1px solid rgba(85, 113, 154, 0.85);
+}
+
+/* Gradual crossfade — armed briefly by HomeSquatchGate.tsx right before it toggles the
+   .homesquatch-theme / .homesquatch-phase-* classes, then removed once the transition
+   finishes. !important is required here on purpose: it needs to temporarily out-rank
+   Tailwind's own transition-colors/transition-all utility classes (which otherwise fully
+   replace this rule's `transition` shorthand since both match with equal specificity).
+   Scoping it to a short-lived class means normal hover/press animations are completely
+   unaffected the rest of the time. Also covers phase-to-phase transitions (dusk ->
+   midnight -> predawn), not just the work/downtime mode switch. */
+html.rs-theme-transitioning,
+html.rs-theme-transitioning * {
+  transition: background-color 1100ms ease, border-color 1100ms ease, color 700ms ease,
+    box-shadow 1100ms ease, fill 700ms ease, stroke 700ms ease !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.rs-theme-transitioning,
+  html.rs-theme-transitioning * {
+    transition: none !important;
+  }
+}

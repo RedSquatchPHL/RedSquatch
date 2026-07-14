@@ -4,12 +4,16 @@ import WeatherBackground from './WeatherBackground';
 import FireflyBackground from './FireflyBackground';
 import StarBackground from './StarBackground';
 import DayBackground from './DayBackground';
+import ClockGateMenu from './ClockGateMenu';
 
 export default function GlobalEffects() {
   const { active, season } = useTheme();
 
   return (
     <>
+      {/* Work Mode <-> Downtime Mode manual toggle — global, not tied to /ws or /hs */}
+      <ClockGateMenu />
+
       {/* Sky gradient + weather-condition overlays (always active, adapts to conditions) */}
       <WeatherBackground />
 
