@@ -4,17 +4,20 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { API } from '@/lib/api';
 import { Zap } from 'lucide-react';
+import ToolModal from '@/components/ToolModal';
+import { useToolModal } from '@/hooks/useToolModal';
 import AppletModal from '@/components/AppletModal';
-import MealPlanner from '@/components/MealPlanner';
-import BillPlanner from '@/components/BillPlanner';
+import SpanishTutor from '@/components/SpanishTutor';
+import MexicoCitizenshipTracker from '@/components/MexicoCitizenshipTracker';
 import CopperPanel from '@/components/cenote/CopperPanel';
 
-type Applet = 'menuplanner' | 'billplanner' | null;
+type Applet = 'spanishtutor' | 'citizenship' | null;
 
-export default function HSToolsPage() {
+export default function HSMexicanPage() {
   const [loading, setLoading] = useState(true);
   const [activeApplet, setActiveApplet] = useState<Applet>(null);
   const router = useRouter();
+  const { open: toolModalOpen, tool: activeTool, openTool, closeTool } = useToolModal();
 
   useEffect(() => {
     (async () => {
@@ -38,7 +41,7 @@ export default function HSToolsPage() {
       <div className="w-full max-w-5xl">
         <CopperPanel>
           <h1 className="text-3xl font-bold" style={{ color: '#d4a373', textShadow: '0 0 16px rgba(184,115,51,0.3)' }}>
-            Tools
+            Mexican
           </h1>
         </CopperPanel>
       </div>
@@ -47,18 +50,17 @@ export default function HSToolsPage() {
       <div className="w-full max-w-5xl">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {([
-            { key: 'stirling' as const,    label: 'Stirling-PDF', description: 'PDF tools & utilities (opens in new tab)',   kind: 'link' as const, url: 'https://pdf.redsquatch.com' },
-            { key: 'menuplanner' as const, label: 'Menu Planner', description: 'Weekly meals & grocery list',                kind: 'applet' as const },
-            { key: 'billplanner' as const, label: 'Bill Planner', description: 'Balances, recurring bills & BNPL',           kind: 'applet' as const },
+            { key: 'grampsweb' as const,   label: 'Grampsweb',          description: 'Family tree & genealogy',                kind: 'tool' as const },
+            { key: 'spanishtutor' as const,label: 'Spanish Tutor',      description: 'Daily drills with spaced repetition',    kind: 'applet' as const },
+            { key: 'citizenship' as const, label: 'Citizenship Tracker',description: 'Mexico citizenship document checklist',  kind: 'applet' as const },
           ]).map((t) => {
-            const CardTag = t.kind === 'link' ? 'a' : 'button';
-            const cardProps = t.kind === 'link'
-              ? { href: t.url, target: '_blank', rel: 'noopener noreferrer' }
-              : { onClick: () => setActiveApplet(t.key as 'menuplanner' | 'billplanner') };
+            const onClick = t.kind === 'tool'
+              ? () => openTool('grampsweb')
+              : () => setActiveApplet(t.key as 'spanishtutor' | 'citizenship');
             return (
-              <CardTag
+              <button
                 key={t.key}
-                {...cardProps}
+                onClick={onClick}
                 className="group cursor-pointer transition-all duration-300 text-left"
               >
                 <div
@@ -99,18 +101,20 @@ export default function HSToolsPage() {
                     style={{ background: 'linear-gradient(to right, transparent, #b87333, transparent)' }}
                   />
                 </div>
-              </CardTag>
+              </button>
             );
           })}
         </div>
       </div>
 
-      <AppletModal isOpen={activeApplet === 'menuplanner'} title="Menu Planner" onClose={() => setActiveApplet(null)} wide>
-        <MealPlanner />
+      <ToolModal isOpen={toolModalOpen} tool={activeTool} onClose={closeTool} />
+
+      <AppletModal isOpen={activeApplet === 'spanishtutor'} title="Spanish Tutor" onClose={() => setActiveApplet(null)}>
+        <SpanishTutor />
       </AppletModal>
 
-      <AppletModal isOpen={activeApplet === 'billplanner'} title="Bill Planner" onClose={() => setActiveApplet(null)} wide>
-        <BillPlanner />
+      <AppletModal isOpen={activeApplet === 'citizenship'} title="Mexico Citizenship Tracker" onClose={() => setActiveApplet(null)} wide>
+        <MexicoCitizenshipTracker />
       </AppletModal>
     </div>
   );

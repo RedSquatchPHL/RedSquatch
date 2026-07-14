@@ -1339,7 +1339,8 @@ export const RconSection = () => {
       border: '1px solid rgba(184,115,51,0.2)',
       borderRadius: '0.75rem',
       color: '#d4a373',
-      maxWidth: '1200px'
+      maxWidth: '1200px',
+      opacity: 0.6
     }}>
       <h2 style={{ marginBottom: '1.5rem', fontSize: '1.5rem', fontFamily: "'Playfair Display', serif" }}>⚙️ Minecraft Server Control</h2>
 

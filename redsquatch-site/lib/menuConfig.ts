@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
-import { FileText, Users, LayoutDashboard, Target, Inbox, Briefcase, Wrench, Trophy, Gamepad2 } from 'lucide-react';
+import { FileText, LayoutDashboard, Target, Inbox, Briefcase, Wrench, Trophy, Gamepad2, Landmark } from 'lucide-react';
 
 export type MenuLeaf =
   | { id: string; label: string; icon: LucideIcon; type: 'internal'; path: string }
@@ -23,6 +23,7 @@ export const HS_NAV: MenuLeaf[] = [
   { id: 'hs-goals', label: 'Goals', icon: Target, type: 'internal', path: '/hs/goals' },
   { id: 'hs-sports', label: 'Sports', icon: Trophy, type: 'internal', path: '/hs/sports' },
   { id: 'hs-tools', label: 'Tools', icon: Wrench, type: 'internal', path: '/hs/tools' },
+  { id: 'hs-mexican', label: 'Mexican', icon: Landmark, type: 'internal', path: '/hs/mexican' },
   { id: 'hs-downtime', label: 'Downtime', icon: Gamepad2, type: 'internal', path: '/hs/downtime' },
 ];
 
@@ -30,7 +31,8 @@ export const HS_NAV: MenuLeaf[] = [
 // external services, distinct from the "Tools" nav items above (those are the real
 // /ws/tools and /hs/tools pages; these are outside links). Add entries here to
 // add/remove them. `label` shows as the button's tooltip since the row is icons-only.
+// Grampsweb lived here too until 2026-07-14 — removed once it got a proper embedded
+// home at /hs/mexican (via ToolModal), so it wasn't reachable two different ways.
 export const QUICK_LINKS_SUBMENU: MenuLeaf[] = [
-  { id: 'grampsweb', label: 'Grampsweb', icon: Users, type: 'external', url: 'https://gramps.redsquatch.com' },
   { id: 'stirling', label: 'Stirling-PDF', icon: FileText, type: 'external', url: 'https://pdf.redsquatch.com' },
 ];
