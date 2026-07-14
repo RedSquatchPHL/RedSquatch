@@ -4,7 +4,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { Settings, Sunset, Briefcase, X, Link2, ArrowLeftRight, LogOut } from 'lucide-react';
 import { useHomeSquatchGate } from './HomeSquatchGate';
 import { logout } from '@/lib/api';
-import { PRIMARY_NAV, QUICK_LINKS_SUBMENU, type MenuLeaf } from '@/lib/menuConfig';
+import { WS_NAV, HS_NAV, QUICK_LINKS_SUBMENU, type MenuLeaf } from '@/lib/menuConfig';
 
 // 5-minute increments, matching the requested "wrap up between 4 and 6" window.
 const INCREMENTS = [5, 10, 15, 20, 25, 30];
@@ -20,15 +20,19 @@ function formatRemaining(ms: number): string {
 // settings/profile icon rather than a labeled "Clock Out" pill, so it doesn't compete
 // with the per-page Settings buttons that already exist on /dashboard and
 // /hs/dashboard (those are unrelated and untouched). This is now the site's one
-// profile/nav menu, replacing the old per-page BottomToolbar: Clock In/Out, the
-// primary WS nav (Dashboard/Goals/Intake/Work/Tools, config in lib/menuConfig.ts) and
-// Switch, then Quick Links (icon-only external-service submenu), Settings and Log out.
-// Reachable from every route via GlobalEffects.tsx. A small dot on the badge signals a
-// pending scheduled clock-out even while the panel is closed.
+// profile/nav menu, replacing both the old per-page WS BottomToolbar and the shared HS
+// HSToolbar: Clock In/Out, then whichever primary nav list (WS_NAV or HS_NAV, config in
+// lib/menuConfig.ts) matches the current route — never both at once, so same-named
+// items like "Tools" never collide — and Switch, then Quick Links (icon-only
+// external-service submenu), Settings and Log out. Reachable from every route via
+// GlobalEffects.tsx. A small dot on the badge signals a pending scheduled clock-out
+// even while the panel is closed.
 export default function ClockGateMenu() {
   const { mode, clockoutTarget, clockOutNow, scheduleClockOut, cancelClockOut, clockInNow } = useHomeSquatchGate();
   const router = useRouter();
   const pathname = usePathname();
+  const inHS = pathname?.startsWith('/hs') ?? false;
+  const navItems = inHS ? HS_NAV : WS_NAV;
   const [open, setOpen] = useState(false);
   const [toolsOpen, setToolsOpen] = useState(false);
   const [remaining, setRemaining] = useState('');
@@ -73,11 +77,18 @@ export default function ClockGateMenu() {
     closeAll();
   }
 
-  // Mirrors BottomToolbar's old "Switch" tile — same localStorage mode flag, same
-  // destination, just relocated here now that BottomToolbar is retired.
+  // Mirrors BottomToolbar's/HSToolbar's old one-directional "Switch" tiles (same
+  // localStorage mode flag — unread anywhere in the codebase as of this writing, kept
+  // for parity rather than removed, out of scope here), now bidirectional since one
+  // menu covers both sides: flips based on whichever nav list is currently showing.
   function handleSwitch() {
-    localStorage.setItem('redsquatch-mode', 'home');
-    router.push('/hs/dashboard');
+    if (inHS) {
+      localStorage.setItem('redsquatch-mode', 'work');
+      router.push('/ws/dashboard');
+    } else {
+      localStorage.setItem('redsquatch-mode', 'home');
+      router.push('/hs/dashboard');
+    }
     closeAll();
   }
 
@@ -222,7 +233,7 @@ export default function ClockGateMenu() {
 
           <div style={{ height: 1, background: 'rgba(var(--copper-glow-rgb), 0.15)', margin: '4px 2px' }} />
 
-          {PRIMARY_NAV.map(item => (
+          {navItems.map(item => (
             <button
               key={item.id}
               onClick={() => openLeaf(item)}
