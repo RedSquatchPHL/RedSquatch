@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { LayoutDashboard, Target, Trophy, Wrench, Gamepad2, ArrowLeftRight, LogOut } from 'lucide-react';
 import { logout } from '@/lib/api';
 
-// Label = destination page, same rule as WS's BottomToolbar.
+// Label = destination page, same rule as the WS nav rows in ClockGateMenu.tsx.
 const ITEMS = [
   { label: 'Dashboard', href: '/hs/dashboard', icon: LayoutDashboard },
   { label: 'Goals', href: '/hs/goals', icon: Target },

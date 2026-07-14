@@ -1,10 +1,10 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Settings, Sunset, Briefcase, X, Wrench, LogOut } from 'lucide-react';
+import { useRouter, usePathname } from 'next/navigation';
+import { Settings, Sunset, Briefcase, X, Link2, ArrowLeftRight, LogOut } from 'lucide-react';
 import { useHomeSquatchGate } from './HomeSquatchGate';
 import { logout } from '@/lib/api';
-import { TOOLS_SUBMENU, type MenuLeaf } from '@/lib/menuConfig';
+import { PRIMARY_NAV, QUICK_LINKS_SUBMENU, type MenuLeaf } from '@/lib/menuConfig';
 
 // 5-minute increments, matching the requested "wrap up between 4 and 6" window.
 const INCREMENTS = [5, 10, 15, 20, 25, 30];
@@ -19,14 +19,16 @@ function formatRemaining(ms: number): string {
 // Global, bottom-left, low-key gear-badge trigger — deliberately styled like a
 // settings/profile icon rather than a labeled "Clock Out" pill, so it doesn't compete
 // with the per-page Settings buttons that already exist on /dashboard and
-// /hs/dashboard (those are unrelated and untouched). Doubles as the profile/avatar
-// menu: Clock In/Out, Tools (icon-only submenu, config in lib/menuConfig.ts),
-// Settings and Log out all live in the one panel rather than a second bottom-left
-// widget. Reachable from every route via GlobalEffects.tsx. A small dot on the
-// badge signals a pending scheduled clock-out even while the panel is closed.
+// /hs/dashboard (those are unrelated and untouched). This is now the site's one
+// profile/nav menu, replacing the old per-page BottomToolbar: Clock In/Out, the
+// primary WS nav (Dashboard/Goals/Intake/Work/Tools, config in lib/menuConfig.ts) and
+// Switch, then Quick Links (icon-only external-service submenu), Settings and Log out.
+// Reachable from every route via GlobalEffects.tsx. A small dot on the badge signals a
+// pending scheduled clock-out even while the panel is closed.
 export default function ClockGateMenu() {
   const { mode, clockoutTarget, clockOutNow, scheduleClockOut, cancelClockOut, clockInNow } = useHomeSquatchGate();
   const router = useRouter();
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [toolsOpen, setToolsOpen] = useState(false);
   const [remaining, setRemaining] = useState('');
@@ -68,6 +70,14 @@ export default function ClockGateMenu() {
   function handleLogout() {
     logout();
     router.push('/logout');
+    closeAll();
+  }
+
+  // Mirrors BottomToolbar's old "Switch" tile — same localStorage mode flag, same
+  // destination, just relocated here now that BottomToolbar is retired.
+  function handleSwitch() {
+    localStorage.setItem('redsquatch-mode', 'home');
+    router.push('/hs/dashboard');
     closeAll();
   }
 
@@ -212,14 +222,32 @@ export default function ClockGateMenu() {
 
           <div style={{ height: 1, background: 'rgba(var(--copper-glow-rgb), 0.15)', margin: '4px 2px' }} />
 
+          {PRIMARY_NAV.map(item => (
+            <button
+              key={item.id}
+              onClick={() => openLeaf(item)}
+              style={rowStyle(item.type === 'internal' && pathname === item.path)}
+            >
+              <item.icon style={{ width: 12, height: 12 }} />
+              {item.label}
+            </button>
+          ))}
+
+          <button onClick={handleSwitch} style={rowStyle(false)}>
+            <ArrowLeftRight style={{ width: 12, height: 12 }} />
+            Switch
+          </button>
+
+          <div style={{ height: 1, background: 'rgba(var(--copper-glow-rgb), 0.15)', margin: '4px 2px' }} />
+
           <div
             style={{ position: 'relative' }}
             onMouseEnter={() => setToolsOpen(true)}
             onMouseLeave={() => setToolsOpen(false)}
           >
             <button onClick={() => setToolsOpen(o => !o)} style={rowStyle(toolsOpen)}>
-              <Wrench style={{ width: 12, height: 12 }} />
-              Tools
+              <Link2 style={{ width: 12, height: 12 }} />
+              Quick Links
             </button>
 
             {toolsOpen && (
@@ -235,7 +263,7 @@ export default function ClockGateMenu() {
                   padding: 6,
                 }}
               >
-                {TOOLS_SUBMENU.map(item => (
+                {QUICK_LINKS_SUBMENU.map(item => (
                   <button key={item.id} title={item.label} onClick={() => openLeaf(item)} style={iconButtonStyle}>
                     <item.icon style={{ width: 18, height: 18 }} />
                   </button>

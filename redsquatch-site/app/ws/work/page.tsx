@@ -10,7 +10,6 @@ import FilterPills from '@/components/FilterPills';
 import CollapsibleFilterGroup from '@/components/CollapsibleFilterGroup';
 import JournalPanel from '@/components/JournalPanel';
 import HeaderBrand from '@/components/cenote/HeaderBrand';
-import BottomToolbar from '@/components/cenote/BottomToolbar';
 import styles from '@/styles/work.module.css';
 
 const TYPE_LABELS: Record<string, string> = {
@@ -295,8 +294,6 @@ export default function WorkItemsPage() {
           />
         )}
       </div>
-
-      <BottomToolbar activeItem="work" />
     </div>
   );
 }

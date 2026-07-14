@@ -8,7 +8,6 @@ import { API } from '@/lib/api';
 import HeaderBrand from '@/components/cenote/HeaderBrand';
 import StoneTile from '@/components/cenote/StoneTile';
 import CopperPanel from '@/components/cenote/CopperPanel';
-import BottomToolbar from '@/components/cenote/BottomToolbar';
 
 interface Goal {
   id: number;
@@ -182,8 +181,6 @@ export default function WSDashboardPage() {
             </Link>
           </CopperPanel>
         </div>
-
-        <BottomToolbar activeItem="dashboard" />
       </div>
     </div>
   );

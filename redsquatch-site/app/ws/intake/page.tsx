@@ -9,7 +9,6 @@ import DiscoveryForm from '@/components/intake/DiscoveryForm';
 import DemandForm from '@/components/intake/DemandForm';
 import CopperPanel from '@/components/cenote/CopperPanel';
 import HeaderBrand from '@/components/cenote/HeaderBrand';
-import BottomToolbar from '@/components/cenote/BottomToolbar';
 import type { WorkGroup, DiscoveryForm as DiscoveryFormType, GroupStatus } from '@/components/intake/types';
 
 export default function WSIntakePage() {
@@ -174,8 +173,6 @@ export default function WSIntakePage() {
           onSave={handleSaveGroup}
         />
       )}
-
-      <BottomToolbar activeItem="intake" />
     </div>
   );
 }

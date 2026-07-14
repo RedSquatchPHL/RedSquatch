@@ -7,7 +7,6 @@ import DevelopmentWidget from '@/components/DevelopmentWidget';
 import FileTransferPanel from '@/components/FileTransferPanel';
 import CopperPanel from '@/components/cenote/CopperPanel';
 import HeaderBrand from '@/components/cenote/HeaderBrand';
-import BottomToolbar from '@/components/cenote/BottomToolbar';
 
 export default function WSToolsPage() {
   const [loading, setLoading] = useState(true);
@@ -52,8 +51,6 @@ export default function WSToolsPage() {
           <FileTransferPanel />
         </CopperPanel>
       </div>
-
-      <BottomToolbar activeItem="tools" />
     </div>
   );
 }

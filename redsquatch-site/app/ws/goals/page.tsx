@@ -7,7 +7,6 @@ import { TasksBoard, type Task } from '@/components/TasksBoard';
 import { MaintenanceDrawer } from '@/components/MaintenanceDrawer';
 import CopperPanel from '@/components/cenote/CopperPanel';
 import HeaderBrand from '@/components/cenote/HeaderBrand';
-import BottomToolbar from '@/components/cenote/BottomToolbar';
 
 const CTX_COLORS: Record<AppContext, { accent: string; dim: string }> = {
   work:     { accent: '#4a5568', dim: 'rgba(74, 85, 104, 0.15)'  },
@@ -64,8 +63,6 @@ export default function WSGoalsPage() {
       </CopperPanel>
 
       <MaintenanceDrawer task={logTask} onClose={() => setLogTask(null)} />
-
-      <BottomToolbar activeItem="goals" />
     </div>
   );
 }
