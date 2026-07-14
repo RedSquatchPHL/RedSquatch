@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { API } from '@/lib/api';
 import DevelopmentWidget from '@/components/DevelopmentWidget';
+import FileTransferPanel from '@/components/FileTransferPanel';
 import CopperPanel from '@/components/cenote/CopperPanel';
 import HeaderBrand from '@/components/cenote/HeaderBrand';
 import BottomToolbar from '@/components/cenote/BottomToolbar';
@@ -45,6 +46,10 @@ export default function WSToolsPage() {
 
         <CopperPanel>
           <DevelopmentWidget />
+        </CopperPanel>
+
+        <CopperPanel title="Files" subtitle="Personal document transfer, up to 1GB per file.">
+          <FileTransferPanel />
         </CopperPanel>
       </div>
 
