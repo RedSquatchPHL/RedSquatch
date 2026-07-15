@@ -21,6 +21,9 @@ const SCHEMA_STATEMENTS = [
   )`,
   `CREATE INDEX IF NOT EXISTS idx_spanish_vocab_client_id ON spanish_vocab(client_id)`,
   `CREATE INDEX IF NOT EXISTS idx_spanish_vocab_next_review ON spanish_vocab(client_id, next_review_at)`,
+  `ALTER TABLE spanish_vocab ADD COLUMN IF NOT EXISTS easiness_factor NUMERIC(4,2) DEFAULT 2.5`,
+  `ALTER TABLE spanish_vocab ADD COLUMN IF NOT EXISTS interval_days NUMERIC DEFAULT 0`,
+  `ALTER TABLE spanish_vocab ADD COLUMN IF NOT EXISTS repetitions INTEGER DEFAULT 0`,
   `ALTER TABLE client_users ADD COLUMN IF NOT EXISTS spanish_streak_current INTEGER DEFAULT 0`,
   `ALTER TABLE client_users ADD COLUMN IF NOT EXISTS spanish_streak_longest INTEGER DEFAULT 0`,
   `ALTER TABLE client_users ADD COLUMN IF NOT EXISTS spanish_last_review_date DATE`,
@@ -144,7 +147,57 @@ async function ensureSeeded(db, clientId) {
   }
 }
 
-const REVIEW_INTERVALS = { hard: 1, good: 3, easy: 7 }; // days until next review
+// ─── Grading: Levenshtein edit distance -> SM-2 quality (0-5) ─────────────
+// Typo-tolerant, deterministic, server-computed (never trust a client-
+// asserted quality) so a missing accent or one-character slip doesn't grade
+// the same as a wrong answer, but also doesn't get silently waved through.
+function levenshtein(a, b) {
+  const m = a.length, n = b.length;
+  if (m === 0) return n;
+  if (n === 0) return m;
+  const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+  for (let i = 0; i <= m; i++) dp[i][0] = i;
+  for (let j = 0; j <= n; j++) dp[0][j] = j;
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      dp[i][j] = Math.min(dp[i - 1][j] + 1, dp[i][j - 1] + 1, dp[i - 1][j - 1] + cost);
+    }
+  }
+  return dp[m][n];
+}
+
+function gradeAnswer(rawAnswer, rawCorrect) {
+  const answer = (rawAnswer || '').trim().toLowerCase();
+  const correct = (rawCorrect || '').trim().toLowerCase();
+  if (!answer) return { quality: 0, wasCorrect: false };
+  const dist = levenshtein(answer, correct);
+  const ratio = dist / Math.max(answer.length, correct.length, 1);
+  let quality;
+  if (ratio === 0) quality = 5;
+  else if (ratio <= 0.15) quality = 4;
+  else if (ratio <= 0.35) quality = 3;
+  else if (ratio <= 0.6) quality = 2;
+  else quality = 1;
+  return { quality, wasCorrect: quality >= 3 };
+}
+
+// ─── SM-2 spaced-repetition scheduling (SuperMemo 1987) ───────────────────
+function sm2Step({ repetitions, interval, ef }, quality) {
+  let nextRepetitions = repetitions;
+  let nextInterval = interval;
+  if (quality >= 3) {
+    if (repetitions === 0) nextInterval = 1;
+    else if (repetitions === 1) nextInterval = 6;
+    else nextInterval = Math.round(interval * ef);
+    nextRepetitions = repetitions + 1;
+  } else {
+    nextRepetitions = 0;
+    nextInterval = 1;
+  }
+  const nextEf = Math.max(1.3, ef + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02)));
+  return { repetitions: nextRepetitions, interval: nextInterval, ef: Number(nextEf.toFixed(2)) };
+}
 
 async function checkMilestones(db, clientId) {
   const unlocked = [];
@@ -307,10 +360,12 @@ function makeRouter(db) {
     }
   });
 
-  // POST /vocab/:id/review { quality: 'hard'|'good'|'easy' }
+  // POST /vocab/:id/review { answer: string }
+  // Server looks up the correct answer itself and grades it — the client
+  // never asserts its own quality/correctness, it only supplies raw input.
   router.post('/vocab/:id/review', auth, async (req, res) => {
-    const { quality } = req.body;
-    if (!REVIEW_INTERVALS[quality]) return res.status(400).json({ error: "quality must be 'hard', 'good', or 'easy'" });
+    const { answer } = req.body;
+    if (typeof answer !== 'string') return res.status(400).json({ error: 'answer is required' });
     try {
       const clientId = await getClientId(db, req);
       const existing = await db.query(
@@ -319,26 +374,40 @@ function makeRouter(db) {
       );
       if (existing.rows.length === 0) return res.status(404).json({ error: 'Item not found' });
       const item = existing.rows[0];
-      const correct = quality !== 'hard';
-      const box = quality === 'hard' ? 1 : quality === 'good' ? Math.min(item.box + 1, 4) : Math.min(item.box + 1, 5);
-      const days = REVIEW_INTERVALS[quality];
+
+      const { quality, wasCorrect } = gradeAnswer(answer, item.back);
+      const sm2 = sm2Step(
+        { repetitions: item.repetitions || 0, interval: Number(item.interval_days) || 0, ef: Number(item.easiness_factor) || 2.5 },
+        quality
+      );
+      const box = Math.max(1, Math.min(sm2.repetitions, 5));
 
       const result = await db.query(
         `UPDATE spanish_vocab SET
-          box              = $1,
-          correct_count    = correct_count + $2,
-          incorrect_count  = incorrect_count + $3,
-          last_reviewed_at = NOW(),
-          next_review_at   = NOW() + ($4 || ' days')::interval,
-          updated_at       = NOW()
-         WHERE id = $5 RETURNING *`,
-        [box, correct ? 1 : 0, correct ? 0 : 1, days, req.params.id]
+          box               = $1,
+          repetitions       = $2,
+          interval_days     = $3,
+          easiness_factor   = $4,
+          correct_count     = correct_count + $5,
+          incorrect_count   = incorrect_count + $6,
+          last_reviewed_at  = NOW(),
+          next_review_at    = NOW() + ($7 || ' days')::interval,
+          updated_at        = NOW()
+         WHERE id = $8 RETURNING *`,
+        [box, sm2.repetitions, sm2.interval, sm2.ef, wasCorrect ? 1 : 0, wasCorrect ? 0 : 1, sm2.interval, req.params.id]
       );
 
       const streak = await bumpStreak(db, clientId);
       const newMilestones = await checkMilestones(db, clientId);
 
-      res.json({ item: result.rows[0], streak, newMilestones });
+      res.json({
+        item: result.rows[0],
+        quality,
+        wasCorrect,
+        correctAnswer: item.back,
+        streak,
+        newMilestones,
+      });
     } catch (err) {
       console.error('Vocab review error:', err.message);
       res.status(500).json({ error: 'Failed to record review' });
