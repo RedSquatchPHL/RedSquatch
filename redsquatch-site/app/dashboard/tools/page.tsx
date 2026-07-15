@@ -6,8 +6,6 @@ import { API } from '@/lib/api';
 import TipTapEditor from '@/components/TipTapEditor';
 import GamesModal from '@/components/GamesModal';
 import ToolModal from '@/components/ToolModal';
-import RconSection from '@/components/RconSection';
-import { WorldsPanel } from '@/components/WorldsPanel';
 import { useToolModal } from '@/hooks/useToolModal';
 import { ExternalLink, Zap } from 'lucide-react';
 import CopperPanel from '@/components/cenote/CopperPanel';
@@ -264,36 +262,6 @@ export default function ToolsPage() {
           placeholder="Write your notes here... Use formatting buttons for bold, italic, headings, lists, and links."
           height="400px"
         />
-      </div>
-
-      {/* Minecraft Server Control */}
-      <div className="mt-12 max-w-5xl w-full">
-        <div className="mb-4">
-          <CopperPanel>
-            <h2 className="text-xl font-bold" style={{ color: '#d4a373', textShadow: '0 0 16px rgba(184,115,51,0.3)' }}>
-              Minecraft Server Control
-            </h2>
-            <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.35)' }}>
-              Manage the Minecraft Bedrock server: whitelist, give items, teleport, and control
-            </p>
-          </CopperPanel>
-        </div>
-        <RconSection />
-      </div>
-
-      {/* Minecraft World Management */}
-      <div className="mt-12 max-w-5xl w-full mb-8">
-        <div className="mb-4">
-          <CopperPanel>
-            <h2 className="text-xl font-bold" style={{ color: '#d4a373', textShadow: '0 0 16px rgba(184,115,51,0.3)' }}>
-              Minecraft World Management
-            </h2>
-            <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.35)' }}>
-              Manage 3 world slots with automatic backup and restore
-            </p>
-          </CopperPanel>
-        </div>
-        <WorldsPanel />
       </div>
 
       <GamesModal isOpen={gamesOpen} onClose={() => setGamesOpen(false)} />

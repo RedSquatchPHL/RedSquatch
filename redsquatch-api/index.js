@@ -11,7 +11,6 @@ const fs = require('fs');
 const { scrapeAll } = require('./sports-scraper');
 const { runMigrations, makeRouter: makeWorkItemsRouter } = require('./routes/work-items');
 const { runMigrations: runResearchMigrations, makeRouter: makeResearchRouter } = require('./routes/research');
-const { makeRouter: makeRconRouter } = require('./routes/rcon');
 const { runMigrations: runNotesMigrations, makeRouter: makeNotesRouter } = require('./routes/notes');
 const { runMigrations: runMealsMigrations, makeRouter: makeMealsRouter } = require('./routes/meals');
 const { runMigrations: runSpanishMigrations, makeRouter: makeSpanishRouter } = require('./routes/spanish');
@@ -994,7 +993,6 @@ app.post('/api/client/sports/refresh', requireAuth, async (req, res) => {
 
 app.use('/api/client/work-items', makeWorkItemsRouter(db));
 app.use('/api/client/research', makeResearchRouter(db));
-app.use('/api/client/rcon', makeRconRouter(db));
 app.use('/api/client/notes', makeNotesRouter(db));
 app.use('/api/client/meals', makeMealsRouter(db));
 app.use('/api/client/spanish', makeSpanishRouter(db));
