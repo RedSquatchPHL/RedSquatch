@@ -7,10 +7,22 @@ import GroupsList from '@/components/intake/GroupsList';
 import GroupForm from '@/components/intake/GroupForm';
 import DiscoveryForm from '@/components/intake/DiscoveryForm';
 import DemandForm, { type DemandFormHandle } from '@/components/intake/DemandForm';
+import WorkflowProgressBar from '@/components/intake/WorkflowProgressBar';
 import CopperPanel from '@/components/cenote/CopperPanel';
 import HeaderBrand from '@/components/cenote/HeaderBrand';
 import { DEMAND_TEMPLATE_MARKDOWN, downloadMarkdown } from '@/lib/export-utils';
-import type { WorkGroup, DiscoveryForm as DiscoveryFormType, GroupStatus } from '@/components/intake/types';
+import type { WorkGroup, DiscoveryForm as DiscoveryFormType, DemandForm as DemandFormType, GroupStatus } from '@/components/intake/types';
+
+// Purely informational placement in the workflow — only the first three
+// stages (SNWR/Project, Discovery, Demand) have real backing status data;
+// everything past Demand always renders as "not yet reached" until a
+// later pass adds tracking for those stages.
+function computeStageIndex(discovery: DiscoveryFormType | null, demand: DemandFormType | null): number {
+  if (demand && (demand.status === 'Ready' || demand.status === 'Approved')) return 3;
+  if (demand) return 2;
+  if (discovery) return 1;
+  return 0;
+}
 
 export default function WSIntakePage() {
   const [checking, setChecking] = useState(true);
@@ -20,6 +32,7 @@ export default function WSIntakePage() {
   const [groupsLoading, setGroupsLoading] = useState(true);
   const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null);
   const [currentDiscovery, setCurrentDiscovery] = useState<DiscoveryFormType | null>(null);
+  const [currentDemand, setCurrentDemand] = useState<DemandFormType | null>(null);
 
   const [showGroupForm, setShowGroupForm] = useState(false);
   const [editingGroup, setEditingGroup] = useState<WorkGroup | null>(null);
@@ -52,7 +65,7 @@ export default function WSIntakePage() {
   }, []);
 
   useEffect(() => { if (!checking) fetchGroups(); }, [checking, fetchGroups]);
-  useEffect(() => { setCurrentDiscovery(null); }, [selectedGroupId]);
+  useEffect(() => { setCurrentDiscovery(null); setCurrentDemand(null); }, [selectedGroupId]);
 
   const selectedGroup = groups.find(g => g.id === selectedGroupId) ?? null;
 
@@ -181,6 +194,10 @@ export default function WSIntakePage() {
                     </div>
                   </div>
 
+                  <div className="pb-2 border-b border-[rgba(184,115,51,0.15)]">
+                    <WorkflowProgressBar currentStageIndex={computeStageIndex(currentDiscovery, currentDemand)} />
+                  </div>
+
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     <div className="lg:border-r border-[rgba(184,115,51,0.15)] lg:pr-8">
                       <DiscoveryForm groupId={selectedGroup.id} onFormReady={setCurrentDiscovery} />
@@ -191,6 +208,7 @@ export default function WSIntakePage() {
                         groupId={selectedGroup.id}
                         discoveryForm={currentDiscovery}
                         onImportingChange={setDemandImporting}
+                        onFormReady={setCurrentDemand}
                       />
                     </div>
                   </div>

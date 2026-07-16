@@ -15,6 +15,7 @@ interface Props {
   groupId: number;
   discoveryForm: DiscoveryFormType | null;
   onImportingChange?: (importing: boolean) => void;
+  onFormReady?: (form: DemandFormType | null) => void;
 }
 
 const FIELD_LABELS: { key: keyof DemandFormType; label: string; rows: number }[] = [
@@ -33,7 +34,7 @@ const textareaClass =
   'w-full bg-transparent border-0 border-b border-[rgba(184,115,51,0.25)] text-white px-0 py-2 resize-none ' +
   'focus:outline-none focus:border-[#d4a373] placeholder:text-white/20';
 
-function DemandForm({ groupId, discoveryForm, onImportingChange }: Props, ref: React.Ref<DemandFormHandle>) {
+function DemandForm({ groupId, discoveryForm, onImportingChange, onFormReady }: Props, ref: React.Ref<DemandFormHandle>) {
   const [form, setForm] = useState<DemandFormType | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -48,6 +49,7 @@ function DemandForm({ groupId, discoveryForm, onImportingChange }: Props, ref: R
     let cancelled = false;
     setLoading(true);
     setForm(null);
+    onFormReady?.(null);
 
     (async () => {
       try {
@@ -58,6 +60,7 @@ function DemandForm({ groupId, discoveryForm, onImportingChange }: Props, ref: R
 
         if (list.length > 0) {
           setForm(list[0]);
+          onFormReady?.(list[0]);
         } else {
           const createRes = await fetch(`${API}/api/client/groups/${groupId}/demand`, {
             method: 'POST',
@@ -69,6 +72,7 @@ function DemandForm({ groupId, discoveryForm, onImportingChange }: Props, ref: R
           const created = await createRes.json();
           if (cancelled) return;
           setForm(created);
+          onFormReady?.(created);
         }
       } catch (err) {
         if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to load demand form');
@@ -98,6 +102,7 @@ function DemandForm({ groupId, discoveryForm, onImportingChange }: Props, ref: R
       if (!res.ok) throw new Error('Failed to save demand form');
       const updated = await res.json();
       setForm(updated);
+      onFormReady?.(updated);
       setSavedAt(Date.now());
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save demand form');

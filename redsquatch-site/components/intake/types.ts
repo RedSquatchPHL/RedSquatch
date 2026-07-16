@@ -1,6 +1,6 @@
 export type GroupStatus = 'In Discovery' | 'In Planning' | 'In Build' | 'In Test' | 'Done' | 'On Hold';
 export type DiscoveryStatus = 'In Progress' | 'Locked' | 'Ready for Demand';
-export type DemandStatus = 'Draft' | 'Ready for Crystal' | 'Approved';
+export type DemandStatus = 'Draft' | 'Ready' | 'Approved';
 
 export interface WorkGroup {
   id: number;
@@ -86,4 +86,4 @@ export interface GroupsReport {
 
 export const GROUP_STATUSES: GroupStatus[] = ['In Discovery', 'In Planning', 'In Build', 'In Test', 'Done', 'On Hold'];
 export const DISCOVERY_STATUSES: DiscoveryStatus[] = ['In Progress', 'Locked', 'Ready for Demand'];
-export const DEMAND_STATUSES: DemandStatus[] = ['Draft', 'Ready for Crystal', 'Approved'];
+export const DEMAND_STATUSES: DemandStatus[] = ['Draft', 'Ready', 'Approved'];
