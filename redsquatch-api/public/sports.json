@@ -1,5 +1,5 @@
 {
-  "updated": "2026-07-13T15:55:30.660Z",
+  "updated": "2026-07-16T14:39:06.082Z",
   "teams": {
     "LAD": {
       "key": "LAD",
@@ -8,25 +8,43 @@
       "sport": "MLB",
       "logo": "https://a.espncdn.com/i/teamlogos/mlb/500/lad.png",
       "color": "#005a9c",
-      "record": "61-34",
+      "record": "61-36",
       "lastGame": {
-        "date": "2026-07-11",
-        "dateTime": "2026-07-11T02:10Z",
-        "opponent": "Arizona Diamondbacks",
-        "opponentAbbr": "ARI",
-        "isHome": true,
-        "score": "3-9",
-        "result": "L"
-      },
-      "nextGame": {
         "date": "2026-07-12",
         "dateTime": "2026-07-12T20:10Z",
         "opponent": "Arizona Diamondbacks",
         "opponentAbbr": "ARI",
         "isHome": true,
-        "time": "4:10 PM ET"
+        "score": "3-5",
+        "result": "L"
+      },
+      "nextGame": {
+        "date": "2026-07-17",
+        "dateTime": "2026-07-17T23:05Z",
+        "opponent": "New York Yankees",
+        "opponentAbbr": "NYY",
+        "isHome": false,
+        "time": "7:05 PM ET"
       },
       "recentGames": [
+        {
+          "date": "2026-07-12",
+          "dateTime": "2026-07-12T20:10Z",
+          "opponent": "Arizona Diamondbacks",
+          "opponentAbbr": "ARI",
+          "isHome": true,
+          "score": "3-5",
+          "result": "L"
+        },
+        {
+          "date": "2026-07-12",
+          "dateTime": "2026-07-12T01:10Z",
+          "opponent": "Arizona Diamondbacks",
+          "opponentAbbr": "ARI",
+          "isHome": true,
+          "score": "2-9",
+          "result": "L"
+        },
         {
           "date": "2026-07-11",
           "dateTime": "2026-07-11T02:10Z",
@@ -53,35 +71,9 @@
           "isHome": true,
           "score": "3-4",
           "result": "L"
-        },
-        {
-          "date": "2026-07-07",
-          "dateTime": "2026-07-07T02:10Z",
-          "opponent": "Colorado Rockies",
-          "opponentAbbr": "COL",
-          "isHome": true,
-          "score": "8-7",
-          "result": "W"
-        },
-        {
-          "date": "2026-07-05",
-          "dateTime": "2026-07-05T23:20Z",
-          "opponent": "San Diego Padres",
-          "opponentAbbr": "SD",
-          "isHome": true,
-          "score": "2-5",
-          "result": "L"
         }
       ],
       "upcomingGames": [
-        {
-          "date": "2026-07-12",
-          "dateTime": "2026-07-12T20:10Z",
-          "opponent": "Arizona Diamondbacks",
-          "opponentAbbr": "ARI",
-          "isHome": true,
-          "time": "4:10 PM ET"
-        },
         {
           "date": "2026-07-17",
           "dateTime": "2026-07-17T23:05Z",
@@ -129,33 +121,41 @@
           "opponentAbbr": "PHI",
           "isHome": false,
           "time": "6:40 PM ET"
+        },
+        {
+          "date": "2026-07-24",
+          "dateTime": "2026-07-24T23:10Z",
+          "opponent": "New York Mets",
+          "opponentAbbr": "NYM",
+          "isHome": false,
+          "time": "7:10 PM ET"
         }
       ],
       "news": [
         {
-          "title": "2026 MLB draft tracker live updates: Pick results and analysis",
-          "url": "https://www.espn.com/mlb/story/_/id/49306565/2026-mlb-draft-tracker-live-updates-order-results-analysis-every-first-round-pick",
-          "date": "2026-07-11"
+          "title": "Unique Ohtani rookie card sells privately for record $3.365M",
+          "url": "https://www.espn.com/mlb/story/_/id/49358926/unique-ohtani-rookie-card-sells-privately-record-3365m",
+          "date": "2026-07-14"
         },
         {
-          "title": "Dodgers' Wrobleski, White Sox OF Peters added as All-Stars",
-          "url": "https://www.espn.com/mlb/story/_/id/49335616/white-sox-tristan-peters-named-al-all-star-replacement",
-          "date": "2026-07-11"
+          "title": "MLB All-Star Game 2026: Players we stop everything to watch -- and why",
+          "url": "https://www.espn.com/mlb/story/_/id/49350262/mlb-2026-all-star-game-players-watch-ohtani-witt-trout-schwarber-miz-pca",
+          "date": "2026-07-14"
         },
         {
-          "title": "Diamondbacks shake off Ohtani's leadoff homer to rout the Dodgers 9-3",
-          "url": "http://www.espn.com/mlb/recap?gameId=401816108",
-          "date": "2026-07-11"
+          "title": "2026 MLB draft recap: Best picks, potential steals, analysis",
+          "url": "https://www.espn.com/mlb/story/_/id/49350376/mlb-draft-2026-recap-kiley-mcdaniel-analysis-all-30-teams",
+          "date": "2026-07-14"
         },
         {
-          "title": "MLB mock draft 2026: Final predictions for first two rounds",
-          "url": "https://www.espn.com/mlb/story/_/id/49315943/2026-mlb-mock-draft-final-predictions-first-two-rounds-white-sox-no-1-cholowsky-emerson-lackey",
-          "date": "2026-07-11"
+          "title": "All-Stars oppose MLB salary cap, say there's still time to reach deal",
+          "url": "https://www.espn.com/mlb/story/_/id/49353827/all-stars-oppose-mlb-salary-cap-lot-reach-deal",
+          "date": "2026-07-14"
         },
         {
-          "title": "Diamondbacks play the Dodgers leading series 1-0",
-          "url": "http://www.espn.com/mlb/preview?gameId=401816123",
-          "date": "2026-07-11"
+          "title": "Don Mattingly coaching at All-Star Game against former team",
+          "url": "https://www.espn.com/mlb/story/_/id/49353464/don-mattingly-coaching-all-star-game-former-team",
+          "date": "2026-07-13"
         }
       ]
     },
@@ -227,29 +227,29 @@
       "upcomingGames": [],
       "news": [
         {
-          "title": "2026 NBA free agency: Grades for offseason signings, extensions",
-          "url": "https://www.espn.com/nba/story/_/id/48957095/2026-nba-free-agency-grades-offseason-signings-deals-contracts-extensions-depth-charts",
-          "date": "2026-07-11"
+          "title": "McMenamin: Austin Reaves' pay cut gives Lakers financial flexibility",
+          "url": "https://www.espn.com/video/clip/_/id/49361334/austin-reaves-pay-cut-gives-lakers-financial-flexibility",
+          "date": "2026-07-14"
         },
         {
-          "title": "Rich Paul on LeBron's next team: 'He's not chasing a ring'",
-          "url": "https://www.espn.com/video/clip/_/id/49333871/not-chasing-ring",
-          "date": "2026-07-11"
+          "title": "Reaves: 'Nothing but love and respect' for LeBron",
+          "url": "https://www.espn.com/video/clip/_/id/49354256/love-respect-lebron",
+          "date": "2026-07-13"
         },
         {
-          "title": "Oklahoma City Thunder vs. Los Angeles Lakers: Game Highlights",
-          "url": "https://www.espn.com/video/clip/_/id/49330890/game-highlights",
-          "date": "2026-07-11"
+          "title": "Sources: Lakers to add Ziaire Williams on 1-year, $3M deal",
+          "url": "https://www.espn.com/nba/story/_/id/49353086/sources-lakers-add-ziaire-williams-1-year-3m-deal",
+          "date": "2026-07-13"
         },
         {
-          "title": "NBA offseason, free agency, trade market: Top unresolved storylines",
-          "url": "https://www.espn.com/nba/story/_/id/49315328/2026-nba-offseason-free-agency-trade-market-top-unresolved-storylines-contracts-aspiration-expansion",
-          "date": "2026-07-11"
+          "title": "New contract in tow, Austin Reaves ready for Lakers' new era",
+          "url": "https://www.espn.com/nba/story/_/id/49352570/new-contract-tow-austin-reaves-ready-lakers-new-era",
+          "date": "2026-07-13"
         },
         {
-          "title": "Austin Reaves shares text to LeBron after hearing he was leaving Lakers",
-          "url": "https://www.espn.com/nba/story/_/id/49309069/austin-reaves-lebron-james-los-angeles-lakers-leaving-text",
-          "date": "2026-07-08"
+          "title": "Walker Kessler says he'll 'run through a brick wall' for Lakers",
+          "url": "https://www.espn.com/nba/story/_/id/49352392/walker-kessler-says-run-brick-wall-lakers",
+          "date": "2026-07-13"
         }
       ]
     },
@@ -371,29 +371,29 @@
       ],
       "news": [
         {
-          "title": "Execs, coaches, scouts rank top NFL offensive tackles for 2026",
-          "url": "https://www.espn.com/nfl/story/_/id/49248530/ranking-nfl-top-10-offensive-tackles-2026-execs-coaches-scouts",
-          "date": "2026-07-11"
+          "title": "Who are the Khoslas? Meet the family set to buy the Seattle Seahawks",
+          "url": "https://www.espn.com/nfl/story/_/id/49358800/khosla-family-vinod-neeru-neal-san-francisco-49ers-seattle-seahawks",
+          "date": "2026-07-14"
         },
         {
-          "title": "Execs, coaches, scouts rank top NFL tight ends for 2026",
-          "url": "https://www.espn.com/nfl/story/_/id/49267903/ranking-nfl-top-10-tight-ends-2026-execs-coaches-scouts",
-          "date": "2026-07-11"
+          "title": "Who are the current NFL team owners?",
+          "url": "https://www.espn.com/nfl/story/_/id/39387572/who-current-nfl-team-owners",
+          "date": "2026-07-14"
         },
         {
-          "title": "How are Super Bowl-level NFL rosters built at each position?",
-          "url": "https://www.espn.com/nfl/story/_/id/49309306/2026-nfl-season-super-bowl-roster-building-positions-draft-signings-trades",
-          "date": "2026-07-10"
+          "title": "2026 NFL season: New coach-player scheme pairings to watch",
+          "url": "https://www.espn.com/nfl/story/_/id/49351307/2026-nfl-season-coach-coordinator-playcaller-player-matches-scheme-solak",
+          "date": "2026-07-14"
         },
         {
-          "title": "2026 NFL season: Picking breakout candidates for all 32 teams",
-          "url": "https://www.espn.com/nfl/story/_/id/49295229/2026-nfl-season-breakout-candidates-burden-bullock-mclaurin",
-          "date": "2026-07-08"
+          "title": "Rising coach on 49ers' staff? Former Seahawk K.J. Wright",
+          "url": "https://www.espn.com/nfl/story/_/id/49351716/san-francisco-49ers-coach-kj-wright-coordinator-demeco-ryans-houston-texans-seattle-seahawks",
+          "date": "2026-07-14"
         },
         {
-          "title": "Execs, coaches, scouts rank top NFL edge rushers for 2026",
-          "url": "https://www.espn.com/nfl/story/_/id/49237026/ranking-nfl-top-10-edge-rushers-2026-execs-coaches-scouts",
-          "date": "2026-07-11"
+          "title": "Execs, coaches rank top NFL off-ball linebackers for 2026",
+          "url": "https://www.espn.com/nfl/story/_/id/49295327/ranking-nfl-top-10-linebackers-2026-execs-coaches-scouts",
+          "date": "2026-07-14"
         }
       ]
     }
