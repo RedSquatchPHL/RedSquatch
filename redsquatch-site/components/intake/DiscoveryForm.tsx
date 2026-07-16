@@ -6,6 +6,7 @@ import {
   exportDiscoveryAsMarkdown, exportDiscoveryAsPdf, exportDiscoveryAsDocx,
   downloadMarkdown, DISCOVERY_TEMPLATE_MARKDOWN,
 } from '@/lib/export-utils';
+import DiscoveryAttachments from './DiscoveryAttachments';
 import type { DiscoveryForm as DiscoveryFormType, DiscoveryCustomQuestion, DiscoveryStatus } from './types';
 import { DISCOVERY_STATUSES } from './types';
 
@@ -32,6 +33,8 @@ export default function DiscoveryForm({ groupId, onFormReady }: Props) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [savedAt, setSavedAt] = useState<number | null>(null);
+  const [importing, setImporting] = useState(false);
+  const [importError, setImportError] = useState<string | null>(null);
   const saveSeqRef = useRef(0);
 
   useEffect(() => {
@@ -184,6 +187,38 @@ export default function DiscoveryForm({ groupId, onFormReady }: Props) {
   const handleExportDocx = () => { if (form) exportDiscoveryAsDocx(form); };
   const handleDownloadTemplate = () => downloadMarkdown('discovery-form-template.md', DISCOVERY_TEMPLATE_MARKDOWN);
 
+  const handleImportFile = async (file: File) => {
+    setImporting(true);
+    setImportError(null);
+    try {
+      const text = await file.text();
+      const res = await fetch(`${API}/api/client/discovery/parse-md`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'text/plain' },
+        body: text,
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || 'Failed to parse Markdown');
+      }
+      const extracted = await res.json();
+      const fields: Partial<DiscoveryFormType> = {
+        their_process: extracted.their_process,
+        expected_outcome: extracted.expected_outcome,
+        pain_points: extracted.pain_points,
+        ideal_method: extracted.ideal_method,
+        your_interpretation: extracted.your_interpretation,
+      };
+      patch(fields);
+      await save(fields);
+    } catch (err) {
+      setImportError(err instanceof Error ? err.message : 'Failed to import file');
+    } finally {
+      setImporting(false);
+    }
+  };
+
   if (loading) {
     return <div className="text-white/40 text-sm py-8 text-center">Loading discovery form...</div>;
   }
@@ -205,6 +240,23 @@ export default function DiscoveryForm({ groupId, onFormReady }: Props) {
           >
             Download Template
           </button>
+          <label
+            title="Pre-fills the Discovery Form from a Discovery Form Markdown export"
+            className={`text-xs border border-[rgba(184,115,51,0.3)] text-[#d4a373] hover:bg-[rgba(184,115,51,0.1)] px-3 py-1.5 cursor-pointer ${importing || locked ? 'opacity-40 pointer-events-none' : ''}`}
+          >
+            {importing ? 'Importing...' : 'Import'}
+            <input
+              type="file"
+              accept=".md,text/markdown"
+              className="hidden"
+              disabled={importing || locked}
+              onChange={e => {
+                const file = e.target.files?.[0];
+                if (file) handleImportFile(file);
+                e.target.value = '';
+              }}
+            />
+          </label>
           <label className="flex items-center gap-1.5 text-xs text-white/60 cursor-pointer">
             <input
               type="checkbox"
@@ -242,6 +294,11 @@ export default function DiscoveryForm({ groupId, onFormReady }: Props) {
       {error && (
         <p className="text-red-400 text-sm border border-red-400/20 bg-red-400/5 px-3 py-2">{error}</p>
       )}
+      {importError && (
+        <p className="text-red-400 text-sm border border-red-400/20 bg-red-400/5 px-3 py-2">{importError}</p>
+      )}
+
+      <DiscoveryAttachments discoveryFormId={form.id} />
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="space-y-1">

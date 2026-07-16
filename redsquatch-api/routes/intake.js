@@ -3,6 +3,7 @@
 const express = require('express');
 const { parseDemandXml } = require('../lib/parse-demand-xml');
 const { parseDemandMarkdown } = require('../lib/parse-demand-md');
+const { parseDiscoveryMarkdown } = require('../lib/parse-discovery-md');
 
 // Intake + Groups MVP — discovery/demand forms grouped under work_groups.
 const SCHEMA_STATEMENTS = [
@@ -410,6 +411,18 @@ function makeRouter(db) {
     } catch (err) {
       console.error('Discovery update error:', err.message);
       res.status(500).json({ error: 'Failed to update discovery form' });
+    }
+  });
+
+  // Parses a Discovery Form Markdown export (our own exportDiscoveryAsMarkdown
+  // shape) back into discovery_forms fields. Same pure-extraction contract as
+  // demand's parse-md — no DB write here, caller PUTs the result to /discovery/:id.
+  router.post('/discovery/parse-md', auth, express.text({ type: () => true, limit: '5mb' }), (req, res) => {
+    try {
+      const extracted = parseDiscoveryMarkdown(req.body || '');
+      res.json(extracted);
+    } catch (err) {
+      res.status(400).json({ error: err.message || 'Failed to parse Markdown' });
     }
   });
 

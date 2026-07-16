@@ -120,7 +120,8 @@ export function downloadMarkdown(filename: string, content: string) {
   downloadBlob(filename, new Blob([content], { type: 'text/markdown;charset=utf-8' }));
 }
 
-// Blank scaffold mirroring the Discovery Form's questions.
+// Blank scaffold matching the exact headings parseDiscoveryMarkdown() recognizes —
+// fill in the body under each heading and re-import via the Discovery Form's Import button.
 export const DISCOVERY_TEMPLATE_MARKDOWN = `# Discovery Form
 
 ## Their Process
@@ -133,6 +134,9 @@ export const DISCOVERY_TEMPLATE_MARKDOWN = `# Discovery Form
 
 
 ## Ideal Method
+
+
+## Your Interpretation
 `;
 
 // Blank scaffold matching the exact headings parseDemandMarkdown() recognizes —
