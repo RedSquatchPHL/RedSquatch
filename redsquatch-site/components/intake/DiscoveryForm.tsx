@@ -2,7 +2,10 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { API } from '@/lib/api';
-import { exportDiscoveryAsMarkdown, exportDiscoveryAsPdf, exportDiscoveryAsDocx, downloadMarkdown } from '@/lib/export-utils';
+import {
+  exportDiscoveryAsMarkdown, exportDiscoveryAsPdf, exportDiscoveryAsDocx,
+  downloadMarkdown, DISCOVERY_TEMPLATE_MARKDOWN,
+} from '@/lib/export-utils';
 import type { DiscoveryForm as DiscoveryFormType, DiscoveryCustomQuestion, DiscoveryStatus } from './types';
 import { DISCOVERY_STATUSES } from './types';
 
@@ -179,6 +182,7 @@ export default function DiscoveryForm({ groupId, onFormReady }: Props) {
   };
   const handleExportPdf = () => { if (form) exportDiscoveryAsPdf(form); };
   const handleExportDocx = () => { if (form) exportDiscoveryAsDocx(form); };
+  const handleDownloadTemplate = () => downloadMarkdown('discovery-form-template.md', DISCOVERY_TEMPLATE_MARKDOWN);
 
   if (loading) {
     return <div className="text-white/40 text-sm py-8 text-center">Loading discovery form...</div>;
@@ -192,7 +196,34 @@ export default function DiscoveryForm({ groupId, onFormReady }: Props) {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <h3 className="text-sm font-semibold uppercase tracking-wider text-[#d4a373]">Discovery Form</h3>
+        <div className="flex items-center gap-4 flex-wrap">
+          <h3 className="text-sm font-semibold tracking-wider text-[#d4a373]">Discovery Form</h3>
+          <button
+            onClick={handleDownloadTemplate}
+            title="Blank Markdown scaffold with the Discovery Form's questions"
+            className="text-xs border border-[rgba(184,115,51,0.3)] text-[#d4a373] hover:bg-[rgba(184,115,51,0.1)] px-3 py-1.5"
+          >
+            Download Template
+          </button>
+          <label className="flex items-center gap-1.5 text-xs text-white/60 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={form.intake_xlsx_given}
+              onChange={e => save({ intake_xlsx_given: e.target.checked })}
+              className="accent-[#d4a373]"
+            />
+            Intake XLSX Given?
+          </label>
+          <label className="flex items-center gap-1.5 text-xs text-white/60 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={form.intake_xlsx_received}
+              onChange={e => save({ intake_xlsx_received: e.target.checked })}
+              className="accent-[#d4a373]"
+            />
+            Intake XLSX Received?
+          </label>
+        </div>
         <div className="flex items-center gap-3">
           {saving && <span className="text-xs text-white/40">Saving...</span>}
           {!saving && savedAt && <span className="text-xs text-white/40">Saved</span>}
@@ -261,7 +292,7 @@ export default function DiscoveryForm({ groupId, onFormReady }: Props) {
 
       <div className="space-y-4 pt-2 border-t border-[rgba(184,115,51,0.2)]">
         <div className="flex items-center justify-between">
-          <h4 className="text-xs font-semibold uppercase tracking-wider text-[#d4a373]">Custom Questions</h4>
+          <h4 className="text-xs font-semibold tracking-wider text-[#d4a373]">Custom Questions</h4>
           <button
             onClick={addCustomQuestion}
             disabled={locked}
@@ -311,7 +342,7 @@ export default function DiscoveryForm({ groupId, onFormReady }: Props) {
             onClick={handleSaveForm}
             className="text-sm border border-[#d4a373] text-[#d4a373] hover:bg-[rgba(184,115,51,0.1)] px-4 py-1.5"
           >
-            Save Discovery Form
+            Save Form
           </button>
         </div>
       )}

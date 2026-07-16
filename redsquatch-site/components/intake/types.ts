@@ -37,6 +37,8 @@ export interface DiscoveryForm {
   ideal_method: string | null;
   your_interpretation: string | null;
   custom_questions: DiscoveryCustomQuestion[];
+  intake_xlsx_given: boolean;
+  intake_xlsx_received: boolean;
   status: DiscoveryStatus;
   created_at: string;
   updated_at: string;
@@ -46,13 +48,15 @@ export interface DemandForm {
   id: number;
   group_id: number;
   discovery_form_id: number | null;
+  description: string | null;
   business_case: string | null;
-  assumptions: string | null;
+  risk_of_performing: string | null;
+  risk_of_not_performing: string | null;
   enablers: string | null;
+  barriers: string | null;
   in_scope: string | null;
   out_of_scope: string | null;
-  barriers: string | null;
-  fixes: string | null;
+  assumptions: string | null;
   status: DemandStatus;
   created_at: string;
   updated_at: string;

@@ -24,7 +24,7 @@ export default function GroupsList({ groups, loading, selectedGroupId, onSelect,
   return (
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between px-4 py-3 border-b border-[rgba(184,115,51,0.2)]">
-        <h2 className="text-xs font-semibold uppercase tracking-wider text-[#d4a373]">Groups</h2>
+        <h2 className="text-xs font-semibold tracking-wider text-[#d4a373]">Groups</h2>
         <button
           onClick={onNew}
           className="text-xs px-2 py-1 bg-[rgba(184,115,51,0.2)] hover:bg-[rgba(184,115,51,0.35)] text-[#b87333] border border-[rgba(184,115,51,0.3)]"

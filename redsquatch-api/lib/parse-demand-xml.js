@@ -6,7 +6,8 @@
 // HTML) fields, not a list of individual tickets — there is no ticket-level
 // data to extract here, only the demand narrative itself.
 const FIELDS = [
-  'number', 'short_description', 'business_case', 'assumptions',
+  'number', 'description', 'business_case',
+  'risk_of_performing', 'risk_of_not_performing', 'assumptions',
   'enablers', 'in_scope', 'out_of_scope', 'barriers',
 ];
 

@@ -1,14 +1,15 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { API } from '@/lib/api';
 import GroupsList from '@/components/intake/GroupsList';
 import GroupForm from '@/components/intake/GroupForm';
 import DiscoveryForm from '@/components/intake/DiscoveryForm';
-import DemandForm from '@/components/intake/DemandForm';
+import DemandForm, { type DemandFormHandle } from '@/components/intake/DemandForm';
 import CopperPanel from '@/components/cenote/CopperPanel';
 import HeaderBrand from '@/components/cenote/HeaderBrand';
+import { DEMAND_TEMPLATE_MARKDOWN, downloadMarkdown } from '@/lib/export-utils';
 import type { WorkGroup, DiscoveryForm as DiscoveryFormType, GroupStatus } from '@/components/intake/types';
 
 export default function WSIntakePage() {
@@ -23,6 +24,9 @@ export default function WSIntakePage() {
   const [showGroupForm, setShowGroupForm] = useState(false);
   const [editingGroup, setEditingGroup] = useState<WorkGroup | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const demandFormRef = useRef<DemandFormHandle>(null);
+  const [demandImporting, setDemandImporting] = useState(false);
 
   useEffect(() => {
     fetch(`${API}/api/client/session`, { credentials: 'include' })
@@ -143,12 +147,38 @@ export default function WSIntakePage() {
                         <p className="text-white/40 text-sm mt-1">{selectedGroup.description}</p>
                       )}
                     </div>
-                    <button
-                      onClick={handleEditGroup}
-                      className="text-xs border border-[rgba(184,115,51,0.3)] text-[#d4a373] hover:bg-[rgba(184,115,51,0.1)] px-3 py-1.5"
-                    >
-                      Edit Group
-                    </button>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => downloadMarkdown('demand-form-template.md', DEMAND_TEMPLATE_MARKDOWN)}
+                        title="Blank Markdown scaffold with the headings the Import parser recognizes"
+                        className="text-xs border border-[rgba(184,115,51,0.3)] text-[#d4a373] hover:bg-[rgba(184,115,51,0.1)] px-3 py-1.5"
+                      >
+                        Download Template
+                      </button>
+                      <label
+                        title="Pre-fills the Demand Form from a ServiceNow dmn_demand XML export or a Demand Form Markdown export"
+                        className={`text-xs border border-[rgba(184,115,51,0.3)] text-[#d4a373] hover:bg-[rgba(184,115,51,0.1)] px-3 py-1.5 cursor-pointer ${demandImporting ? 'opacity-40 pointer-events-none' : ''}`}
+                      >
+                        {demandImporting ? 'Importing...' : 'Import'}
+                        <input
+                          type="file"
+                          accept=".xml,.md,text/xml,text/markdown"
+                          className="hidden"
+                          disabled={demandImporting}
+                          onChange={e => {
+                            const file = e.target.files?.[0];
+                            if (file) demandFormRef.current?.importFile(file);
+                            e.target.value = '';
+                          }}
+                        />
+                      </label>
+                      <button
+                        onClick={handleEditGroup}
+                        className="text-xs border border-[rgba(184,115,51,0.3)] text-[#d4a373] hover:bg-[rgba(184,115,51,0.1)] px-3 py-1.5"
+                      >
+                        Edit Group
+                      </button>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -156,7 +186,12 @@ export default function WSIntakePage() {
                       <DiscoveryForm groupId={selectedGroup.id} onFormReady={setCurrentDiscovery} />
                     </div>
                     <div>
-                      <DemandForm groupId={selectedGroup.id} discoveryForm={currentDiscovery} />
+                      <DemandForm
+                        ref={demandFormRef}
+                        groupId={selectedGroup.id}
+                        discoveryForm={currentDiscovery}
+                        onImportingChange={setDemandImporting}
+                      />
                     </div>
                   </div>
                 </div>

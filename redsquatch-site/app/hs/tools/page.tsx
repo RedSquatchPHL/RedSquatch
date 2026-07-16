@@ -48,6 +48,7 @@ export default function HSToolsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {([
             { key: 'stirling' as const,    label: 'Stirling-PDF', description: 'PDF tools & utilities (opens in new tab)',   kind: 'link' as const, url: 'https://pdf.redsquatch.com' },
+            { key: 'sleeplab' as const,    label: 'SleepLab',     description: 'CPAP therapy dashboard (opens in new tab)', kind: 'link' as const, url: 'https://sleep.redsquatch.com' },
             { key: 'menuplanner' as const, label: 'Menu Planner', description: 'Weekly meals & grocery list',                kind: 'applet' as const },
             { key: 'billplanner' as const, label: 'Bill Planner', description: 'Balances, recurring bills & BNPL',           kind: 'applet' as const },
           ]).map((t) => {

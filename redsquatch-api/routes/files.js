@@ -24,6 +24,10 @@ const SCHEMA_STATEMENTS = [
     created_at TIMESTAMPTZ DEFAULT NOW()
   )`,
   `CREATE INDEX IF NOT EXISTS idx_client_files_client_id ON client_files(client_id)`,
+  // Attachments (e.g. call transcripts) scoped to a specific Demand Form.
+  // NULL means it's a general personal file, not tied to any record.
+  `ALTER TABLE client_files ADD COLUMN IF NOT EXISTS demand_form_id INT REFERENCES demand_forms(id) ON DELETE CASCADE`,
+  `CREATE INDEX IF NOT EXISTS idx_client_files_demand_form_id ON client_files(demand_form_id)`,
 ];
 
 async function runMigrations(db) {
@@ -60,13 +64,13 @@ function makeRouter(db) {
     next();
   }
 
-  // GET / — list this client's files
+  // GET / — list this client's general (non-attachment) files
   router.get('/', auth, async (req, res) => {
     try {
       const clientId = await getClientId(db, req);
       const result = await db.query(
         `SELECT id, original_name, mime_type, size_bytes, created_at
-         FROM client_files WHERE client_id = $1 ORDER BY created_at DESC`,
+         FROM client_files WHERE client_id = $1 AND demand_form_id IS NULL ORDER BY created_at DESC`,
         [clientId]
       );
       res.json({ files: result.rows });
@@ -74,6 +78,51 @@ function makeRouter(db) {
       console.error('Files list error:', err.message);
       res.status(500).json({ error: 'Failed to list files' });
     }
+  });
+
+  // GET /demand/:demandFormId — list attachments (e.g. transcripts) for a Demand Form
+  router.get('/demand/:demandFormId', auth, async (req, res) => {
+    try {
+      const clientId = await getClientId(db, req);
+      const result = await db.query(
+        `SELECT id, original_name, mime_type, size_bytes, created_at
+         FROM client_files WHERE client_id = $1 AND demand_form_id = $2 ORDER BY created_at DESC`,
+        [clientId, req.params.demandFormId]
+      );
+      res.json({ files: result.rows });
+    } catch (err) {
+      console.error('Attachments list error:', err.message);
+      res.status(500).json({ error: 'Failed to list attachments' });
+    }
+  });
+
+  // POST /demand/:demandFormId — upload an attachment scoped to a Demand Form (field name: "file")
+  router.post('/demand/:demandFormId', auth, (req, res) => {
+    upload.single('file')(req, res, async (err) => {
+      if (err) {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+          return res.status(413).json({ error: 'File exceeds the 1GB limit' });
+        }
+        console.error('Upload error:', err.message);
+        return res.status(400).json({ error: 'Upload failed' });
+      }
+      if (!req.file) return res.status(400).json({ error: 'No file provided' });
+
+      try {
+        const clientId = await getClientId(db, req);
+        const result = await db.query(
+          `INSERT INTO client_files (client_id, original_name, stored_name, mime_type, size_bytes, demand_form_id)
+           VALUES ($1, $2, $3, $4, $5, $6)
+           RETURNING id, original_name, mime_type, size_bytes, created_at`,
+          [clientId, req.file.originalname, req.file.filename, req.file.mimetype, req.file.size, req.params.demandFormId]
+        );
+        res.status(201).json({ file: result.rows[0] });
+      } catch (dbErr) {
+        fs.unlink(req.file.path, () => {}); // don't leave an orphaned file if the DB write failed
+        console.error('Attachment record error:', dbErr.message);
+        res.status(500).json({ error: 'Failed to save attachment record' });
+      }
+    });
   });
 
   // POST / — upload a file (field name: "file")

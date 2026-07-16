@@ -2,6 +2,7 @@
 
 const express = require('express');
 const { parseDemandXml } = require('../lib/parse-demand-xml');
+const { parseDemandMarkdown } = require('../lib/parse-demand-md');
 
 // Intake + Groups MVP — discovery/demand forms grouped under work_groups.
 const SCHEMA_STATEMENTS = [
@@ -32,19 +33,22 @@ const SCHEMA_STATEMENTS = [
     updated_at           TIMESTAMP DEFAULT NOW()
   )`,
   `CREATE TABLE IF NOT EXISTS demand_forms (
-    id                 SERIAL PRIMARY KEY,
-    group_id           INT REFERENCES work_groups(id) ON DELETE CASCADE,
-    discovery_form_id  INT REFERENCES discovery_forms(id) ON DELETE SET NULL,
-    business_case      TEXT,
-    assumptions        TEXT,
-    enablers           TEXT,
-    in_scope           TEXT,
-    out_of_scope       TEXT,
-    barriers           TEXT,
-    fixes              TEXT,
-    status             VARCHAR(50) DEFAULT 'Draft',
-    created_at         TIMESTAMP DEFAULT NOW(),
-    updated_at         TIMESTAMP DEFAULT NOW()
+    id                      SERIAL PRIMARY KEY,
+    group_id                INT REFERENCES work_groups(id) ON DELETE CASCADE,
+    discovery_form_id       INT REFERENCES discovery_forms(id) ON DELETE SET NULL,
+    description             TEXT,
+    business_case           TEXT,
+    risk_of_performing      TEXT,
+    risk_of_not_performing  TEXT,
+    assumptions             TEXT,
+    enablers                TEXT,
+    in_scope                TEXT,
+    out_of_scope            TEXT,
+    barriers                TEXT,
+    fixes                   TEXT,
+    status                  VARCHAR(50) DEFAULT 'Draft',
+    created_at              TIMESTAMP DEFAULT NOW(),
+    updated_at              TIMESTAMP DEFAULT NOW()
   )`,
   `CREATE TABLE IF NOT EXISTS work_group_contents (
     id            SERIAL PRIMARY KEY,
@@ -62,6 +66,11 @@ const SCHEMA_STATEMENTS = [
   )`,
   `ALTER TABLE work_items ADD COLUMN IF NOT EXISTS group_id INT REFERENCES work_groups(id) ON DELETE SET NULL`,
   `ALTER TABLE discovery_forms ADD COLUMN IF NOT EXISTS custom_questions JSONB DEFAULT '[]'::jsonb`,
+  `ALTER TABLE demand_forms ADD COLUMN IF NOT EXISTS description TEXT`,
+  `ALTER TABLE demand_forms ADD COLUMN IF NOT EXISTS risk_of_performing TEXT`,
+  `ALTER TABLE demand_forms ADD COLUMN IF NOT EXISTS risk_of_not_performing TEXT`,
+  `ALTER TABLE discovery_forms ADD COLUMN IF NOT EXISTS intake_xlsx_given BOOLEAN DEFAULT FALSE`,
+  `ALTER TABLE discovery_forms ADD COLUMN IF NOT EXISTS intake_xlsx_received BOOLEAN DEFAULT FALSE`,
   `CREATE INDEX IF NOT EXISTS idx_work_groups_status ON work_groups(status)`,
   `CREATE INDEX IF NOT EXISTS idx_discovery_forms_group ON discovery_forms(group_id)`,
   `CREATE INDEX IF NOT EXISTS idx_demand_forms_group ON demand_forms(group_id)`,
@@ -113,14 +122,23 @@ function demandMarkdown(form, discovery) {
 **Status:** ${form.status}
 ${discovery ? `**From Discovery:** ${discovery.snwr_number || '—'}` : ''}
 
+## Description
+${form.description || ''}
+
 ## Business Case
 ${form.business_case || ''}
 
-## Assumptions
-${form.assumptions || ''}
+## Risk of Performing
+${form.risk_of_performing || ''}
+
+## Risk of Not Performing
+${form.risk_of_not_performing || ''}
 
 ## Enablers
 ${form.enablers || ''}
+
+## Barriers
+${form.barriers || ''}
 
 ## In Scope
 ${form.in_scope || ''}
@@ -128,11 +146,8 @@ ${form.in_scope || ''}
 ## Out of Scope
 ${form.out_of_scope || ''}
 
-## Barriers
-${form.barriers || ''}
-
-## Fixes
-${form.fixes || ''}
+## Assumptions
+${form.assumptions || ''}
 
 ---
 *Generated: ${new Date().toISOString()}*
@@ -369,7 +384,7 @@ function makeRouter(db) {
       const fields = [
         'snwr_number', 'requester_name', 'requester_dept', 'their_process',
         'expected_outcome', 'pain_points', 'ideal_method', 'your_interpretation',
-        'custom_questions', 'status',
+        'custom_questions', 'status', 'intake_xlsx_given', 'intake_xlsx_received',
       ];
       const cols = [];
       const values = [];
@@ -423,18 +438,21 @@ function makeRouter(db) {
         return res.status(404).json({ error: 'Group not found' });
       }
       const {
-        discovery_form_id, business_case, assumptions, enablers,
-        in_scope, out_of_scope, barriers, fixes,
+        discovery_form_id, description, business_case,
+        risk_of_performing, risk_of_not_performing,
+        assumptions, enablers, in_scope, out_of_scope, barriers,
       } = req.body || {};
       const result = await db.query(
         `INSERT INTO demand_forms
-           (group_id, discovery_form_id, business_case, assumptions, enablers, in_scope, out_of_scope, barriers, fixes)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+           (group_id, discovery_form_id, description, business_case, risk_of_performing,
+            risk_of_not_performing, assumptions, enablers, in_scope, out_of_scope, barriers)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
          RETURNING *`,
         [
-          req.params.id, discovery_form_id ?? null,
-          business_case ?? null, assumptions ?? null, enablers ?? null,
-          in_scope ?? null, out_of_scope ?? null, barriers ?? null, fixes ?? null,
+          req.params.id, discovery_form_id ?? null, description ?? null,
+          business_case ?? null, risk_of_performing ?? null, risk_of_not_performing ?? null,
+          assumptions ?? null, enablers ?? null,
+          in_scope ?? null, out_of_scope ?? null, barriers ?? null,
         ]
       );
       res.status(201).json(result.rows[0]);
@@ -460,8 +478,9 @@ function makeRouter(db) {
   router.put('/demand/:id', auth, async (req, res) => {
     try {
       const fields = [
-        'discovery_form_id', 'business_case', 'assumptions', 'enablers',
-        'in_scope', 'out_of_scope', 'barriers', 'fixes', 'status',
+        'discovery_form_id', 'description', 'business_case',
+        'risk_of_performing', 'risk_of_not_performing',
+        'assumptions', 'enablers', 'in_scope', 'out_of_scope', 'barriers', 'status',
       ];
       const cols = [];
       const values = [];
@@ -500,6 +519,17 @@ function makeRouter(db) {
       res.json(extracted);
     } catch (err) {
       res.status(400).json({ error: err.message || 'Failed to parse XML' });
+    }
+  });
+
+  // Parses a Demand Form Markdown export (our own exportDemandAsMarkdown shape)
+  // back into demand_forms fields. Same pure-extraction contract as parse-xml.
+  router.post('/demand/parse-md', auth, express.text({ type: () => true, limit: '5mb' }), (req, res) => {
+    try {
+      const extracted = parseDemandMarkdown(req.body || '');
+      res.json(extracted);
+    } catch (err) {
+      res.status(400).json({ error: err.message || 'Failed to parse Markdown' });
     }
   });
 

@@ -14,13 +14,15 @@ const discoverySections = (form: DiscoveryForm): Section[] => [
 ];
 
 const demandSections = (form: DemandForm): Section[] => [
+  { heading: 'Description', body: form.description || '' },
   { heading: 'Business Case', body: form.business_case || '' },
-  { heading: 'Assumptions', body: form.assumptions || '' },
+  { heading: 'Risk of Performing', body: form.risk_of_performing || '' },
+  { heading: 'Risk of Not Performing', body: form.risk_of_not_performing || '' },
   { heading: 'Enablers', body: form.enablers || '' },
+  { heading: 'Barriers', body: form.barriers || '' },
   { heading: 'In Scope', body: form.in_scope || '' },
   { heading: 'Out of Scope', body: form.out_of_scope || '' },
-  { heading: 'Barriers', body: form.barriers || '' },
-  { heading: 'Fixes', body: form.fixes || '' },
+  { heading: 'Assumptions', body: form.assumptions || '' },
 ];
 
 export const exportDiscoveryAsMarkdown = (form: DiscoveryForm): string => {
@@ -59,14 +61,23 @@ export const exportDemandAsMarkdown = (form: DemandForm, discovery?: DiscoveryFo
 **Status:** ${form.status}
 ${discovery ? `**From Discovery:** ${discovery.snwr_number || '—'}` : ''}
 
+## Description
+${form.description || ''}
+
 ## Business Case
 ${form.business_case || ''}
 
-## Assumptions
-${form.assumptions || ''}
+## Risk of Performing
+${form.risk_of_performing || ''}
+
+## Risk of Not Performing
+${form.risk_of_not_performing || ''}
 
 ## Enablers
 ${form.enablers || ''}
+
+## Barriers
+${form.barriers || ''}
 
 ## In Scope
 ${form.in_scope || ''}
@@ -74,11 +85,8 @@ ${form.in_scope || ''}
 ## Out of Scope
 ${form.out_of_scope || ''}
 
-## Barriers
-${form.barriers || ''}
-
-## Fixes
-${form.fixes || ''}
+## Assumptions
+${form.assumptions || ''}
 
 ---
 *Generated: ${new Date().toISOString()}*
@@ -111,6 +119,52 @@ ${section}
 export function downloadMarkdown(filename: string, content: string) {
   downloadBlob(filename, new Blob([content], { type: 'text/markdown;charset=utf-8' }));
 }
+
+// Blank scaffold mirroring the Discovery Form's questions.
+export const DISCOVERY_TEMPLATE_MARKDOWN = `# Discovery Form
+
+## Their Process
+
+
+## Expected Outcome
+
+
+## Pain Points
+
+
+## Ideal Method
+`;
+
+// Blank scaffold matching the exact headings parseDemandMarkdown() recognizes —
+// fill in the body under each heading and re-import via the Demand Form's Import button.
+export const DEMAND_TEMPLATE_MARKDOWN = `# Demand Form
+
+## Description
+
+
+## Business Case
+
+
+## Risk of Performing
+
+
+## Risk of Not Performing
+
+
+## Enablers
+
+
+## Barriers
+
+
+## In Scope
+
+
+## Out of Scope
+
+
+## Assumptions
+`;
 
 function downloadBlob(filename: string, blob: Blob) {
   const url = URL.createObjectURL(blob);
