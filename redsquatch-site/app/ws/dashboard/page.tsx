@@ -79,10 +79,9 @@ export default function WSDashboardPage() {
         const workData = await workRes.json().catch(() => ({ items: [] }));
         setGoals(goalsData.goals ?? []);
         setWorkItems(workData.items ?? []);
+        setLoading(false);
       } catch {
         router.push('/');
-      } finally {
-        setLoading(false);
       }
     })();
   }, [router]);

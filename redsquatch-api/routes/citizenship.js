@@ -3,26 +3,50 @@
 // Canonical document definition — one entry per document TYPE. Each type expands to
 // `copies` independent rows (one per physical/digital copy) since the UI tracks each
 // copy's status separately (e.g. Copy 1 obtained, Copy 2 still pending scan).
+//
+// Structure follows the actual lineage chain for the citizenship claim:
+//   1. me_mother          — the first linkage: Darryl's own BC, then his mother's
+//                           BC and marriage certificate(s).
+//   2. maternal_grandmother — Carolyn N. Gomez's BC and DC.
+//   3. maternal_ggp       — Carolyn's parents, Benito & Virginia Gomez (BC/DC each).
+//   4. paternal_grandfather — just his BC; born in Mexico so the paper trail is
+//                           shorter, but he's still living, which is why the
+//                           Pedro Fan Tracker applet exists (locating/confirming
+//                           records for a living relative is a different kind of
+//                           search than archival grandparent records).
+//   5. apostilles         — final notarization step, unchanged.
+//
+// `originalRetained: true` marks the only documents where Darryl keeps the
+// physical original — everything else is scan-only (per his note that
+// originals are only retained for his own vital records and the apostilles).
 const CITIZENSHIP_DOCUMENTS = [
-  { docId: 'me-bc', title: 'Birth Certificate', category: 'me', copies: 2 },
+  { docId: 'me-bc', title: 'My Birth Certificate', category: 'me_mother', copies: 2, originalRetained: true },
+  { docId: 'mother-bc', title: 'Mother’s Birth Certificate', category: 'me_mother', copies: 2 },
+  { docId: 'mother-mc', title: 'Mother’s Marriage Certificate(s)', category: 'me_mother', copies: 2 },
 
-  { docId: 'parent-bc', title: 'Parent Birth Certificate', category: 'parent', copies: 2 },
-  { docId: 'parent-mc', title: 'Parent Marriage Certificate', category: 'parent', copies: 2 },
+  { docId: 'mgm-bc', title: 'Carolyn N. Gomez — Birth Certificate', category: 'maternal_grandmother', copies: 2 },
+  { docId: 'mgm-dc', title: 'Carolyn N. Gomez — Death Certificate', category: 'maternal_grandmother', copies: 2 },
 
-  { docId: 'mgp-bc', title: 'Maternal Grandparent Birth Certificate', category: 'maternal_gp', copies: 2 },
-  { docId: 'mgp-dc', title: 'Maternal Grandparent Death Certificate', category: 'maternal_gp', copies: 2 },
-  { docId: 'mgp-mc', title: 'Maternal Grandparent Marriage Certificate', category: 'maternal_gp', copies: 2 },
+  { docId: 'benito-bc', title: 'Benito Gomez — Birth Certificate', category: 'maternal_ggp', copies: 2 },
+  { docId: 'benito-dc', title: 'Benito Gomez — Death Certificate', category: 'maternal_ggp', copies: 2 },
+  { docId: 'virginia-bc', title: 'Virginia Gomez — Birth Certificate', category: 'maternal_ggp', copies: 2 },
+  { docId: 'virginia-dc', title: 'Virginia Gomez — Death Certificate', category: 'maternal_ggp', copies: 2 },
 
-  { docId: 'pgp-bc', title: 'Paternal Grandparent Birth Certificate', category: 'paternal_gp', copies: 2 },
-  { docId: 'pgp-dc', title: 'Paternal Grandparent Death Certificate', category: 'paternal_gp', copies: 2 },
-  { docId: 'pgp-mc', title: 'Paternal Grandparent Marriage Certificate', category: 'paternal_gp', copies: 2 },
+  { docId: 'pgf-bc', title: 'Paternal Grandfather — Birth Certificate (Mexico)', category: 'paternal_grandfather', copies: 2 },
 
-  { docId: 'ggp-bc', title: 'Great-Grandparent Birth Certificate', category: 'great_gp', copies: 2 },
-  { docId: 'ggp-dc', title: 'Great-Grandparent Death Certificate', category: 'great_gp', copies: 2 },
-  { docId: 'ggp-mc', title: 'Great-Grandparent Marriage Certificate', category: 'great_gp', copies: 2 },
+  { docId: 'apos-us-my-bc', title: 'US Birth Certificate Apostille (My copy)', category: 'apostilles', copies: 1, originalRetained: true },
+  { docId: 'apos-us-other', title: 'US Document Apostille (Other)', category: 'apostilles', copies: 1, originalRetained: true },
+];
 
-  { docId: 'apos-us-my-bc', title: 'US Birth Certificate Apostille (My copy)', category: 'apostilles', copies: 1 },
-  { docId: 'apos-us-other', title: 'US Document Apostille (Other)', category: 'apostilles', copies: 1 },
+// Old doc_ids from the previous generic (me/parent/maternal_gp/paternal_gp/great_gp)
+// structure. Confirmed on 2026-07-23 that every one of these rows was still
+// `not_started` with no storage_location/scan_url/notes, so deleting them during
+// migration loses nothing — it just clears out rows the new canonical list replaces.
+const RETIRED_DOC_IDS = [
+  'parent-bc', 'parent-mc',
+  'mgp-bc', 'mgp-dc', 'mgp-mc',
+  'pgp-bc', 'pgp-dc', 'pgp-mc',
+  'ggp-bc', 'ggp-dc', 'ggp-mc',
 ];
 
 const SCHEMA_STATEMENTS = [
@@ -48,7 +72,25 @@ async function runMigrations(db) {
   for (const sql of SCHEMA_STATEMENTS) {
     await db.query(sql);
   }
+  await db.query(
+    `DELETE FROM citizenship_documents WHERE doc_id = ANY($1::text[])`,
+    [RETIRED_DOC_IDS]
+  );
+  // Seeding only INSERTs missing rows (ON CONFLICT DO NOTHING), so a doc_id that
+  // survives across a re-categorization (e.g. me-bc: 'me' -> 'me_mother') needs its
+  // category/title synced explicitly here — otherwise it keeps stale values forever
+  // while status/storage_location/scan_url/notes are left untouched.
+  for (const doc of CITIZENSHIP_DOCUMENTS) {
+    await db.query(
+      `UPDATE citizenship_documents SET category = $1, title = $2 WHERE doc_id = $3`,
+      [doc.category, doc.title, doc.docId]
+    );
+  }
 }
+
+const ORIGINAL_RETAINED_DOC_IDS = new Set(
+  CITIZENSHIP_DOCUMENTS.filter(d => d.originalRetained).map(d => d.docId)
+);
 
 async function getClientId(db, req) {
   const username = req.session?.user?.username;
@@ -95,7 +137,11 @@ function makeRouter(db) {
          ORDER BY category, doc_id, copy_number`,
         [clientId]
       );
-      res.json({ documents: result.rows });
+      const documents = result.rows.map(row => ({
+        ...row,
+        original_retained: ORIGINAL_RETAINED_DOC_IDS.has(row.doc_id),
+      }));
+      res.json({ documents });
     } catch (err) {
       console.error('Citizenship fetch error:', err.message);
       res.status(500).json({ error: 'Failed to fetch citizenship documents' });

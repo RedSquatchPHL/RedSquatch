@@ -9,16 +9,17 @@ const { Pool } = require('pg');
 const path = require('path');
 const fs = require('fs');
 const { scrapeAll } = require('./sports-scraper');
-const { runMigrations, makeRouter: makeWorkItemsRouter } = require('./routes/work-items');
+const { runMigrations: runWorkCardsMigrations, makeRouter: makeWorkCardsRouter } = require('./routes/work-cards');
 const { runMigrations: runResearchMigrations, makeRouter: makeResearchRouter } = require('./routes/research');
 const { runMigrations: runNotesMigrations, makeRouter: makeNotesRouter } = require('./routes/notes');
 const { runMigrations: runMealsMigrations, makeRouter: makeMealsRouter } = require('./routes/meals');
 const { runMigrations: runSpanishMigrations, makeRouter: makeSpanishRouter } = require('./routes/spanish');
 const { runMigrations: runBillsMigrations, makeRouter: makeBillsRouter } = require('./routes/bills');
 const { runMigrations: runIntakeMigrations, makeRouter: makeIntakeRouter } = require('./routes/intake');
-const { runMigrations: runWorkJournalMigrations, makeRouter: makeWorkJournalRouter } = require('./routes/work-journal');
 const { runMigrations: runCitizenshipMigrations, makeRouter: makeCitizenshipRouter } = require('./routes/citizenship');
+const { runMigrations: runFanTrackerMigrations, makeRouter: makeFanTrackerRouter } = require('./routes/fan-tracker');
 const { runMigrations: runFilesMigrations, makeRouter: makeFilesRouter } = require('./routes/files');
+const { makeRouter: makePricesRouter } = require('./routes/prices');
 
 const SPORTS_FILE = path.join(__dirname, 'public', 'sports.json');
 
@@ -86,7 +87,7 @@ app.use(session({
 async function cleanupStaleSessions() {
   try {
     const result = await db.query(
-      `DELETE FROM session WHERE data NOT LIKE '%"user"%' AND expire < NOW() + INTERVAL '1 hour'`
+      `DELETE FROM session WHERE sess->'user' IS NULL AND expire < NOW() + INTERVAL '1 hour'`
     );
     if (result.rowCount > 0) {
       console.log(`[SESSION-CLEANUP] Removed ${result.rowCount} stale sessions`);
@@ -98,6 +99,33 @@ async function cleanupStaleSessions() {
 
 // Run cleanup every 30 minutes
 setInterval(cleanupStaleSessions, 30 * 60 * 1000);
+
+// Daily reset of work-card Done/Follow-Up state at local (America/New_York) midnight —
+// matches the "Eastern Daylight Time" timestamps ServiceNow puts on the source report.
+// Checked every 5 minutes rather than precisely timed to midnight; the reset log's
+// last_reset_date guard makes repeat calls on the same NY calendar day a safe no-op,
+// so drift/restarts can't cause a double-reset or a skipped one (Backburner is
+// deliberately left untouched — it persists until manually toggled off).
+async function resetDailyWorkCards() {
+  try {
+    const nyDateStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date());
+    const { rows } = await db.query(
+      `INSERT INTO work_cards_reset_log (id, last_reset_date) VALUES (1, $1)
+       ON CONFLICT (id) DO UPDATE SET last_reset_date = $1
+       WHERE work_cards_reset_log.last_reset_date IS DISTINCT FROM $1
+       RETURNING last_reset_date`,
+      [nyDateStr]
+    );
+    if (rows.length === 0) return; // already reset for today
+
+    const result = await db.query(`UPDATE work_cards SET done = false, follow_up_at = NULL`);
+    console.log(`[WORK-CARDS-RESET] Reset ${result.rowCount} card(s) for ${nyDateStr}`);
+  } catch (err) {
+    console.error('[WORK-CARDS-RESET-ERROR]', err.message);
+  }
+}
+
+setInterval(resetDailyWorkCards, 5 * 60 * 1000);
 
 const DISPLAY_NAMES = {
   acme_client: 'Darryl'
@@ -991,7 +1019,7 @@ app.post('/api/client/sports/refresh', requireAuth, async (req, res) => {
 
 // ============ WORK ITEMS ============
 
-app.use('/api/client/work-items', makeWorkItemsRouter(db));
+app.use('/api/client/work-cards', makeWorkCardsRouter(db));
 app.use('/api/client/research', makeResearchRouter(db));
 app.use('/api/client/notes', makeNotesRouter(db));
 app.use('/api/client/meals', makeMealsRouter(db));
@@ -999,8 +1027,9 @@ app.use('/api/client/spanish', makeSpanishRouter(db));
 app.use('/api/client/bills', makeBillsRouter(db));
 app.use('/api/client/files', makeFilesRouter(db));
 app.use('/api/client/citizenship', makeCitizenshipRouter(db));
+app.use('/api/client/fan-tracker', makeFanTrackerRouter(db));
 app.use('/api/client', makeIntakeRouter(db));
-app.use('/api/client', makeWorkJournalRouter(db));
+app.use('/api/client/prices', makePricesRouter());
 
 // ============ TOOLS ============
 
@@ -1051,15 +1080,15 @@ async function initializeApp() {
     console.log('✓ PostgreSQL connected');
 
     // Run idempotent schema migrations
-    await runMigrations(db);
+    await runWorkCardsMigrations(db);
     await runResearchMigrations(db);
     await runNotesMigrations(db);
     await runMealsMigrations(db);
     await runSpanishMigrations(db);
     await runBillsMigrations(db);
     await runIntakeMigrations(db);
-    await runWorkJournalMigrations(db);
     await runCitizenshipMigrations(db);
+    await runFanTrackerMigrations(db);
     await runFilesMigrations(db);
 
     app.listen(PORT, () => {

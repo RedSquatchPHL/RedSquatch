@@ -7,6 +7,7 @@ import DevelopmentWidget from '@/components/DevelopmentWidget';
 import FileTransferPanel from '@/components/FileTransferPanel';
 import CopperPanel from '@/components/cenote/CopperPanel';
 import HeaderBrand from '@/components/cenote/HeaderBrand';
+import BookLibrary from '@/components/BookLibrary';
 
 export default function WSToolsPage() {
   const [loading, setLoading] = useState(true);
@@ -18,10 +19,9 @@ export default function WSToolsPage() {
         const res  = await fetch(`${API}/api/client/session`, { credentials: 'include' });
         const data = await res.json();
         if (!res.ok || !data.authenticated) { router.push('/login'); return; }
+        setLoading(false);
       } catch {
         router.push('/login');
-      } finally {
-        setLoading(false);
       }
     })();
   }, [router]);
@@ -49,6 +49,10 @@ export default function WSToolsPage() {
 
         <CopperPanel title="Files" subtitle="Personal document transfer, up to 1GB per file.">
           <FileTransferPanel />
+        </CopperPanel>
+
+        <CopperPanel title="Library" subtitle="A shelf of ebooks, browsable page by page.">
+          <BookLibrary />
         </CopperPanel>
       </div>
     </div>

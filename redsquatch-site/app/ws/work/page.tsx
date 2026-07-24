@@ -1,186 +1,224 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { API } from '@/lib/api';
-import WorkItemsTable, { WorkItem, WorkGroupOption } from '@/components/WorkItemsTable';
-import WorkItemsTree, { Relationship } from '@/components/WorkItemsTree';
-import WorkItemImportButton from '@/components/WorkItemImportButton';
-import FilterPills from '@/components/FilterPills';
-import CollapsibleFilterGroup from '@/components/CollapsibleFilterGroup';
-import JournalPanel from '@/components/JournalPanel';
+import WorkCardCarousel from '@/components/WorkCardCarousel';
+import BackburnerPanel from '@/components/BackburnerPanel';
+import DoneListPanel from '@/components/DoneListPanel';
+import WorkCardJournalPanel from '@/components/WorkCardJournalPanel';
+import TimerTray from '@/components/TimerTray';
+import WorkCardUploadButton, { ImportResult } from '@/components/WorkCardUploadButton';
 import HeaderBrand from '@/components/cenote/HeaderBrand';
+import type { WorkCard } from '@/components/WorkCard';
 import styles from '@/styles/work.module.css';
 
-const TYPE_LABELS: Record<string, string> = {
-  DFCT: 'Defect',
-  ENHC: 'Enhancement',
-  RLSE: 'Release',
-  SNWR: 'ServiceNow Request',
-  STRY: 'Story',
-  STSK: 'Scrum Task',
-};
-
-// Status is freeform text from the ServiceNow import (no fixed vocabulary), so match
-// loosely rather than against one exact literal — catches "Closed", "Closed - Complete", etc.
-function isClosed(item: WorkItem) {
-  return (item.status ?? '').toLowerCase().includes('closed');
-}
-
-export default function WorkItemsPage() {
+export default function WorkCardsPage() {
   const [checking, setChecking] = useState(true);
-  const [items, setItems] = useState<WorkItem[]>([]);
-  const [groups, setGroups] = useState<WorkGroupOption[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  const [typeFilter, setTypeFilter] = useState<string | null>(null);
-  const [statusFilter, setStatusFilter] = useState<string | null>(null);
-  const [priorityFilter, setPriorityFilter] = useState<string | null>(null);
-  const [journalItem, setJournalItem] = useState<WorkItem | null>(null);
-  const [relationships, setRelationships] = useState<Relationship[]>([]);
-  const [viewMode, setViewMode] = useState<'table' | 'tree' | 'archive'>('table');
-  const [expandedFilters, setExpandedFilters] = useState<Set<string>>(new Set());
+  const [cards, setCards] = useState<WorkCard[]>([]);
+  const [order, setOrder] = useState<number[]>([]);
+  const [focalId, setFocalId] = useState<number | null>(null);
+  const [importResult, setImportResult] = useState<ImportResult | null>(null);
+  const [journalCardId, setJournalCardId] = useState<number | null>(null);
+  const [now, setNow] = useState(() => Date.now());
+  const firedRef = useRef<Set<number>>(new Set());
   const router = useRouter();
-
-  function toggleExpanded(key: string) {
-    setExpandedFilters(prev => {
-      const next = new Set(prev);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
-      return next;
-    });
-  }
 
   useEffect(() => {
     fetch(`${API}/api/client/session`, { credentials: 'include' })
       .then(r => r.json())
       .then(data => {
-        if (!data.authenticated) router.push('/');
+        if (!data.authenticated) { router.push('/'); return; }
+        setChecking(false);
       })
-      .catch(() => router.push('/'))
-      .finally(() => setChecking(false));
+      .catch(() => router.push('/'));
   }, [router]);
 
-  async function loadItems() {
-    setLoading(true);
-    try {
-      const res = await fetch(`${API}/api/client/work-items`, { credentials: 'include' });
+  async function loadCards() {
+    const res = await fetch(`${API}/api/client/work-cards`, { credentials: 'include' });
+    if (res.ok) {
       const data = await res.json();
-      setItems(data.items ?? []);
-      setLastUpdated(new Date());
-    } finally {
-      setLoading(false);
+      setCards(data.cards ?? []);
     }
-  }
-
-  async function loadGroups() {
-    const res = await fetch(`${API}/api/client/groups`, { credentials: 'include' });
-    if (res.ok) setGroups(await res.json());
-  }
-
-  async function loadRelationships() {
-    const res = await fetch(`${API}/api/client/work-items/relationships`, { credentials: 'include' });
-    if (res.ok) setRelationships(await res.json());
   }
 
   useEffect(() => {
-    if (!checking) {
-      loadItems();
-      loadGroups();
-      loadRelationships();
-    }
+    if (checking) return;
+    loadCards();
+    const poll = setInterval(loadCards, 60000);
+    return () => clearInterval(poll);
   }, [checking]);
 
-  async function handleLinkRelationship(parentId: number, childId: number) {
-    await fetch(`${API}/api/client/work-items/relationships`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ parent_id: parentId, child_id: childId }),
-    });
-    loadRelationships();
-  }
+  // Single shared clock — every countdown (card badges, timer tray) derives its
+  // remaining time from this plus each card's server-authoritative follow_up_at,
+  // so a page reload just recomputes correctly instead of losing state.
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
 
-  async function handleUnlinkRelationship(relationshipId: number) {
-    await fetch(`${API}/api/client/work-items/relationships/${relationshipId}`, {
-      method: 'DELETE',
-      credentials: 'include',
-    });
-    loadRelationships();
-  }
-
-  const { types, statuses, priorities } = useMemo(() => {
-    const types = new Set<string>();
-    const statuses = new Set<string>();
-    const priorities = new Set<string>();
-    for (const item of items) {
-      types.add(item.type);
-      statuses.add(item.status);
-      priorities.add(item.priority);
+  // Done cards move out to the left-hand list; Backburner cards move out to the
+  // right-hand list. Only cards in neither state occupy the carousel.
+  const activeCards = useMemo(
+    () => cards.filter(c => !c.backburner && !c.done).sort((a, b) => a.ticket_number.localeCompare(b.ticket_number)),
+    [cards]
+  );
+  const backburnerCards = useMemo(() => cards.filter(c => c.backburner), [cards]);
+  const doneCards = useMemo(() => cards.filter(c => c.done), [cards]);
+  const pendingFollowUps = useMemo(() => cards.filter(c => c.follow_up_at != null), [cards]);
+  const dueIds = useMemo(() => {
+    const s = new Set<number>();
+    for (const c of cards) {
+      if (c.follow_up_at && new Date(c.follow_up_at).getTime() <= now) s.add(c.id);
     }
-    return {
-      types: Array.from(types).sort(),
-      statuses: Array.from(statuses).sort(),
-      priorities: Array.from(priorities).sort(),
-    };
-  }, [items]);
+    return s;
+  }, [cards, now]);
 
-  const filtered = useMemo(() => {
-    return items.filter(item =>
-      !isClosed(item) &&
-      (!typeFilter || item.type === typeFilter) &&
-      (!statusFilter || item.status === statusFilter) &&
-      (!priorityFilter || item.priority === priorityFilter)
-    );
-  }, [items, typeFilter, statusFilter, priorityFilter]);
+  // Keep the manual carousel order stable across data refreshes: cards still active
+  // keep their current position (so a due-triggered reorder below survives a poll),
+  // newly-appeared ones (fresh import, or just restored from Done/Backburner) land
+  // at the end.
+  useEffect(() => {
+    setOrder(prevOrder => {
+      const activeIds = activeCards.map(c => c.id);
+      const activeIdSet = new Set(activeIds);
+      const kept = prevOrder.filter(id => activeIdSet.has(id));
+      const keptSet = new Set(kept);
+      const missing = activeIds.filter(id => !keptSet.has(id));
+      return [...kept, ...missing];
+    });
+  }, [activeCards]);
 
-  const closedItems = useMemo(() => items.filter(isClosed), [items]);
+  // When a follow-up timer fires, splice that card to just after the current focal
+  // position (per spec: pulse + jump-to-next-in-queue, not a toast). firedRef stops
+  // this from re-splicing on every clock tick once a card has already been surfaced.
+  useEffect(() => {
+    const newlyDue: number[] = [];
+    for (const c of cards) {
+      const isDue = !!c.follow_up_at && new Date(c.follow_up_at).getTime() <= now;
+      if (isDue && !firedRef.current.has(c.id)) {
+        newlyDue.push(c.id);
+        firedRef.current.add(c.id);
+      } else if (!isDue) {
+        firedRef.current.delete(c.id);
+      }
+    }
+    if (newlyDue.length === 0) return;
+    setOrder(prev => {
+      const next = prev.filter(id => !newlyDue.includes(id));
+      const focalIdx = focalId != null ? next.indexOf(focalId) : -1;
+      const insertAt = focalIdx >= 0 ? focalIdx + 1 : 0;
+      next.splice(insertAt, 0, ...newlyDue);
+      return next;
+    });
+  }, [cards, now, focalId]);
 
-  async function handleUpdateSubmitter(id: number, submitter: string) {
-    setItems(prev => prev.map(i => (i.id === id ? { ...i, submitter } : i)));
-    await fetch(`${API}/api/client/work-items/${id}`, {
+  const cardsById = useMemo(() => new Map(cards.map(c => [c.id, c])), [cards]);
+  const orderedActiveCards = useMemo(
+    () => order.map(id => cardsById.get(id)).filter((c): c is WorkCard => !!c),
+    [order, cardsById]
+  );
+
+  // Seed/repair the focal card whenever it's unset or has drifted out of the active pool.
+  useEffect(() => {
+    if (focalId != null && orderedActiveCards.some(c => c.id === focalId)) return;
+    setFocalId(orderedActiveCards[0]?.id ?? null);
+  }, [orderedActiveCards, focalId]);
+
+  async function patchCard(id: number, body: Record<string, unknown>) {
+    const res = await fetch(`${API}/api/client/work-cards/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({ submitter }),
+      body: JSON.stringify(body),
     });
-    setLastUpdated(new Date());
+    if (res.ok) {
+      const updated = await res.json();
+      setCards(prev => prev.map(c => (c.id === id ? updated : c)));
+    }
   }
 
-  async function handleUpdateGroup(id: number, groupId: number | null) {
-    setItems(prev => prev.map(i => (i.id === id ? { ...i, group_id: groupId } : i)));
-    await fetch(`${API}/api/client/work-items/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ group_id: groupId }),
+  // Shared by Done/Backburner toggling on: when a card leaves the active pool, hand
+  // focus to whatever's next in the carousel order rather than leaving it dangling.
+  function advanceFocalAwayFrom(id: number) {
+    setFocalId(prevFocal => {
+      if (prevFocal !== id) return prevFocal;
+      const idx = order.indexOf(id);
+      const remaining = order.filter(oid => oid !== id);
+      return remaining.length === 0 ? null : remaining[Math.min(idx, remaining.length - 1)];
     });
-    setLastUpdated(new Date());
   }
 
-  async function handleUpdateStatus(id: number, status: string) {
-    setItems(prev => prev.map(i => (i.id === id ? { ...i, status } : i)));
-    await fetch(`${API}/api/client/work-items/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ status }),
-    });
-    setLastUpdated(new Date());
+  function handleToggleDone(id: number) {
+    const card = cards.find(c => c.id === id);
+    if (!card) return;
+    const next = !card.done;
+    setCards(prev => prev.map(c => (c.id === id ? { ...c, done: next } : c)));
+    patchCard(id, { done: next });
+    if (next) advanceFocalAwayFrom(id);
   }
 
-  async function handleDelete(id: number) {
-    setItems(prev => prev.filter(i => i.id !== id));
-    await fetch(`${API}/api/client/work-items/${id}`, {
-      method: 'DELETE',
-      credentials: 'include',
-    });
-    setLastUpdated(new Date());
+  function handleToggleBackburner(id: number) {
+    const card = cards.find(c => c.id === id);
+    if (!card) return;
+    const next = !card.backburner;
+    setCards(prev => prev.map(c => (c.id === id ? { ...c, backburner: next } : c)));
+    patchCard(id, { backburner: next });
+    if (next) advanceFocalAwayFrom(id);
+    else setFocalId(id);
   }
 
-  function toggle(setter: (v: string | null) => void, current: string | null, value: string) {
-    setter(current === value ? null : value);
+  function handleSetFollowUp(id: number, minutes: number | null) {
+    if (minutes == null) {
+      setCards(prev => prev.map(c => (c.id === id ? { ...c, follow_up_at: null } : c)));
+      patchCard(id, { clear_follow_up: true });
+    } else {
+      const target = new Date(Date.now() + minutes * 60000).toISOString();
+      setCards(prev => prev.map(c => (c.id === id ? { ...c, follow_up_at: target } : c)));
+      patchCard(id, { follow_up_minutes: minutes });
+    }
   }
+
+  function handleSetParent(id: number, parentId: number | null) {
+    setCards(prev => prev.map(c => (c.id === id ? { ...c, parent_id: parentId } : c)));
+    patchCard(id, { parent_id: parentId });
+  }
+
+  // Used by the Backburner panel, Done list, and cascade clicks: pulls a card out of
+  // whichever side-list it's in (if any) and brings it front-and-center as the focal card.
+  function handleFocusCard(id: number) {
+    const card = cards.find(c => c.id === id);
+    if (!card) return;
+    const patch: Record<string, unknown> = {};
+    if (card.backburner) patch.backburner = false;
+    if (card.done) patch.done = false;
+    if (Object.keys(patch).length > 0) {
+      setCards(prev => prev.map(c => (c.id === id ? { ...c, ...patch } : c)));
+      patchCard(id, patch);
+    }
+    setFocalId(id);
+  }
+
+  function handlePrev() {
+    if (orderedActiveCards.length === 0) return;
+    const idx = orderedActiveCards.findIndex(c => c.id === focalId);
+    const nextIdx = idx <= 0 ? orderedActiveCards.length - 1 : idx - 1;
+    setFocalId(orderedActiveCards[nextIdx].id);
+  }
+
+  function handleNext() {
+    if (orderedActiveCards.length === 0) return;
+    const idx = orderedActiveCards.findIndex(c => c.id === focalId);
+    const nextIdx = idx < 0 || idx === orderedActiveCards.length - 1 ? 0 : idx + 1;
+    setFocalId(orderedActiveCards[nextIdx].id);
+  }
+
+  function handleImported(result: ImportResult) {
+    setImportResult(result);
+    loadCards();
+  }
+
+  const journalCard = cards.find(c => c.id === journalCardId) ?? null;
 
   if (checking) {
     return (
@@ -193,107 +231,57 @@ export default function WorkItemsPage() {
   return (
     <div className={`work-page jungle-bg ${styles.workPage} pb-28`}>
       <div className="max-w-[1400px] mx-auto mb-6">
-        <HeaderBrand version="2.3" showVersion />
+        <HeaderBrand version="3.1" showVersion />
       </div>
-      <div className="flex min-h-screen">
-        <div className={`${styles.content} flex-1 min-w-0`}>
-          <header className={styles.header}>
-            <h1 className={styles.title}>Work Items</h1>
-            <p className={styles.subheader}>
-              {loading ? 'Loading…' : `${items.length} item${items.length === 1 ? '' : 's'} imported from ServiceNow`}
-            </p>
-          </header>
 
-          <div className={styles.toolbar}>
-            <WorkItemImportButton onImported={() => loadItems()} />
-            <div className="flex border border-[rgba(184,115,51,0.3)]">
-              <button
-                type="button"
-                onClick={() => setViewMode('table')}
-                className={`text-xs px-3 py-1.5 ${viewMode === 'table' ? 'bg-[rgba(184,115,51,0.2)] text-[#d4a373]' : 'text-white/40'}`}
-              >
-                Table
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMode('tree')}
-                className={`text-xs px-3 py-1.5 ${viewMode === 'tree' ? 'bg-[rgba(184,115,51,0.2)] text-[#d4a373]' : 'text-white/40'}`}
-              >
-                Tree
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMode('archive')}
-                className={`text-xs px-3 py-1.5 ${viewMode === 'archive' ? 'bg-[rgba(184,115,51,0.2)] text-[#d4a373]' : 'text-white/40'}`}
-              >
-                Archive ({closedItems.length})
-              </button>
-            </div>
-          </div>
+      <div className={styles.content}>
+        <header className={styles.header}>
+          <h1 className={styles.title}>Work Cards</h1>
+          <p className={styles.subheader}>{cards.length} card{cards.length === 1 ? '' : 's'} on the board</p>
+        </header>
 
-          {viewMode === 'table' && (
-            <div className={styles.filterSidebarCol}>
-              <div className={styles.filterSidebar}>
-                <CollapsibleFilterGroup title="Type" expanded={expandedFilters.has('type')} onToggle={() => toggleExpanded('type')}>
-                  <FilterPills options={types} active={typeFilter} onToggle={v => toggle(setTypeFilter, typeFilter, v)} labels={TYPE_LABELS} />
-                </CollapsibleFilterGroup>
-                <CollapsibleFilterGroup title="Status" expanded={expandedFilters.has('status')} onToggle={() => toggleExpanded('status')}>
-                  <FilterPills options={statuses} active={statusFilter} onToggle={v => toggle(setStatusFilter, statusFilter, v)} />
-                </CollapsibleFilterGroup>
-                <CollapsibleFilterGroup title="Priority" expanded={expandedFilters.has('priority')} onToggle={() => toggleExpanded('priority')}>
-                  <FilterPills options={priorities} active={priorityFilter} onToggle={v => toggle(setPriorityFilter, priorityFilter, v)} />
-                </CollapsibleFilterGroup>
-              </div>
-            </div>
-          )}
-
-          {viewMode === 'table' && (
-            <WorkItemsTable
-              items={filtered}
-              groups={groups}
-              onUpdateSubmitter={handleUpdateSubmitter}
-              onUpdateGroup={handleUpdateGroup}
-              onUpdateStatus={handleUpdateStatus}
-              onDelete={handleDelete}
-              onOpenJournal={setJournalItem}
-            />
-          )}
-
-          {viewMode === 'tree' && (
-            <WorkItemsTree
-              items={filtered}
-              relationships={relationships}
-              onLink={handleLinkRelationship}
-              onUnlink={handleUnlinkRelationship}
-            />
-          )}
-
-          {viewMode === 'archive' && (
-            <WorkItemsTable
-              items={closedItems}
-              groups={groups}
-              onUpdateSubmitter={handleUpdateSubmitter}
-              onUpdateGroup={handleUpdateGroup}
-              onUpdateStatus={handleUpdateStatus}
-              onDelete={handleDelete}
-              onOpenJournal={setJournalItem}
-            />
-          )}
-
-          <footer className={styles.footer}>
-            {lastUpdated && `Last updated: ${lastUpdated.toLocaleString()}`}
-          </footer>
+        <div className={styles.toolbar}>
+          <WorkCardUploadButton onImported={handleImported} />
         </div>
 
-        {journalItem && (
-          <JournalPanel
-            workItemId={journalItem.id}
-            workItemLabel={`${journalItem.ticket_number} — ${journalItem.title}`}
-            groups={groups}
-            onClose={() => setJournalItem(null)}
-          />
+        {importResult && (
+          <div className={styles.importSummary}>
+            <span>
+              Imported {importResult.imported}, updated {importResult.updated}, removed {importResult.removed}
+              {importResult.needsReview.length > 0 && ` — ${importResult.needsReview.length} row(s) need review`}
+            </span>
+            <button type="button" className={styles.dismissBtn} onClick={() => setImportResult(null)}>×</button>
+          </div>
         )}
+        {importResult && importResult.needsReview.length > 0 && (
+          <div className={styles.needsReviewBox}>
+            {importResult.needsReview.map((row, i) => (
+              <pre key={i} className={styles.needsReviewRow}>{JSON.stringify(row)}</pre>
+            ))}
+          </div>
+        )}
+
+        <WorkCardCarousel
+          cards={orderedActiveCards}
+          allCards={cards}
+          focalId={focalId}
+          now={now}
+          dueIds={dueIds}
+          onPrev={handlePrev}
+          onNext={handleNext}
+          onToggleDone={handleToggleDone}
+          onToggleBackburner={handleToggleBackburner}
+          onSetFollowUp={handleSetFollowUp}
+          onSetParent={handleSetParent}
+          onOpenJournal={setJournalCardId}
+          onFocusCard={handleFocusCard}
+        />
       </div>
+
+      <DoneListPanel cards={doneCards} onRestore={handleFocusCard} />
+      <BackburnerPanel cards={backburnerCards} onRestore={handleFocusCard} />
+      <TimerTray cards={pendingFollowUps} now={now} onJumpTo={setFocalId} />
+      {journalCard && <WorkCardJournalPanel card={journalCard} onClose={() => setJournalCardId(null)} />}
     </div>
   );
 }

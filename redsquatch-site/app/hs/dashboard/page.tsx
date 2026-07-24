@@ -21,10 +21,9 @@ export default function HSDashboardPage() {
         const data = await res.json();
         if (!res.ok || !data.authenticated) { router.push('/login'); return; }
         setUser(data.user);
+        setLoading(false);
       } catch {
         router.push('/login');
-      } finally {
-        setLoading(false);
       }
     })();
   }, [router]);

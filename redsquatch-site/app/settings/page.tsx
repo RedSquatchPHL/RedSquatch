@@ -24,10 +24,9 @@ export default function SettingsPage() {
         const statusRes  = await fetch(`${API}/api/client/totp/status`, { credentials: 'include' });
         const statusData = await statusRes.json();
         setEnabled(!!statusData.enabled);
+        setLoading(false);
       } catch {
         router.push('/login');
-      } finally {
-        setLoading(false);
       }
     })();
   }, [router]);

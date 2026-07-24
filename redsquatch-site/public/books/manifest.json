@@ -1,0 +1,16 @@
+[
+  {
+    "slug": "prompted",
+    "title": "Prompted",
+    "description": "A running collection of AI prompts worth keeping.",
+    "pageCount": 17
+  },
+  {
+    "slug": "five-rings",
+    "title": "The Book of Five Rings",
+    "author": "Miyamoto Musashi",
+    "description": "A 1645 treatise on strategy and swordsmanship.",
+    "type": "pdf",
+    "file": "five-rings.pdf"
+  }
+]

@@ -7,6 +7,8 @@ const TYPE_STYLES: Record<string, { bg: string; border: string; color: string }>
   STSK: { bg: 'rgba(184, 115, 51, 0.08)',  border: 'rgba(184, 115, 51, 0.45)', color: 'rgba(212, 163, 115, 0.75)' }, // muted copper
   RLSE: { bg: 'rgba(224, 138, 60, 0.20)',  border: '#e08a3c', color: '#e08a3c' }, // bright copper
   SNWR: { bg: 'rgba(184, 115, 51, 0.06)',  border: 'rgba(184, 115, 51, 0.30)', color: 'rgba(184, 115, 51, 0.55)' }, // dim copper
+  DMND: { bg: 'rgba(224, 138, 60, 0.28)',  border: '#e08a3c', color: '#fff' }, // brightest — top of hierarchy
+  PRJ:  { bg: 'rgba(153, 101, 21, 0.22)',  border: '#c9922e', color: '#e0b04a' }, // gold, alt. second tier
 };
 
 const FALLBACK = { bg: 'rgba(255,255,255,0.05)', border: 'rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.6)' };

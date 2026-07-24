@@ -286,6 +286,7 @@ export interface CitizenshipDoc {
   scan_url: string | null;
   notes: string | null;
   updated_at: string;
+  original_retained: boolean;
 }
 
 const STATUS_LABEL: Record<CitizenshipDoc['status'], string> = {

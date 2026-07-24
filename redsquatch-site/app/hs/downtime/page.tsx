@@ -17,10 +17,9 @@ export default function HSDowntimePage() {
         const res  = await fetch(`${API}/api/client/session`, { credentials: 'include' });
         const data = await res.json();
         if (!res.ok || !data.authenticated) { router.push('/login'); return; }
+        setLoading(false);
       } catch {
         router.push('/login');
-      } finally {
-        setLoading(false);
       }
     })();
   }, [router]);

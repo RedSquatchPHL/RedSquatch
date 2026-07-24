@@ -9,9 +9,10 @@ import { useToolModal } from '@/hooks/useToolModal';
 import AppletModal from '@/components/AppletModal';
 import SpanishTutor from '@/components/SpanishTutor';
 import MexicoCitizenshipTracker from '@/components/MexicoCitizenshipTracker';
+import PedroFanTracker from '@/components/PedroFanTracker';
 import CopperPanel from '@/components/cenote/CopperPanel';
 
-type Applet = 'spanishtutor' | 'citizenship' | null;
+type Applet = 'spanishtutor' | 'citizenship' | 'fantracker' | null;
 
 export default function HSMexicanPage() {
   const [loading, setLoading] = useState(true);
@@ -25,10 +26,9 @@ export default function HSMexicanPage() {
         const res  = await fetch(`${API}/api/client/session`, { credentials: 'include' });
         const data = await res.json();
         if (!res.ok || !data.authenticated) { router.push('/login'); return; }
+        setLoading(false);
       } catch {
         router.push('/login');
-      } finally {
-        setLoading(false);
       }
     })();
   }, [router]);
@@ -53,10 +53,11 @@ export default function HSMexicanPage() {
             { key: 'grampsweb' as const,   label: 'Grampsweb',          description: 'Family tree & genealogy',                kind: 'tool' as const },
             { key: 'spanishtutor' as const,label: 'Spanish Tutor',      description: 'Daily drills with spaced repetition',    kind: 'applet' as const },
             { key: 'citizenship' as const, label: 'Citizenship Tracker',description: 'Mexico citizenship document checklist',  kind: 'applet' as const },
+            { key: 'fantracker' as const,  label: 'Pedro Fan Tracker',  description: 'FAN research tracker for Pedro Ortiz Preciado', kind: 'applet' as const },
           ]).map((t) => {
             const onClick = t.kind === 'tool'
               ? () => openTool('grampsweb')
-              : () => setActiveApplet(t.key as 'spanishtutor' | 'citizenship');
+              : () => setActiveApplet(t.key as 'spanishtutor' | 'citizenship' | 'fantracker');
             return (
               <button
                 key={t.key}
@@ -115,6 +116,10 @@ export default function HSMexicanPage() {
 
       <AppletModal isOpen={activeApplet === 'citizenship'} title="Mexico Citizenship Tracker" onClose={() => setActiveApplet(null)} wide>
         <MexicoCitizenshipTracker />
+      </AppletModal>
+
+      <AppletModal isOpen={activeApplet === 'fantracker'} title="Pedro Fan Tracker" onClose={() => setActiveApplet(null)} wide>
+        <PedroFanTracker />
       </AppletModal>
     </div>
   );

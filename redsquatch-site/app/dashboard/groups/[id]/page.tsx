@@ -23,10 +23,10 @@ export default function GroupDashboardPage({ params }: { params: { id: string } 
     fetch(`${API}/api/client/session`, { credentials: 'include' })
       .then(r => r.json())
       .then(data => {
-        if (!data.authenticated) router.push('/');
+        if (!data.authenticated) { router.push('/'); return; }
+        setChecking(false);
       })
-      .catch(() => router.push('/'))
-      .finally(() => setChecking(false));
+      .catch(() => router.push('/'));
   }, [router]);
 
   useEffect(() => {

@@ -8,20 +8,18 @@ import { exportCitizenshipAsPdf, exportCitizenshipAsCsv, type CitizenshipDoc } f
 type Status = CitizenshipDoc['status'];
 type FilterStatus = 'all' | 'completed' | 'pending';
 
-const CATEGORY_ORDER = ['me', 'parent', 'maternal_gp', 'paternal_gp', 'great_gp', 'apostilles'];
+// Category order follows the actual lineage chain for the claim: Darryl & his
+// mother first, then the maternal line back through great-grandparents, then
+// the (much shorter) paternal line, ending with apostilles.
+const CATEGORY_ORDER = ['me_mother', 'maternal_grandmother', 'maternal_ggp', 'paternal_grandfather', 'apostilles'];
 
 const CATEGORY_LABELS: Record<string, string> = {
-  me: 'Me',
-  parent: 'Parents',
-  maternal_gp: 'Maternal Grandparent',
-  paternal_gp: 'Paternal Grandparent',
-  great_gp: 'Great-Grandparent',
+  me_mother: 'Me & Mother',
+  maternal_grandmother: 'Maternal Grandmother — Carolyn N. Gomez',
+  maternal_ggp: 'Maternal Great-Grandparents — Benito & Virginia Gomez',
+  paternal_grandfather: 'Paternal Grandfather (Mexico)',
   apostilles: 'Apostilles',
 };
-
-// Per Darryl's note: physical originals are only retained for his own birth certs
-// and the apostilles — every other category is scan-only.
-const SCAN_ONLY_CATEGORIES = new Set(['parent', 'maternal_gp', 'paternal_gp', 'great_gp']);
 
 const STATUS_LABEL: Record<Status, string> = {
   not_started: 'Not Started',
@@ -275,7 +273,6 @@ export default function MexicoCitizenshipTracker() {
           {CATEGORY_ORDER.filter(cat => visibleByCategory[cat]).map(cat => {
             const docs = visibleByCategory[cat];
             const completed = docs.filter(d => d.status === 'obtained' || d.status === 'archived').length;
-            const scanOnly = SCAN_ONLY_CATEGORIES.has(cat);
             return (
               <div key={cat}>
                 <div className="flex items-center justify-between mb-2">
@@ -291,11 +288,6 @@ export default function MexicoCitizenshipTracker() {
                     <Download size={12} /> Export This Section
                   </button>
                 </div>
-                {scanOnly && (
-                  <p className="text-[11px] mb-2 italic" style={{ color: 'rgba(212,163,115,0.5)' }}>
-                    Scan only — physical originals aren&apos;t retained for this category.
-                  </p>
-                )}
                 <div>
                   {docs.map(doc => (
                     <div
@@ -321,7 +313,14 @@ export default function MexicoCitizenshipTracker() {
                       </button>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2">
-                          <span>{doc.title} (Copy {doc.copy_number})</span>
+                          <span>
+                            {doc.title} (Copy {doc.copy_number})
+                            {!doc.original_retained && (
+                              <span className="ml-1.5 text-[10px] italic" style={{ color: 'rgba(212,163,115,0.45)' }}>
+                                scan only
+                              </span>
+                            )}
+                          </span>
                           <button
                             type="button"
                             className="text-xs hover:underline flex-shrink-0"
@@ -386,7 +385,7 @@ export default function MexicoCitizenshipTracker() {
       {editingDoc && (
         <EditModal
           doc={editingDoc}
-          allowArchived={!SCAN_ONLY_CATEGORIES.has(editingDoc.category)}
+          allowArchived={editingDoc.original_retained}
           onClose={() => setEditingDoc(null)}
           onSave={patch => { updateDoc(editingDoc.id, patch); setEditingDoc(null); }}
         />

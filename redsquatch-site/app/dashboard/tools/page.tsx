@@ -68,10 +68,10 @@ export default function ToolsPage() {
 
         const data = await res.json();
         setTools(data.tools);
+        setLoading(false);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Unknown error');
         console.error('Tools fetch error:', err);
-      } finally {
         setLoading(false);
       }
     };

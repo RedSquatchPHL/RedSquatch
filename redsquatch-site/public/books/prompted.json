@@ -1,0 +1,90 @@
+{
+  "title": "Prompted",
+  "pages": [
+    {
+      "page_number": 1,
+      "title": "1. The Real Person Rewrite",
+      "content": "\"You are an editor with a sharp eye for writing that reads as constructed, not spoken. Rewrite this the way someone who actually lived it would say it: a little rougher, more direct. Cut anything that feels rehearsed, overbuilt, or written to sound impressive. Text: [paste].\""
+    },
+    {
+      "page_number": 2,
+      "title": "2. THE SPECIFIC KNOWLEDGE EXCAVATOR",
+      "content": "ROLE: You are a specific knowledge analyst trained on Naval Ravikant's wealth philosophy. You reverse-engineer a person's unique intellectual fingerprint — the rare intersection of obsessions, life experiences, and undervalued skills that nobody else has in the same combination.\n\nTASK: Excavate my specific knowledge profile. Identify the knowledge stack I can build a leverage engine around.\n\nSTEPS:\n• 1. Review my obsessions, career details, and undervalued skills\n• 2. Cross-reference all three to find the rare intersection\n• 3. Name my specific knowledge niche in one sentence\n• 4. Test: could this be learned from a course or copied? If yes, discard and re-excavate\n• 5. Propose 3 business models that turn this into leverage (code, media, or capital — not labor)\n• 6. Score each model: market size (1-5), competition (1-5), leverage multiplier (1-5)\n\nRULES:\n* Reject generic niches (marketing, coaching, consulting) unless drilled into what makes mine different\n* Each business model must specify which leverage type it uses\n* Avoid \"busy\" models — the goal is non-linear output\n\nINFORMATION ABOUT ME:\n* My obsessions (things I read about without being paid): [LIST 3-5]\n* My weird angles (things I've done that others haven't): [LIST 3-5]\n* My skills (even if I think they're not special): [LIST 2-5]\n\nOUTPUT FORMAT:\n* \"Your Specific Knowledge Niche\" → [One precise sentence]\n* \"Why This Is Rare\" → [2-3 sentences on what makes this combination unusual]\n* \"3 Leveraged Business Models\" → [Model | Leverage Type | Market | Competition | Multiplier Score]\n* \"Recommended Starting Point\" → [Top model + first 3 steps]"
+    },
+    {
+      "page_number": 3,
+      "title": "3. HUMANIZER",
+      "content": "Rewrite this text to sound natural and conversational. Remove robotic phrasing, corporate jargon, and overly formal language. Make it feel like a real person wrote it. Text: [paste]\n\n2. TONE MATCHER\n\nRewrite this in my voice. I write [describe your style: casual/bold/witty/direct]. Match that energy while keeping the same message. Text: [paste]\n\n3. SIMPLICITY FILTER\n\nRemove all unnecessary complexity from this text. Use shorter sentences, simpler words, and make every line easy to scan and understand. Text: [paste]"
+    },
+    {
+      "page_number": 4,
+      "title": "4. Thought Flow Fix",
+      "content": "\"This is not a grammar fix. It is a thinking fix. Rewrite this so the ideas move the way a real mind moves: uneven in places, punchy in others, sometimes slower. Break any pattern where the writing feels too controlled or too evenly paced. Text: [paste].\""
+    },
+    {
+      "page_number": 5,
+      "title": "5. INVERSION",
+      "content": "Prompt: \"I want you to help me solve a problem using Inversion, the mental model popularized by Charlie Munger.\n\nInstead of asking 'How do I succeed at this?', I want you to start by asking 'How would I guarantee failure at this?'\n\nList every way this could fail, every bad decision I could make, and every assumption that would destroy the outcome. Then flip each one into a concrete action I should take.\n\nMy goal: [DESCRIBE WHAT YOU'RE TRYING TO ACHIEVE]\""
+    },
+    {
+      "page_number": 6,
+      "title": "6. THE LEVERAGE STACK AUDITOR",
+      "content": "ROLE: You are a leverage analyst operating on Naval Ravikant's four-layer framework: labor, capital, code, and media. You diagnose over-dependence on low-leverage activities and redesign that work around 20x marginal cost leverage.\n\nTASK: Audit my current income streams and work activities. Show me where I have leverage and where I'm leaking time.\n\nSTEPS:\n1. Map every income source and activity in terms of four categories: Labor (time for money), Capital (money working), Code (software), Media (content)\n2. Assign each a leverage score (0-10 for each category)\n3. Calculate the overall leverage index (hours worked vs. output generated)\n4. Identify my biggest leverage leak (where effort is high but returns are capped)\n5. Propose 3 concrete upgrades: how to convert that activity into Code or Media leverage within 30 days\n\nRULES:\n* Hourly consulting billed time = Labor score 0 regardless of rate\n* Flag any income stream that disappears if I stop working for 60 days — these are leverage risks\n* Upgrades must be specific, not conceptual (e.g., \"turn this into a newsletter\" is banned — document the exact asset as a 30-day build)\n\nINFORMATION ABOUT ME:\n* My income sources and hours per week on each: [LIST EACH + HOURS/WEEK]\n* My monthly income: [AMOUNT]\n\nOUTPUT FORMAT:\n* \"Leverage Audit\" → [Activity | Leverage Type | Hours/Week | Score | Revenue]\n* \"Your Leverage Index\" → [X/10]\n* \"Biggest Leverage Leak\" → [Activity + why it's a trap + what it costs you]\n* \"3 Upgrade Moves\" → [Current X → Convert to Y → Specific change → Timeline (X days)]\n* \"30-Day First Move\" → [Exact action to take this week]"
+    },
+    {
+      "page_number": 7,
+      "title": "7. Pattern Disruptor",
+      "content": "\"You specialize in spotting the tells that expose AI writing. Go through this and strip them out one by one. Vary the structure, soften rigid phrasing, and make each word feel chosen in the moment, not generated by a pattern. Text: [paste].\""
+    },
+    {
+      "page_number": 8,
+      "title": "8. THE PRODUCTIZE YOURSELF BLUEPRINT",
+      "content": "ROLE: You are a product architect specializing in converting knowledge workers into scalable operators. You've studied how Naval Ravikant, Dan Koe, and Alex Hormozi turned expertise into products that sell without their presence.\n\nTASK: Design a complete \"productize yourself\" blueprint. Convert my expertise into a scalable system — not more client work, but a machine.\n\nSTEPS:\n1. Identify the single most valuable transformation I can deliver\n2. Map a product ladder: from free to premium (digital product, tool, community, course)\n3. Design a system to convert my time-based service into a product (within 30 days)\n4. Design the winning product: contents, delivery mechanism, what makes it irreplaceable\n5. Identify the distribution channel that matches my existing specific knowledge\n6. Write the positioning statement I can use to launch\n\nRULES:\n* A product that requires my live presence to deliver fails the test — reject it\n* No generic courses — must include a named framework or proprietary methodology\n* Distribution must match my current platform — do not suggest starting from zero on a new channel\n\nINFORMATION ABOUT ME:\n* My expertise and transformation I provide: [WHAT DO YOU HELP PEOPLE DO OR BECOME]\n* My current audience (if any): [SIZE + PLATFORM]\n* Time available to build: [HOURS/WEEK]\n\nOUTPUT FORMAT:\n* \"Your Core Transformation\" → [One sentence]\n* \"3 Product Formats\" → [Format | Leverage | Feasibility | Margin | Score]\n* \"Winning Product Structure\" →\n\n* Name (Product name + proprietary mechanism)\n* Contents (what's inside)\n* Delivery (how it reaches buyers without you)\n* Price point (recommended + reason)\n* \"Launch Positioning Statement\" → [One sentence]\n* \"Week 1 Build Roadmap\" → [3 tasks to start immediately]"
+    },
+    {
+      "page_number": 9,
+      "title": "9. Voice Shaper",
+      "content": "\"You are building a voice that sounds like it belongs to one real person. Rewrite this so it carries a clear point of view, not the tone of a neutral observer trying to please everyone. Let opinions, small contradictions, and natural shifts in tone come through. Text: [paste].\""
+    },
+    {
+      "page_number": 10,
+      "title": "10. THE TIME-FOR-MONEY LEAK DETECTOR",
+      "content": "ROLE: You are a wealth architect trained on Naval Ravikant's equity philosophy. You expose the time-for-money traps that keep intelligent operators financially stuck — and design escape paths that convert their skill into ownership.\n\nTASK: Audit my work and income structure. Find every hour being rented instead of invested. Then design the conversion plan.\n\nSTEPS:\n1. Categorize every work activity: Time-Rented (paid per hour, project, or day) or Equity-Building (creates an asset that outlasts my time)\n2. Calculate my time-rent ratio — percentage of working hours building things I own\n3. Identify 3 conversion opportunities: turning existing work into equity-building equivalents\n4. Show how each could be converted in 90 days (without quitting income streams)\n5. Rank conversions by effort vs leverage upside\n\nRULES:\n* Consulting, freelancing, and employment are time-rented — no exceptions regardless of rate\n* An activity is equity-building only if stopping it for 6 months doesn't stop income\n* Flag anything disguised as passive that still requires ongoing time\n\nINFORMATION ABOUT ME:\n* My current work activities and how I'm compensated for each: [DESCRIBE EACH]\n* Total hours worked per week: [NUMBER]\n* Current income split (active vs passive): [approximate %]\n\nOUTPUT FORMAT:\n* \"Time Audit\" → [Activity | Type | Hours/Week | Equity Potential | Conversion Difficulty]\n* \"Your Time-Rent Ratio\" → [% time-rented vs % equity-building]\n* \"Top 3 Conversion Opportunities\" → [Activity → Equity Equivalent → Effort | Leverage]\n* \"The Equity Gap\" → [What your income could look like in 2 years if you convert the top opportunity]\n* \"First Escape Move\" → [One action to start this week]"
+    },
+    {
+      "page_number": 11,
+      "title": "11. FLOW FIXER",
+      "content": "Prompt: Improve the rhythm and flow of this writing. Vary sentence length, add natural transitions, and make it feel smooth to read out loud. Text: [paste your text]\n\n5. PERSONALITY INJECTOR\n\nPrompt: Add personality to this text without changing the core message. Make it more engaging, relatable, and interesting to read. Text: [paste your text]"
+    },
+    {
+      "page_number": 12,
+      "title": "12. Make It Hit",
+      "content": "\"Rewrite this with one goal: it should land when someone reads it. Keep what matters, but cut anything that feels flat, calculated, or forgettable. It should sound like it came from someone who actually cares. Text: [paste].\""
+    },
+    {
+      "page_number": 13,
+      "title": "13. REPLACE YOUR TUTOR",
+      "content": "Claude teaches like an expert mentor step by step, at your pace.\n\nPrompt:\n\n\"You are a world-class private tutor. Teach me [TOPIC] as if I'm a motivated beginner.\n\nInclude\n1. A structured lesson plan divided into digestible parts.\n2. Analogies and step-by-step explanations.\n3. Practice questions with answers.\n4. A short summary after each section.\n\nTeach in a warm, Socratic tone and pause for understanding checks before advancing.\""
+    },
+    {
+      "page_number": 14,
+      "title": "14. The Credibility Test",
+      "content": "\"You are a reader who immediately distrusts writing that sounds too clean. Go sentence by sentence and rewrite anything that feels constructed, overcorrected, or too precise. It should read like something a real person said out loud without second-guessing every word. Text: [paste].\""
+    },
+    {
+      "page_number": 15,
+      "title": "15. AI DETECTION KILLER",
+      "content": "Prompt: Rewrite this to pass AI detection tools. Use natural phrasing, varied sentence structure, and human imperfections while keeping clarity. Text: [paste your text]\n\n7. REAL PERSON TEST\n\nPrompt: Edit this so it sounds like something a real person would actually say. Remove anything that feels generated or templated. Text: [paste your text]"
+    },
+    {
+      "page_number": 16,
+      "title": "16. PRE-MORTEM ANALYSIS",
+      "content": "Prompt: \"I'm about to start a project and I want you to run a Pre-Mortem Analysis on it, based on psychologist Gary Klein's method.\n\nHere's how it works: Imagine it's 6 months from now and this project has failed completely. It's dead. Now work backwards and tell me every plausible reason why it failed.\n\nBe specific. Don't give me generic risks like 'poor execution.' Give me scenario-level detail: what went wrong, when, and why I didn't see it coming.\n\nThen for each failure scenario, give me one preventive action I can take right now before I start.\n\nMy project: [DESCRIBE YOUR UPCOMING PROJECT OR LAUNCH]\""
+    },
+    {
+      "page_number": 17,
+      "title": "17. INSTANT IDEA VALIDATION ENGINE",
+      "content": "Stress-test startup ideas or product angles fast.\n\nPrompt to use right now\n\n\"You are a veteran product strategist and market analyst.\n\nIdea to validate\n\"[DESCRIBE IDEA OR PRODUCT]\"\n\nReturn\n1. The problem solved and target users.\n2. Existing alternatives and their gaps.\n3. What differentiates this idea.\n4. Red flags, risks, and edge cases.\n5. A one-week validation plan (landing page, poll, cold outreach, etc.).\n\nAssume we're pitching at a startup weekend in 24 hours.\""
+    }
+  ]
+}

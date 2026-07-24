@@ -7,9 +7,10 @@ import { Zap } from 'lucide-react';
 import AppletModal from '@/components/AppletModal';
 import MealPlanner from '@/components/MealPlanner';
 import BillPlanner from '@/components/BillPlanner';
+import PriceScout from '@/components/PriceScout';
 import CopperPanel from '@/components/cenote/CopperPanel';
 
-type Applet = 'menuplanner' | 'billplanner' | null;
+type Applet = 'menuplanner' | 'billplanner' | 'pricescout' | null;
 
 export default function HSToolsPage() {
   const [loading, setLoading] = useState(true);
@@ -22,10 +23,9 @@ export default function HSToolsPage() {
         const res  = await fetch(`${API}/api/client/session`, { credentials: 'include' });
         const data = await res.json();
         if (!res.ok || !data.authenticated) { router.push('/login'); return; }
+        setLoading(false);
       } catch {
         router.push('/login');
-      } finally {
-        setLoading(false);
       }
     })();
   }, [router]);
@@ -51,11 +51,12 @@ export default function HSToolsPage() {
             { key: 'sleeplab' as const,    label: 'SleepLab',     description: 'CPAP therapy dashboard (opens in new tab)', kind: 'link' as const, url: 'https://sleep.redsquatch.com' },
             { key: 'menuplanner' as const, label: 'Menu Planner', description: 'Weekly meals & grocery list',                kind: 'applet' as const },
             { key: 'billplanner' as const, label: 'Bill Planner', description: 'Balances, recurring bills & BNPL',           kind: 'applet' as const },
+            { key: 'pricescout' as const,  label: 'Price Scout',  description: 'Search live prices across retailers',        kind: 'applet' as const },
           ]).map((t) => {
             const CardTag = t.kind === 'link' ? 'a' : 'button';
             const cardProps = t.kind === 'link'
               ? { href: t.url, target: '_blank', rel: 'noopener noreferrer' }
-              : { onClick: () => setActiveApplet(t.key as 'menuplanner' | 'billplanner') };
+              : { onClick: () => setActiveApplet(t.key as 'menuplanner' | 'billplanner' | 'pricescout') };
             return (
               <CardTag
                 key={t.key}
@@ -112,6 +113,10 @@ export default function HSToolsPage() {
 
       <AppletModal isOpen={activeApplet === 'billplanner'} title="Bill Planner" onClose={() => setActiveApplet(null)} wide>
         <BillPlanner />
+      </AppletModal>
+
+      <AppletModal isOpen={activeApplet === 'pricescout'} title="Price Scout" onClose={() => setActiveApplet(null)} wide>
+        <PriceScout />
       </AppletModal>
     </div>
   );
