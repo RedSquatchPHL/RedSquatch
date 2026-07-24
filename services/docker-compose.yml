@@ -1,0 +1,110 @@
+version: '3.9'
+
+services:
+  stirling-pdf:
+    image: frooodle/s-pdf:latest
+    ports: ["8080:8080"]
+    restart: unless-stopped
+
+  wallos:
+    image: bellamy/wallos:latest
+    ports: ["8282:80"]
+    volumes:
+      - ./wallos/data:/var/www/html/data
+    restart: unless-stopped
+
+  linkding-db:
+    image: postgres:15-alpine
+    volumes:
+      - ./linkding/db:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: linkding
+      POSTGRES_PASSWORD: linkding
+    restart: unless-stopped
+
+  linkding:
+    image: sissbruecker/linkding:latest
+    ports: ["9090:9090"]
+    volumes:
+      - ./linkding/data:/etc/linkding/data
+    environment:
+      LD_DB_ENGINE: postgres
+      LD_DB_HOST: linkding-db
+      LD_DB_NAME: linkding
+      LD_DB_USER: postgres
+      LD_DB_PASSWORD: linkding
+    depends_on:
+      - linkding-db
+    restart: unless-stopped
+
+  joplin-db:
+    image: postgres:16-alpine
+    volumes:
+      - ./joplin/db:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: joplin
+      POSTGRES_PASSWORD: joplin
+    restart: unless-stopped
+
+  joplin:
+    image: joplin/server:latest
+    ports: ["22300:22300"]
+    environment:
+      DB_CLIENT: pg
+      POSTGRES_HOST: joplin-db
+      POSTGRES_DB: joplin
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: joplin
+    depends_on:
+      - joplin-db
+    restart: unless-stopped
+
+  nextcloud-db:
+    image: postgres:16-alpine
+    volumes:
+      - ./nextcloud/db:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: nextcloud
+      POSTGRES_PASSWORD: nextcloud
+    restart: unless-stopped
+
+  nextcloud:
+    image: nextcloud:latest
+    ports: ["8888:80"]
+    volumes:
+      - ./nextcloud/data:/var/www/html/data
+      - ./nextcloud/config:/var/www/html/config
+    environment:
+      POSTGRES_HOST: nextcloud-db
+      POSTGRES_DB: nextcloud
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: nextcloud
+    depends_on:
+      - nextcloud-db
+    restart: unless-stopped
+
+  webtrees-db:
+    image: postgres:16-alpine
+    volumes:
+      - ./webtrees/db:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: webtrees
+      POSTGRES_USER: webtrees
+      POSTGRES_PASSWORD: webtrees
+    restart: unless-stopped
+
+  webtrees:
+    image: dtjs48jkt/webtrees:latest
+    ports: ["80:80"]
+    volumes:
+      - ./webtrees/data:/var/www/webtrees/data
+    environment:
+      WT_DB_TYPE: pgsql
+      WT_DB_HOST: webtrees-db
+      WT_DB_PORT: "5432"
+      WT_DB_NAME: webtrees
+      WT_DB_USER: webtrees
+      WT_DB_PASS: webtrees
+    depends_on:
+      - webtrees-db
+    restart: unless-stopped
