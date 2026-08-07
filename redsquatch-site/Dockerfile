@@ -34,6 +34,11 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 USER nextjs
 EXPOSE 3000
 ENV PORT=3000
+# Docker auto-sets HOSTNAME to the container ID; Next.js standalone's
+# server.js reads that var to decide its bind address, so without this
+# override it can end up unreachable at localhost/127.0.0.1 (confirmed
+# 2026-08-07 — app booted fine but the health probe got connection refused).
+ENV HOSTNAME="0.0.0.0"
 HEALTHCHECK --interval=15s --timeout=3s --start-period=10s --retries=3 \
   CMD node -e "require('http').get('http://127.0.0.1:3000/',r=>process.exit(r.statusCode<500?0:1)).on('error',()=>process.exit(1))"
 
