@@ -20,6 +20,11 @@ RUN npm run build
 FROM node:18-bookworm-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
+# Coolify's own health-check probe runs curl/wget via `docker exec`, separate
+# from the HEALTHCHECK instruction below — without this, the probe fails
+# immediately even when the app itself is healthy (confirmed 2026-08-07).
+RUN apt-get update && apt-get install -y --no-install-recommends curl \
+  && rm -rf /var/lib/apt/lists/*
 RUN groupadd -g 1001 nodejs && useradd -u 1001 -g nodejs -m nextjs
 
 COPY --from=builder /app/public ./public

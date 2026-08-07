@@ -6,10 +6,15 @@ RUN npm ci --omit=dev
 
 COPY . .
 
+# Coolify's own health-check probe runs curl/wget via `docker exec`, separate
+# from the HEALTHCHECK instruction below — without this, the probe fails
+# immediately even when the app itself is healthy (confirmed 2026-08-07).
 # uploads/ holds real user-uploaded files (Demand Form attachments) — must be
 # mounted as a persistent volume in Coolify (map to the existing host path so
 # current files carry over), not left as image-baked/ephemeral storage.
-RUN mkdir -p uploads \
+RUN apt-get update && apt-get install -y --no-install-recommends curl \
+  && rm -rf /var/lib/apt/lists/* \
+  && mkdir -p uploads \
   && groupadd -g 1001 nodejs && useradd -u 1001 -g nodejs -m apiuser \
   && chown -R apiuser:nodejs /app
 USER apiuser
