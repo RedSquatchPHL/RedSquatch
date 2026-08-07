@@ -29,6 +29,11 @@ const PORT = 3001;
 
 app.set('trust proxy', 1); // trust Traefik's X-Forwarded-Proto so secure cookies work
 
+// Unauthenticated, no DB round-trip — Coolify's rolling-update health check
+// needs a cheap way to confirm the process is up and listening before it
+// swaps traffic to a new container.
+app.get('/health', (req, res) => res.status(200).json({ status: 'ok' }));
+
 app.use(cors({
   origin: [
     'https://redsquatch.com',
