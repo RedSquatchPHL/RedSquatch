@@ -25,6 +25,16 @@
   --moss: #4d6347;
   --jade: #1a3d35;
 
+  /* Tracker-family copper pair — formalizes the #d4a373 / #b87333 duo that
+     PedroFanTracker, SpanishTutor, MexicoCitizenshipTracker, DiscoveryForm
+     and BillPlanner all hardcoded independently (2026-08-07 token audit).
+     Distinct from copper-0..2 above; kept separate rather than remapped to
+     avoid a visual shift in already-shipped screens. */
+  --copper-tan: #d4a373;
+  --copper-tan-rgb: 212, 163, 115;
+  --copper-bold: #b87333;
+  --copper-bold-rgb: 184, 115, 51;
+
   /* Aliases — old names, new values (keeps existing pages in sync) */
   --obsidian-void: #0d100d;
   --stone-wall: var(--stone-1);

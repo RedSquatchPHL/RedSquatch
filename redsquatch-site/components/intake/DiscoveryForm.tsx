@@ -24,8 +24,8 @@ const FIELD_LABELS: { key: keyof DiscoveryFormType; label: string; rows: number 
 ];
 
 const textareaClass =
-  'w-full bg-transparent border-0 border-b border-[rgba(184,115,51,0.25)] text-white px-0 py-2 resize-none ' +
-  'focus:outline-none focus:border-[#d4a373] placeholder:text-white/20';
+  'w-full bg-transparent border-0 border-b border-[rgba(var(--copper-bold-rgb),0.25)] text-white px-0 py-2 resize-none ' +
+  'focus:outline-none focus:border-[var(--copper-tan)] placeholder:text-white/20';
 
 export default function DiscoveryForm({ groupId, onFormReady }: Props) {
   const [form, setForm] = useState<DiscoveryFormType | null>(null);
@@ -232,17 +232,17 @@ export default function DiscoveryForm({ groupId, onFormReady }: Props) {
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-4 flex-wrap">
-          <h3 className="text-sm font-semibold tracking-wider text-[#d4a373]">Discovery Form</h3>
+          <h3 className="text-sm font-semibold tracking-wider text-[var(--copper-tan)]">Discovery Form</h3>
           <button
             onClick={handleDownloadTemplate}
             title="Blank Markdown scaffold with the Discovery Form's questions"
-            className="text-xs border border-[rgba(184,115,51,0.3)] text-[#d4a373] hover:bg-[rgba(184,115,51,0.1)] px-3 py-1.5"
+            className="text-xs border border-[rgba(var(--copper-bold-rgb),0.3)] text-[var(--copper-tan)] hover:bg-[rgba(var(--copper-bold-rgb),0.1)] px-3 py-1.5"
           >
             Download Template
           </button>
           <label
             title="Pre-fills the Discovery Form from a Discovery Form Markdown export"
-            className={`text-xs border border-[rgba(184,115,51,0.3)] text-[#d4a373] hover:bg-[rgba(184,115,51,0.1)] px-3 py-1.5 cursor-pointer ${importing || locked ? 'opacity-40 pointer-events-none' : ''}`}
+            className={`text-xs border border-[rgba(var(--copper-bold-rgb),0.3)] text-[var(--copper-tan)] hover:bg-[rgba(var(--copper-bold-rgb),0.1)] px-3 py-1.5 cursor-pointer ${importing || locked ? 'opacity-40 pointer-events-none' : ''}`}
           >
             {importing ? 'Importing...' : 'Import'}
             <input
@@ -262,7 +262,7 @@ export default function DiscoveryForm({ groupId, onFormReady }: Props) {
               type="checkbox"
               checked={form.intake_xlsx_given}
               onChange={e => save({ intake_xlsx_given: e.target.checked })}
-              className="accent-[#d4a373]"
+              className="accent-[var(--copper-tan)]"
             />
             Intake XLSX Given?
           </label>
@@ -271,7 +271,7 @@ export default function DiscoveryForm({ groupId, onFormReady }: Props) {
               type="checkbox"
               checked={form.intake_xlsx_received}
               onChange={e => save({ intake_xlsx_received: e.target.checked })}
-              className="accent-[#d4a373]"
+              className="accent-[var(--copper-tan)]"
             />
             Intake XLSX Received?
           </label>
@@ -282,7 +282,7 @@ export default function DiscoveryForm({ groupId, onFormReady }: Props) {
           <select
             value={form.status}
             onChange={e => save({ status: e.target.value as DiscoveryStatus })}
-            className="bg-[#0f0f0f] border border-[rgba(184,115,51,0.3)] text-white text-xs px-2 py-1 focus:outline-none focus:border-[#d4a373]"
+            className="bg-[var(--stone-0)] border border-[rgba(var(--copper-bold-rgb),0.3)] text-white text-xs px-2 py-1 focus:outline-none focus:border-[var(--copper-tan)]"
           >
             {DISCOVERY_STATUSES.map(s => (
               <option key={s} value={s}>{s}</option>
@@ -302,40 +302,40 @@ export default function DiscoveryForm({ groupId, onFormReady }: Props) {
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="space-y-1">
-          <label className="text-xs text-[#d4a373]">SNWR #</label>
+          <label className="text-xs text-[var(--copper-tan)]">SNWR #</label>
           <input
             type="text"
             value={form.snwr_number ?? ''}
             onChange={e => patch({ snwr_number: e.target.value })}
             onBlur={e => save({ snwr_number: e.target.value })}
-            className="w-full bg-transparent border-0 border-b border-[rgba(184,115,51,0.25)] text-white px-0 py-1.5 focus:outline-none focus:border-[#d4a373]"
+            className="w-full bg-transparent border-0 border-b border-[rgba(var(--copper-bold-rgb),0.25)] text-white px-0 py-1.5 focus:outline-none focus:border-[var(--copper-tan)]"
           />
         </div>
         <div className="space-y-1">
-          <label className="text-xs text-[#d4a373]">Requester Name</label>
+          <label className="text-xs text-[var(--copper-tan)]">Requester Name</label>
           <input
             type="text"
             value={form.requester_name ?? ''}
             onChange={e => patch({ requester_name: e.target.value })}
             onBlur={e => save({ requester_name: e.target.value })}
-            className="w-full bg-transparent border-0 border-b border-[rgba(184,115,51,0.25)] text-white px-0 py-1.5 focus:outline-none focus:border-[#d4a373]"
+            className="w-full bg-transparent border-0 border-b border-[rgba(var(--copper-bold-rgb),0.25)] text-white px-0 py-1.5 focus:outline-none focus:border-[var(--copper-tan)]"
           />
         </div>
         <div className="space-y-1">
-          <label className="text-xs text-[#d4a373]">Requester Dept</label>
+          <label className="text-xs text-[var(--copper-tan)]">Requester Dept</label>
           <input
             type="text"
             value={form.requester_dept ?? ''}
             onChange={e => patch({ requester_dept: e.target.value })}
             onBlur={e => save({ requester_dept: e.target.value })}
-            className="w-full bg-transparent border-0 border-b border-[rgba(184,115,51,0.25)] text-white px-0 py-1.5 focus:outline-none focus:border-[#d4a373]"
+            className="w-full bg-transparent border-0 border-b border-[rgba(var(--copper-bold-rgb),0.25)] text-white px-0 py-1.5 focus:outline-none focus:border-[var(--copper-tan)]"
           />
         </div>
       </div>
 
       {FIELD_LABELS.map(({ key, label, rows }) => (
         <div key={key} className="space-y-1">
-          <label className="text-xs text-[#d4a373]">{label}</label>
+          <label className="text-xs text-[var(--copper-tan)]">{label}</label>
           <textarea
             value={(form[key] as string) ?? ''}
             onChange={e => patch({ [key]: e.target.value } as Partial<DiscoveryFormType>)}
@@ -347,20 +347,20 @@ export default function DiscoveryForm({ groupId, onFormReady }: Props) {
         </div>
       ))}
 
-      <div className="space-y-4 pt-2 border-t border-[rgba(184,115,51,0.2)]">
+      <div className="space-y-4 pt-2 border-t border-[rgba(var(--copper-bold-rgb),0.2)]">
         <div className="flex items-center justify-between">
-          <h4 className="text-xs font-semibold tracking-wider text-[#d4a373]">Custom Questions</h4>
+          <h4 className="text-xs font-semibold tracking-wider text-[var(--copper-tan)]">Custom Questions</h4>
           <button
             onClick={addCustomQuestion}
             disabled={locked}
-            className="text-sm border border-[rgba(184,115,51,0.3)] text-[#d4a373] hover:bg-[rgba(184,115,51,0.1)] px-3 py-1 disabled:opacity-40 disabled:cursor-not-allowed"
+            className="text-sm border border-[rgba(var(--copper-bold-rgb),0.3)] text-[var(--copper-tan)] hover:bg-[rgba(var(--copper-bold-rgb),0.1)] px-3 py-1 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             + Add Question
           </button>
         </div>
 
         {(form.custom_questions ?? []).map((cq, i) => (
-          <div key={i} className="space-y-2 border border-[rgba(184,115,51,0.15)] p-3">
+          <div key={i} className="space-y-2 border border-[rgba(var(--copper-bold-rgb),0.15)] p-3">
             <div className="flex items-center gap-3">
               <input
                 type="text"
@@ -369,7 +369,7 @@ export default function DiscoveryForm({ groupId, onFormReady }: Props) {
                 onChange={e => updateCustomQuestion(i, { question: e.target.value })}
                 onBlur={commitCustomQuestions}
                 disabled={locked}
-                className="flex-1 bg-transparent border-0 border-b border-[rgba(184,115,51,0.25)] text-white px-0 py-1.5 focus:outline-none focus:border-[#d4a373] placeholder:text-white/20"
+                className="flex-1 bg-transparent border-0 border-b border-[rgba(var(--copper-bold-rgb),0.25)] text-white px-0 py-1.5 focus:outline-none focus:border-[var(--copper-tan)] placeholder:text-white/20"
               />
               {!locked && (
                 <button
@@ -397,7 +397,7 @@ export default function DiscoveryForm({ groupId, onFormReady }: Props) {
         <div className="flex justify-end pt-2">
           <button
             onClick={handleSaveForm}
-            className="text-sm border border-[#d4a373] text-[#d4a373] hover:bg-[rgba(184,115,51,0.1)] px-4 py-1.5"
+            className="text-sm border border-[var(--copper-tan)] text-[var(--copper-tan)] hover:bg-[rgba(var(--copper-bold-rgb),0.1)] px-4 py-1.5"
           >
             Save Form
           </button>
@@ -407,26 +407,26 @@ export default function DiscoveryForm({ groupId, onFormReady }: Props) {
       <div className="flex justify-end gap-3 pt-2">
         <button
           onClick={handleExportMd}
-          className="text-sm border border-[rgba(184,115,51,0.3)] text-[#d4a373] hover:bg-[rgba(184,115,51,0.1)] px-4 py-1.5"
+          className="text-sm border border-[rgba(var(--copper-bold-rgb),0.3)] text-[var(--copper-tan)] hover:bg-[rgba(var(--copper-bold-rgb),0.1)] px-4 py-1.5"
         >
           MD
         </button>
         <button
           onClick={handleExportPdf}
-          className="text-sm border border-[rgba(184,115,51,0.3)] text-[#d4a373] hover:bg-[rgba(184,115,51,0.1)] px-4 py-1.5"
+          className="text-sm border border-[rgba(var(--copper-bold-rgb),0.3)] text-[var(--copper-tan)] hover:bg-[rgba(var(--copper-bold-rgb),0.1)] px-4 py-1.5"
         >
           PDF
         </button>
         <button
           onClick={handleExportDocx}
-          className="text-sm border border-[rgba(184,115,51,0.3)] text-[#d4a373] hover:bg-[rgba(184,115,51,0.1)] px-4 py-1.5"
+          className="text-sm border border-[rgba(var(--copper-bold-rgb),0.3)] text-[var(--copper-tan)] hover:bg-[rgba(var(--copper-bold-rgb),0.1)] px-4 py-1.5"
         >
           DOC
         </button>
         {!locked && (
           <button
             onClick={handleLock}
-            className="text-sm bg-[#b87333] hover:bg-[#b87333]/80 text-[#0f0f0f] font-semibold px-4 py-1.5"
+            className="text-sm bg-[var(--copper-bold)] hover:bg-[var(--copper-bold)]/80 text-[var(--stone-0)] font-semibold px-4 py-1.5"
           >
             Lock
           </button>

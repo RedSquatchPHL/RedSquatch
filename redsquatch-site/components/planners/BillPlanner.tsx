@@ -303,12 +303,12 @@ export default function BillPlanner() {
     <div className="w-full">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold" style={{ color: '#d4a373', textShadow: '0 0 16px rgba(184,115,51,0.3)' }}>
+        <h1 className="text-2xl font-bold" style={{ color: 'var(--copper-tan)', textShadow: '0 0 16px rgba(var(--copper-bold-rgb),0.3)' }}>
           Bill Planner
         </h1>
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(184,115,51,0.25)' }}>
-          <DollarSign size={16} style={{ color: '#d4a373' }} />
-          <span className="text-sm font-semibold" style={{ color: '#d4a373' }}>{money(totalMonthly)}/month</span>
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(var(--copper-bold-rgb),0.25)' }}>
+          <DollarSign size={16} style={{ color: 'var(--copper-tan)' }} />
+          <span className="text-sm font-semibold" style={{ color: 'var(--copper-tan)' }}>{money(totalMonthly)}/month</span>
         </div>
       </div>
 
@@ -317,10 +317,10 @@ export default function BillPlanner() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* ── Balances ── */}
-          <div className="glass-surface rounded-xl p-4" style={{ border: '1px solid rgba(184,115,51,0.25)' }}>
+          <div className="glass-surface rounded-xl p-4" style={{ border: '1px solid rgba(var(--copper-bold-rgb),0.25)' }}>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold" style={{ color: '#d4a373' }}>Account Balances</h3>
-              <button onClick={() => setShowBalanceForm((s) => !s)}><Plus size={16} style={{ color: '#d4a373' }} /></button>
+              <h3 className="text-sm font-semibold" style={{ color: 'var(--copper-tan)' }}>Account Balances</h3>
+              <button onClick={() => setShowBalanceForm((s) => !s)}><Plus size={16} style={{ color: 'var(--copper-tan)' }} /></button>
             </div>
 
             {showBalanceForm && (
@@ -351,7 +351,7 @@ export default function BillPlanner() {
                   <div key={b.id} className="rounded-lg p-2 text-xs" style={{ background: 'rgba(255,255,255,0.03)' }}>
                     <div className="flex items-center justify-between">
                       <span style={{ color: 'rgba(255,255,255,0.8)' }}>{b.name}</span>
-                      <span className="font-semibold" style={{ color: '#d4a373' }}>{money(b.balance)}</span>
+                      <span className="font-semibold" style={{ color: 'var(--copper-tan)' }}>{money(b.balance)}</span>
                     </div>
                     <div className="flex items-center justify-between mt-1">
                       <span style={{ color: due ? '#e07856' : 'rgba(255,255,255,0.35)' }}>
@@ -359,7 +359,7 @@ export default function BillPlanner() {
                         {due && ' — reconcile due'}
                       </span>
                       <div className="flex items-center gap-2">
-                        <button onClick={() => reconcileBalance(b)} title="Reconcile"><RefreshCw size={12} style={{ color: '#d4a373' }} /></button>
+                        <button onClick={() => reconcileBalance(b)} title="Reconcile"><RefreshCw size={12} style={{ color: 'var(--copper-tan)' }} /></button>
                         <button onClick={() => deleteBalance(b.id)} title="Delete"><Trash2 size={12} style={{ color: 'rgba(255,255,255,0.3)' }} /></button>
                       </div>
                     </div>
@@ -373,14 +373,14 @@ export default function BillPlanner() {
           </div>
 
           {/* ── Recurring bills ── */}
-          <div className="glass-surface rounded-xl p-4" style={{ border: '1px solid rgba(184,115,51,0.25)' }}>
+          <div className="glass-surface rounded-xl p-4" style={{ border: '1px solid rgba(var(--copper-bold-rgb),0.25)' }}>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold" style={{ color: '#d4a373' }}>Recurring Bills</h3>
-              <button onClick={() => { resetBillForm(); setShowBillForm((s) => !s); }}><Plus size={16} style={{ color: '#d4a373' }} /></button>
+              <h3 className="text-sm font-semibold" style={{ color: 'var(--copper-tan)' }}>Recurring Bills</h3>
+              <button onClick={() => { resetBillForm(); setShowBillForm((s) => !s); }}><Plus size={16} style={{ color: 'var(--copper-tan)' }} /></button>
             </div>
 
-            <div className="mb-3 flex items-start gap-1.5 text-[10px] rounded p-2" style={{ background: 'rgba(184,115,51,0.08)', color: 'rgba(255,255,255,0.55)' }}>
-              <Lightbulb size={12} className="flex-shrink-0 mt-0.5" style={{ color: '#d4a373' }} />
+            <div className="mb-3 flex items-start gap-1.5 text-[10px] rounded p-2" style={{ background: 'rgba(var(--copper-bold-rgb),0.08)', color: 'rgba(255,255,255,0.55)' }}>
+              <Lightbulb size={12} className="flex-shrink-0 mt-0.5" style={{ color: 'var(--copper-tan)' }} />
               <span>Paying down a credit card a few days before its statement closes (not the due date) lowers what gets reported as your balance — that can help your credit score.</span>
             </div>
 
@@ -431,7 +431,7 @@ export default function BillPlanner() {
                   <div key={b.id} className="rounded-lg p-2 text-xs" style={{ background: 'rgba(255,255,255,0.03)' }}>
                     <div className="flex items-center justify-between">
                       <span style={{ color: 'rgba(255,255,255,0.8)' }}>{b.name}</span>
-                      <span className="font-semibold" style={{ color: '#d4a373' }}>{money(b.amount)}</span>
+                      <span className="font-semibold" style={{ color: 'var(--copper-tan)' }}>{money(b.amount)}</span>
                     </div>
                     <div className="flex items-center justify-between mt-1">
                       <span className="flex items-center gap-1" style={{ color: 'rgba(255,255,255,0.4)' }}>
@@ -439,12 +439,12 @@ export default function BillPlanner() {
                       </span>
                       <div className="flex items-center gap-2">
                         <button onClick={() => markPaid(b)} title="Mark paid" style={{ color: '#4ade80' }}>✓</button>
-                        <button onClick={() => editBill(b)} title="Edit"><Edit2 size={12} style={{ color: '#d4a373' }} /></button>
+                        <button onClick={() => editBill(b)} title="Edit"><Edit2 size={12} style={{ color: 'var(--copper-tan)' }} /></button>
                         <button onClick={() => deleteBill(b.id)} title="Delete"><Trash2 size={12} style={{ color: 'rgba(255,255,255,0.3)' }} /></button>
                       </div>
                     </div>
                     {tip && (
-                      <div className="mt-1.5 text-[10px]" style={{ color: '#d4a373' }}>
+                      <div className="mt-1.5 text-[10px]" style={{ color: 'var(--copper-tan)' }}>
                         💡 Extra payment window: day {tip.start}–{tip.end} (closes day {b.statement_close_day})
                       </div>
                     )}
@@ -455,14 +455,14 @@ export default function BillPlanner() {
           </div>
 
           {/* ── BNPL ── */}
-          <div className="glass-surface rounded-xl p-4" style={{ border: '1px solid rgba(184,115,51,0.25)' }}>
+          <div className="glass-surface rounded-xl p-4" style={{ border: '1px solid rgba(var(--copper-bold-rgb),0.25)' }}>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold" style={{ color: '#d4a373' }}>Buy Now, Pay Later</h3>
+              <h3 className="text-sm font-semibold" style={{ color: 'var(--copper-tan)' }}>Buy Now, Pay Later</h3>
               <div className="flex items-center gap-2">
                 <button onClick={() => setBnplVisible((v) => !v)} title={bnplVisible ? 'Hide amounts' : 'Show amounts'}>
-                  {bnplVisible ? <EyeOff size={14} style={{ color: '#d4a373' }} /> : <Eye size={14} style={{ color: '#d4a373' }} />}
+                  {bnplVisible ? <EyeOff size={14} style={{ color: 'var(--copper-tan)' }} /> : <Eye size={14} style={{ color: 'var(--copper-tan)' }} />}
                 </button>
-                <button onClick={() => setShowBnplForm((s) => !s)}><Plus size={16} style={{ color: '#d4a373' }} /></button>
+                <button onClick={() => setShowBnplForm((s) => !s)}><Plus size={16} style={{ color: 'var(--copper-tan)' }} /></button>
               </div>
             </div>
 
@@ -487,7 +487,7 @@ export default function BillPlanner() {
                 <div key={p.id} className="rounded-lg p-2 text-xs" style={{ background: 'rgba(255,255,255,0.03)' }}>
                   <div className="flex items-center justify-between">
                     <span style={{ color: 'rgba(255,255,255,0.8)' }}>{p.vendor}</span>
-                    <span className="font-semibold" style={{ color: '#d4a373', filter: bnplVisible ? 'none' : 'blur(4px)' }}>
+                    <span className="font-semibold" style={{ color: 'var(--copper-tan)', filter: bnplVisible ? 'none' : 'blur(4px)' }}>
                       {mask(money(p.remaining_amount))} left
                     </span>
                   </div>
@@ -506,9 +506,9 @@ export default function BillPlanner() {
       )}
 
       {/* ── Statement upload ── */}
-      <div className="glass-surface rounded-xl p-4 mt-4" style={{ border: '1px solid rgba(184,115,51,0.25)' }}>
+      <div className="glass-surface rounded-xl p-4 mt-4" style={{ border: '1px solid rgba(var(--copper-bold-rgb),0.25)' }}>
         <div className="flex items-center justify-between mb-2">
-          <h3 className="text-sm font-semibold flex items-center gap-2" style={{ color: '#d4a373' }}>
+          <h3 className="text-sm font-semibold flex items-center gap-2" style={{ color: 'var(--copper-tan)' }}>
             <Upload size={14} /> Import a Statement
           </h3>
           <input
@@ -545,15 +545,15 @@ export default function BillPlanner() {
               </thead>
               <tbody>
                 {statementRows.map((row, idx) => (
-                  <tr key={idx} style={{ borderTop: '1px solid rgba(184,115,51,0.1)' }}>
+                  <tr key={idx} style={{ borderTop: '1px solid rgba(var(--copper-bold-rgb),0.1)' }}>
                     <td className="py-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>{row.date || '—'}</td>
                     <td className="py-1.5" style={{ color: 'rgba(255,255,255,0.8)' }}>{row.description}</td>
-                    <td className="py-1.5 text-right" style={{ color: '#d4a373' }}>{money(row.amount)}</td>
+                    <td className="py-1.5 text-right" style={{ color: 'var(--copper-tan)' }}>{money(row.amount)}</td>
                     <td className="py-1.5 text-right whitespace-nowrap">
-                      <button onClick={() => importRowAsBalance(row)} className="text-[10px] px-1.5 py-0.5 rounded mr-1" style={{ background: 'rgba(184,115,51,0.15)', color: '#d4a373' }}>
+                      <button onClick={() => importRowAsBalance(row)} className="text-[10px] px-1.5 py-0.5 rounded mr-1" style={{ background: 'rgba(var(--copper-bold-rgb),0.15)', color: 'var(--copper-tan)' }}>
                         + Balance
                       </button>
-                      <button onClick={() => importRowAsBill(row)} className="text-[10px] px-1.5 py-0.5 rounded" style={{ background: 'rgba(184,115,51,0.15)', color: '#d4a373' }}>
+                      <button onClick={() => importRowAsBill(row)} className="text-[10px] px-1.5 py-0.5 rounded" style={{ background: 'rgba(var(--copper-bold-rgb),0.15)', color: 'var(--copper-tan)' }}>
                         + Bill
                       </button>
                     </td>

@@ -38,7 +38,7 @@ function nextStatus(current: Status): Status {
 function StatusIcon({ status, size = 16 }: { status: Status; size?: number }) {
   switch (status) {
     case 'obtained': return <CheckCircle2 size={size} color="#4caf50" />;
-    case 'pending_scan': return <Clock size={size} color="#d4a373" />;
+    case 'pending_scan': return <Clock size={size} color="var(--copper-tan)" />;
     case 'archived': return <Lock size={size} color="#8e9aaf" />;
     default: return <Circle size={size} color="#757575" />;
   }
@@ -50,8 +50,8 @@ function EagleIcon({ size = 28 }: { size?: number }) {
     <svg width={size} height={size} viewBox="0 0 32 32" aria-label="Eagle — checklist complete">
       <path
         d="M16 4 C14 8 8 9 4 8 C7 11 10 12 13 12 L6 18 C10 17 13 15 15 13 L14 22 L12 28 L16 24 L20 28 L18 22 L17 13 C19 15 22 17 26 18 L19 12 C22 12 25 11 28 8 C24 9 18 8 16 4 Z"
-        fill="#b87333"
-        stroke="#8e633f"
+        fill="var(--copper-bold)"
+        stroke="var(--copper-0)"
         strokeWidth="0.5"
       />
     </svg>
@@ -62,14 +62,14 @@ function ProgressBar({ completed, total }: { completed: number; total: number })
   const pct = total ? Math.round((completed / total) * 100) : 0;
   return (
     <div className="my-6">
-      <div className="text-sm font-semibold mb-2" style={{ color: '#d4a373' }}>
+      <div className="text-sm font-semibold mb-2" style={{ color: 'var(--copper-tan)' }}>
         Progress: {completed} / {total} completed
       </div>
       <div
         className="relative h-6 rounded-sm overflow-hidden"
         style={{
           background: 'linear-gradient(90deg, #CE1126 0%, #CE1126 33%, #fff 33%, #fff 66%, #007340 66%, 100%)',
-          border: '1px solid rgba(184,115,51,0.3)',
+          border: '1px solid rgba(var(--copper-bold-rgb),0.3)',
         }}
       >
         <div
@@ -185,17 +185,17 @@ export default function MexicoCitizenshipTracker() {
   }, [visibleDocs]);
 
   if (loading) {
-    return <div className="py-12 text-center" style={{ color: '#d4a373' }}>Loading…</div>;
+    return <div className="py-12 text-center" style={{ color: 'var(--copper-tan)' }}>Loading…</div>;
   }
 
   return (
-    <div className="citizenship-tracker" style={{ color: '#d4a373' }}>
+    <div className="citizenship-tracker" style={{ color: 'var(--copper-tan)' }}>
       {/* Header */}
       <div>
-        <h2 className="text-xl font-bold" style={{ color: '#d4a373', textShadow: '0 0 16px rgba(184,115,51,0.3)' }}>
+        <h2 className="text-xl font-bold" style={{ color: 'var(--copper-tan)', textShadow: '0 0 16px rgba(var(--copper-bold-rgb),0.3)' }}>
           Mexico Citizenship Tracker
         </h2>
-        <p className="text-xs mt-1" style={{ color: 'rgba(212,163,115,0.6)' }}>
+        <p className="text-xs mt-1" style={{ color: 'rgba(var(--copper-tan-rgb),0.6)' }}>
           {lastUpdated ? `Last updated: ${lastUpdated.toLocaleString()}` : 'Not yet synced'}
         </p>
         {error && <p className="text-xs mt-1 text-red-400">{error}</p>}
@@ -220,7 +220,7 @@ export default function MexicoCitizenshipTracker() {
                 className="category-section"
                 style={{
                   background: 'linear-gradient(180deg, rgba(20,18,16,0.6), rgba(13,12,11,0.8))',
-                  borderLeft: `2px solid ${isSelected ? '#b87333' : 'rgba(184,115,51,0.4)'}`,
+                  borderLeft: `2px solid ${isSelected ? 'var(--copper-bold)' : 'rgba(var(--copper-bold-rgb),0.4)'}`,
                   padding: '0.75rem 0 0.75rem 1rem',
                   margin: '0.5rem 0',
                 }}
@@ -240,7 +240,7 @@ export default function MexicoCitizenshipTracker() {
                   <span className="category-title flex-1" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '0.875rem', fontWeight: 600, letterSpacing: '0.05em' }}>
                     {CATEGORY_LABELS[cat].toUpperCase()}
                   </span>
-                  <span className="text-xs" style={{ color: 'rgba(212,163,115,0.5)' }}>
+                  <span className="text-xs" style={{ color: 'rgba(var(--copper-tan-rgb),0.5)' }}>
                     [{completed}/{copies.length}]
                   </span>
                 </button>
@@ -252,7 +252,7 @@ export default function MexicoCitizenshipTracker() {
                       const anyProgress = typeCopies.some(c => c.status === 'obtained' || c.status === 'pending_scan' || c.status === 'archived');
                       const aggStatus: Status = allDone ? 'obtained' : anyProgress ? 'pending_scan' : 'not_started';
                       return (
-                        <div key={docId} className="flex items-center gap-2 text-xs" style={{ color: 'rgba(212,163,115,0.85)' }}>
+                        <div key={docId} className="flex items-center gap-2 text-xs" style={{ color: 'rgba(var(--copper-tan-rgb),0.85)' }}>
                           <StatusIcon status={aggStatus} size={12} />
                           <span>{title} ×{typeCopies.length}</span>
                         </div>
@@ -268,7 +268,7 @@ export default function MexicoCitizenshipTracker() {
         {/* Checklist — right, ~50% */}
         <div className="md:w-1/2 space-y-6">
           {Object.keys(visibleByCategory).length === 0 && (
-            <p className="text-sm" style={{ color: 'rgba(212,163,115,0.5)' }}>No documents match the current filter.</p>
+            <p className="text-sm" style={{ color: 'rgba(var(--copper-tan-rgb),0.5)' }}>No documents match the current filter.</p>
           )}
           {CATEGORY_ORDER.filter(cat => visibleByCategory[cat]).map(cat => {
             const docs = visibleByCategory[cat];
@@ -276,13 +276,13 @@ export default function MexicoCitizenshipTracker() {
             return (
               <div key={cat}>
                 <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-sm font-semibold uppercase tracking-wide" style={{ color: '#d4a373' }}>
+                  <h3 className="text-sm font-semibold uppercase tracking-wide" style={{ color: 'var(--copper-tan)' }}>
                     {CATEGORY_LABELS[cat]} ({completed}/{docs.length})
                   </h3>
                   <button
                     type="button"
                     className="text-xs flex items-center gap-1 hover:underline"
-                    style={{ color: '#d4a373' }}
+                    style={{ color: 'var(--copper-tan)' }}
                     onClick={() => exportCitizenshipAsPdf(docs, CATEGORY_LABELS, [cat])}
                   >
                     <Download size={12} /> Export This Section
@@ -298,7 +298,7 @@ export default function MexicoCitizenshipTracker() {
                         alignItems: 'flex-start',
                         gap: '0.75rem',
                         padding: '0.5rem 0.75rem',
-                        borderBottom: '1px solid rgba(184,115,51,0.15)',
+                        borderBottom: '1px solid rgba(var(--copper-bold-rgb),0.15)',
                         fontSize: '0.8125rem',
                       }}
                     >
@@ -316,7 +316,7 @@ export default function MexicoCitizenshipTracker() {
                           <span>
                             {doc.title} (Copy {doc.copy_number})
                             {!doc.original_retained && (
-                              <span className="ml-1.5 text-[10px] italic" style={{ color: 'rgba(212,163,115,0.45)' }}>
+                              <span className="ml-1.5 text-[10px] italic" style={{ color: 'rgba(var(--copper-tan-rgb),0.45)' }}>
                                 scan only
                               </span>
                             )}
@@ -324,14 +324,14 @@ export default function MexicoCitizenshipTracker() {
                           <button
                             type="button"
                             className="text-xs hover:underline flex-shrink-0"
-                            style={{ color: '#d4a373' }}
+                            style={{ color: 'var(--copper-tan)' }}
                             onClick={() => setEditingDoc(doc)}
                             aria-label={`Edit ${doc.title} copy ${doc.copy_number}`}
                           >
                             <Pencil size={12} className="inline" /> edit
                           </button>
                         </div>
-                        <div className="text-[11px] mt-0.5" style={{ color: 'rgba(212,163,115,0.55)' }}>
+                        <div className="text-[11px] mt-0.5" style={{ color: 'rgba(var(--copper-tan-rgb),0.55)' }}>
                           {doc.status === 'pending_scan' && <span>Pending scan from original</span>}
                           {doc.storage_location && <div>Storage: {doc.storage_location}</div>}
                           {doc.scan_url && (
@@ -354,7 +354,7 @@ export default function MexicoCitizenshipTracker() {
       </div>
 
       {/* Action bar */}
-      <div className="action-bar flex flex-wrap items-center gap-3 mt-6 pt-4" style={{ borderTop: '1px solid rgba(184,115,51,0.2)' }}>
+      <div className="action-bar flex flex-wrap items-center gap-3 mt-6 pt-4" style={{ borderTop: '1px solid rgba(var(--copper-bold-rgb),0.2)' }}>
         <button type="button" onClick={() => exportCitizenshipAsPdf(documents, CATEGORY_LABELS, CATEGORY_ORDER)}>
           <Download size={12} className="inline mr-1" /> Export as PDF
         </button>
@@ -368,16 +368,16 @@ export default function MexicoCitizenshipTracker() {
               type="button"
               onClick={() => setFilterStatus(f)}
               style={{
-                background: filterStatus === f ? 'rgba(184,115,51,0.28)' : 'transparent',
-                borderColor: filterStatus === f ? '#b87333' : '#b87333',
-                color: filterStatus === f ? '#fff' : '#d4a373',
+                background: filterStatus === f ? 'rgba(var(--copper-bold-rgb),0.28)' : 'transparent',
+                borderColor: filterStatus === f ? 'var(--copper-bold)' : 'var(--copper-bold)',
+                color: filterStatus === f ? '#fff' : 'var(--copper-tan)',
               }}
             >
               {f === 'all' ? 'All' : f === 'completed' ? 'Completed' : 'Pending'}
             </button>
           ))}
         </div>
-        <span className="text-xs ml-auto" style={{ color: 'rgba(212,163,115,0.5)' }}>
+        <span className="text-xs ml-auto" style={{ color: 'rgba(var(--copper-tan-rgb),0.5)' }}>
           {lastUpdated ? `Last refreshed: ${lastUpdated.toLocaleTimeString()}` : ''}
         </span>
       </div>
@@ -418,58 +418,58 @@ function EditModal({
       <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 pointer-events-none">
         <div
           className="pointer-events-auto w-full max-w-md p-5 rounded-lg"
-          style={{ background: 'rgba(10,8,6,0.97)', border: '1px solid rgba(184,115,51,0.4)' }}
+          style={{ background: 'rgba(10,8,6,0.97)', border: '1px solid rgba(var(--copper-bold-rgb),0.4)' }}
           onClick={e => e.stopPropagation()}
         >
-          <h3 className="text-sm font-bold mb-3" style={{ color: '#d4a373' }}>
+          <h3 className="text-sm font-bold mb-3" style={{ color: 'var(--copper-tan)' }}>
             {doc.title} (Copy {doc.copy_number})
           </h3>
 
-          <label className="block text-xs mb-1" style={{ color: 'rgba(212,163,115,0.7)' }}>Status</label>
+          <label className="block text-xs mb-1" style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }}>Status</label>
           <select
             value={status}
             onChange={e => setStatus(e.target.value as Status)}
             className="w-full mb-3 bg-transparent border px-2 py-1.5 text-sm"
-            style={{ borderColor: 'rgba(184,115,51,0.3)', color: '#d4a373' }}
+            style={{ borderColor: 'rgba(var(--copper-bold-rgb),0.3)', color: 'var(--copper-tan)' }}
           >
             {statusOptions.map(s => <option key={s} value={s} style={{ color: '#000' }}>{STATUS_LABEL[s]}</option>)}
           </select>
 
-          <label className="block text-xs mb-1" style={{ color: 'rgba(212,163,115,0.7)' }}>Storage Location</label>
+          <label className="block text-xs mb-1" style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }}>Storage Location</label>
           <input
             value={storageLocation}
             onChange={e => setStorageLocation(e.target.value)}
             placeholder="e.g. Original in file box"
             className="w-full mb-3 bg-transparent border px-2 py-1.5 text-sm"
-            style={{ borderColor: 'rgba(184,115,51,0.3)', color: '#d4a373' }}
+            style={{ borderColor: 'rgba(var(--copper-bold-rgb),0.3)', color: 'var(--copper-tan)' }}
           />
 
-          <label className="block text-xs mb-1" style={{ color: 'rgba(212,163,115,0.7)' }}>Scan URL</label>
+          <label className="block text-xs mb-1" style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }}>Scan URL</label>
           <input
             value={scanUrl}
             onChange={e => setScanUrl(e.target.value)}
             placeholder="e.g. /vault/doc_scan_001.pdf"
             className="w-full mb-3 bg-transparent border px-2 py-1.5 text-sm"
-            style={{ borderColor: 'rgba(184,115,51,0.3)', color: '#d4a373' }}
+            style={{ borderColor: 'rgba(var(--copper-bold-rgb),0.3)', color: 'var(--copper-tan)' }}
           />
 
-          <label className="block text-xs mb-1" style={{ color: 'rgba(212,163,115,0.7)' }}>Notes</label>
+          <label className="block text-xs mb-1" style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }}>Notes</label>
           <textarea
             value={notes}
             onChange={e => setNotes(e.target.value)}
             rows={3}
             className="w-full mb-4 bg-transparent border px-2 py-1.5 text-sm resize-vertical"
-            style={{ borderColor: 'rgba(184,115,51,0.3)', color: '#d4a373' }}
+            style={{ borderColor: 'rgba(var(--copper-bold-rgb),0.3)', color: 'var(--copper-tan)' }}
           />
 
           <div className="flex justify-end gap-2">
-            <button type="button" onClick={onClose} style={{ borderColor: 'rgba(184,115,51,0.3)', color: 'rgba(212,163,115,0.7)' }}>
+            <button type="button" onClick={onClose} style={{ borderColor: 'rgba(var(--copper-bold-rgb),0.3)', color: 'rgba(var(--copper-tan-rgb),0.7)' }}>
               Cancel
             </button>
             <button
               type="button"
               onClick={() => onSave({ status, storage_location: storageLocation || null, scan_url: scanUrl || null, notes: notes || null })}
-              style={{ background: '#b87333', color: '#0f0f0f', borderColor: '#b87333' }}
+              style={{ background: 'var(--copper-bold)', color: 'var(--stone-0)', borderColor: 'var(--copper-bold)' }}
             >
               Save
             </button>
