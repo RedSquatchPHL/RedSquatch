@@ -88,6 +88,18 @@
   --accent: 13 70% 62%;
   --accent-foreground: 36 73% 88%;
   --ring: 13 70% 62%;
+
+  /* Copper-tan/bold tracker pair (PedroFanTracker, SpanishTutor,
+     MexicoCitizenshipTracker, DiscoveryForm, BillPlanner) rides the same
+     current as the rest of chrome instead of staying static copper all
+     night — blended toward this phase's own cenote-glow/cyan, same 15%
+     (dusk) / 40% (midnight) / 25% (predawn, here) arc as the copper-glow
+     shift above. Tune the blend % here if 25% predawn / 15% dusk / 40%
+     midnight feels off — these are a first pass, not a fixed formula. */
+  --copper-tan: #b7af87;
+  --copper-tan-rgb: 183, 175, 135;
+  --copper-bold: #957c4f;
+  --copper-bold-rgb: 149, 124, 79;
 }
 
 /* ── Dusk phase (5-10PM) — golden hour: warm amber/gold, sampled from
@@ -138,6 +150,13 @@
   --accent: 35 77% 61%;
   --accent-foreground: 34 90% 92%;
   --ring: 35 77% 61%;
+
+  /* 15% toward this phase's cenote-glow/cyan — barely off base copper,
+     golden hour still reads as "work just ended," not "already night." */
+  --copper-tan: #c7aa80;
+  --copper-tan-rgb: 199, 170, 128;
+  --copper-bold: #a87a43;
+  --copper-bold-rgb: 168, 122, 67;
 }
 
 /* ── Midnight phase (10PM-3AM) — deep navy + Milky Way violet, sampled from
@@ -190,6 +209,13 @@
   --accent: 221 42% 69%;
   --accent-foreground: 226 62% 96%;
   --ring: 221 42% 69%;
+
+  /* 40% toward this phase's cenote-glow/cyan — the deepest lean of the
+     night, matching how --copper-glow-rgb above also cools hardest here. */
+  --copper-tan: #b2ab9f;
+  --copper-tan-rgb: 178, 171, 159;
+  --copper-bold: #887462;
+  --copper-bold-rgb: 136, 116, 98;
 }
 
 /* ── Hardcoded chrome overrides ───────────────────────────────────────
