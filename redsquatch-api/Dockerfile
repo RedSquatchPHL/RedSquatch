@@ -12,7 +12,7 @@ COPY . .
 # uploads/ holds real user-uploaded files (Demand Form attachments) — must be
 # mounted as a persistent volume in Coolify (map to the existing host path so
 # current files carry over), not left as image-baked/ephemeral storage.
-RUN apt-get update && apt-get install -y --no-install-recommends curl \
+RUN apt-get update && apt-get install -y --no-install-recommends curl wget \
   && rm -rf /var/lib/apt/lists/* \
   && mkdir -p uploads \
   && groupadd -g 1001 nodejs && useradd -u 1001 -g nodejs -m apiuser \
