@@ -160,7 +160,7 @@ function makeRouter(db) {
         );
 
         await client.query('COMMIT');
-        res.status(201).json({ imported, updated, removed: removedResult.rowCount, needsReview });
+        res.status(201).json({ imported, updated, removed: removedResult.rowCount, needsReview, tickets });
       } catch (dbErr) {
         await client.query('ROLLBACK');
         console.error('Work cards import error:', dbErr.message);

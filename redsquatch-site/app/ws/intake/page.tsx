@@ -1,45 +1,27 @@
 'use client';
 
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { FileText, Lightbulb, ListChecks } from 'lucide-react';
 import { API } from '@/lib/api';
-import GroupsList from '@/components/intake/GroupsList';
-import GroupForm from '@/components/intake/GroupForm';
-import DiscoveryForm from '@/components/intake/DiscoveryForm';
-import DemandForm, { type DemandFormHandle } from '@/components/intake/DemandForm';
-import WorkflowProgressBar from '@/components/intake/WorkflowProgressBar';
-import CopperPanel from '@/components/cenote/CopperPanel';
 import HeaderBrand from '@/components/cenote/HeaderBrand';
-import { DEMAND_TEMPLATE_MARKDOWN, downloadMarkdown } from '@/lib/export-utils';
-import type { WorkGroup, DiscoveryForm as DiscoveryFormType, DemandForm as DemandFormType, GroupStatus } from '@/components/intake/types';
+import AppletModal from '@/components/AppletModal';
+import PDFReaderApplet from '@/components/ba-tools/PDFReaderApplet';
+import UserStoryGame from '@/components/ba-tools/UserStoryGame';
+import AcceptanceCriteriaGame from '@/components/ba-tools/AcceptanceCriteriaGame';
 
-// Purely informational placement in the workflow — only the first three
-// stages (SNWR/Project, Discovery, Demand) have real backing status data;
-// everything past Demand always renders as "not yet reached" until a
-// later pass adds tracking for those stages.
-function computeStageIndex(discovery: DiscoveryFormType | null, demand: DemandFormType | null): number {
-  if (demand && (demand.status === 'Ready' || demand.status === 'Approved')) return 3;
-  if (demand) return 2;
-  if (discovery) return 1;
-  return 0;
-}
+type Applet = 'babok' | 'userstory' | 'acceptancecriteria' | null;
+
+const APPLETS = [
+  { key: 'babok' as const, label: 'BABOK Guide v3', description: 'Reference reader for the BABOK Guide (Member Edition)', icon: FileText },
+  { key: 'userstory' as const, label: 'User Story Evaluation Game', description: 'Spot the solid story among the flawed ones — track your streak', icon: Lightbulb },
+  { key: 'acceptancecriteria' as const, label: 'Acceptance Criteria Matching Challenge', description: 'Match a user story to the AC set that actually verifies it', icon: ListChecks },
+];
 
 export default function WSIntakePage() {
   const [checking, setChecking] = useState(true);
+  const [activeApplet, setActiveApplet] = useState<Applet>(null);
   const router = useRouter();
-
-  const [groups, setGroups] = useState<WorkGroup[]>([]);
-  const [groupsLoading, setGroupsLoading] = useState(true);
-  const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null);
-  const [currentDiscovery, setCurrentDiscovery] = useState<DiscoveryFormType | null>(null);
-  const [currentDemand, setCurrentDemand] = useState<DemandFormType | null>(null);
-
-  const [showGroupForm, setShowGroupForm] = useState(false);
-  const [editingGroup, setEditingGroup] = useState<WorkGroup | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  const demandFormRef = useRef<DemandFormHandle>(null);
-  const [demandImporting, setDemandImporting] = useState(false);
 
   useEffect(() => {
     fetch(`${API}/api/client/session`, { credentials: 'include' })
@@ -51,181 +33,83 @@ export default function WSIntakePage() {
       .catch(() => router.push('/'));
   }, [router]);
 
-  const fetchGroups = useCallback(async () => {
-    setGroupsLoading(true);
-    try {
-      const res = await fetch(`${API}/api/client/groups`, { credentials: 'include' });
-      if (!res.ok) throw new Error('Failed to load groups');
-      setGroups(await res.json());
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load groups');
-    } finally {
-      setGroupsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => { if (!checking) fetchGroups(); }, [checking, fetchGroups]);
-  useEffect(() => { setCurrentDiscovery(null); setCurrentDemand(null); }, [selectedGroupId]);
-
-  const selectedGroup = groups.find(g => g.id === selectedGroupId) ?? null;
-
-  const handleCreateGroup = () => { setEditingGroup(null); setShowGroupForm(true); };
-  const handleEditGroup = () => { if (selectedGroup) { setEditingGroup(selectedGroup); setShowGroupForm(true); } };
-
-  const handleSaveGroup = async (data: {
-    name: string;
-    description: string;
-    status: GroupStatus;
-    follow_up_flag: boolean;
-    follow_up_date: string | null;
-  }) => {
-    const url = editingGroup ? `${API}/api/client/groups/${editingGroup.id}` : `${API}/api/client/groups`;
-    const method = editingGroup ? 'PUT' : 'POST';
-    const res = await fetch(url, {
-      method,
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-    if (!res.ok) {
-      const body = await res.json().catch(() => ({}));
-      throw new Error(body.error || 'Failed to save group');
-    }
-    const saved = await res.json();
-    setShowGroupForm(false);
-    setEditingGroup(null);
-    await fetchGroups();
-    if (!editingGroup) setSelectedGroupId(saved.id);
-  };
-
-  const handleDeleteGroup = async (id: number) => {
-    if (!confirm('Delete this group and all its discovery/demand forms?')) return;
-    try {
-      const res = await fetch(`${API}/api/client/groups/${id}`, { method: 'DELETE', credentials: 'include' });
-      if (!res.ok) throw new Error('Failed to delete group');
-      if (selectedGroupId === id) setSelectedGroupId(null);
-      await fetchGroups();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete group');
-    }
-  };
-
   if (checking) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-[#b87333] text-lg">Loading...</div>
+        <div className="text-[var(--copper-1)] text-lg">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="jungle-bg min-h-screen pb-28">
-      <div className="max-w-7xl mx-auto p-4 sm:p-8">
-        <div className="mb-6">
-          <HeaderBrand version="2.3" showVersion />
-          <h1 className="text-4xl text-[#b87333] mt-4">Work Intake</h1>
-          <p className="text-[#d4a373] text-sm mt-1">Discovery and Demand, side by side.</p>
+    <div className="jungle-bg min-h-screen flex items-center justify-center p-6">
+      <div className="stone-board stone-noise mono relative w-full max-w-[1200px] p-6 pb-24 text-[12px] text-[var(--copper-1)]">
+        <HeaderBrand version="2.3" showVersion label="Business Analyst Tools" />
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+          {APPLETS.map(applet => {
+            const Icon = applet.icon;
+            return (
+              <button
+                key={applet.key}
+                onClick={() => setActiveApplet(applet.key)}
+                className="group cursor-pointer transition-all duration-300 text-left"
+              >
+                <div
+                  className="glass-surface rounded-xl p-3 h-full flex flex-col gap-2 border border-transparent"
+                  style={{
+                    borderColor: 'rgba(184,115,51,0.22)',
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.05)',
+                  }}
+                  onMouseEnter={e => {
+                    const el = e.currentTarget as HTMLDivElement;
+                    el.style.borderColor = '#b87333';
+                    el.style.boxShadow = '0 8px 40px rgba(0,0,0,0.5), 0 0 24px rgba(184,115,51,0.25), inset 0 1px 0 rgba(255,255,255,0.06)';
+                    el.style.transform = 'translateY(-2px)';
+                  }}
+                  onMouseLeave={e => {
+                    const el = e.currentTarget as HTMLDivElement;
+                    el.style.borderColor = 'rgba(184,115,51,0.22)';
+                    el.style.boxShadow = '0 8px 32px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.05)';
+                    el.style.transform = 'translateY(0)';
+                  }}
+                >
+                  <div
+                    className="p-3 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform w-fit"
+                    style={{ backgroundColor: '#b8733322' }}
+                  >
+                    <Icon size={24} style={{ color: '#b87333' }} />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-sm" style={{ color: '#d4a373' }}>
+                      {applet.label}
+                    </h3>
+                    <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.55)' }}>
+                      {applet.description}
+                    </p>
+                  </div>
+                  <div
+                    className="h-0.5 opacity-0 group-hover:opacity-100 transition-opacity rounded-full"
+                    style={{ background: 'linear-gradient(to right, transparent, #b87333, transparent)' }}
+                  />
+                </div>
+              </button>
+            );
+          })}
         </div>
-
-        {error && (
-          <p className="text-red-400 text-sm border border-red-400/20 bg-red-400/5 px-3 py-2 mb-4">{error}</p>
-        )}
-
-        <CopperPanel>
-          <div className="flex flex-col md:flex-row min-h-[600px]">
-            {/* Group rail */}
-            <div className="w-full md:w-64 md:border-r border-b md:border-b-0 border-[rgba(184,115,51,0.2)] max-h-[300px] md:max-h-none shrink-0">
-              <GroupsList
-                groups={groups}
-                loading={groupsLoading}
-                selectedGroupId={selectedGroupId}
-                onSelect={setSelectedGroupId}
-                onNew={handleCreateGroup}
-                onDelete={handleDeleteGroup}
-              />
-            </div>
-
-            {/* Split-pane forms */}
-            <div className="flex-1 p-6 min-w-0">
-              {!selectedGroup ? (
-                <div className="flex items-center justify-center h-full min-h-[400px] text-white/40 text-sm">
-                  Select a group, or create a new one, to get started.
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <div className="flex items-start justify-between flex-wrap gap-3">
-                    <div>
-                      <h2 className="text-2xl text-white">{selectedGroup.name}</h2>
-                      {selectedGroup.description && (
-                        <p className="text-white/40 text-sm mt-1">{selectedGroup.description}</p>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <button
-                        onClick={() => downloadMarkdown('demand-form-template.md', DEMAND_TEMPLATE_MARKDOWN)}
-                        title="Blank Markdown scaffold with the headings the Import parser recognizes"
-                        className="text-xs border border-[rgba(184,115,51,0.3)] text-[#d4a373] hover:bg-[rgba(184,115,51,0.1)] px-3 py-1.5"
-                      >
-                        Download Template
-                      </button>
-                      <label
-                        title="Pre-fills the Demand Form from a ServiceNow dmn_demand XML export or a Demand Form Markdown export"
-                        className={`text-xs border border-[rgba(184,115,51,0.3)] text-[#d4a373] hover:bg-[rgba(184,115,51,0.1)] px-3 py-1.5 cursor-pointer ${demandImporting ? 'opacity-40 pointer-events-none' : ''}`}
-                      >
-                        {demandImporting ? 'Importing...' : 'Import'}
-                        <input
-                          type="file"
-                          accept=".xml,.md,text/xml,text/markdown"
-                          className="hidden"
-                          disabled={demandImporting}
-                          onChange={e => {
-                            const file = e.target.files?.[0];
-                            if (file) demandFormRef.current?.importFile(file);
-                            e.target.value = '';
-                          }}
-                        />
-                      </label>
-                      <button
-                        onClick={handleEditGroup}
-                        className="text-xs border border-[rgba(184,115,51,0.3)] text-[#d4a373] hover:bg-[rgba(184,115,51,0.1)] px-3 py-1.5"
-                      >
-                        Edit Group
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="pb-2 border-b border-[rgba(184,115,51,0.15)]">
-                    <WorkflowProgressBar currentStageIndex={computeStageIndex(currentDiscovery, currentDemand)} />
-                  </div>
-
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <div className="lg:border-r border-[rgba(184,115,51,0.15)] lg:pr-8">
-                      <DiscoveryForm groupId={selectedGroup.id} onFormReady={setCurrentDiscovery} />
-                    </div>
-                    <div>
-                      <DemandForm
-                        ref={demandFormRef}
-                        groupId={selectedGroup.id}
-                        discoveryForm={currentDiscovery}
-                        onImportingChange={setDemandImporting}
-                        onFormReady={setCurrentDemand}
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </CopperPanel>
       </div>
 
-      {showGroupForm && (
-        <GroupForm
-          group={editingGroup}
-          onClose={() => { setShowGroupForm(false); setEditingGroup(null); }}
-          onSave={handleSaveGroup}
-        />
-      )}
+      <AppletModal isOpen={activeApplet === 'babok'} title="BABOK Guide v3" onClose={() => setActiveApplet(null)} wide>
+        <PDFReaderApplet />
+      </AppletModal>
+
+      <AppletModal isOpen={activeApplet === 'userstory'} title="User Story Evaluation Game" onClose={() => setActiveApplet(null)}>
+        <UserStoryGame />
+      </AppletModal>
+
+      <AppletModal isOpen={activeApplet === 'acceptancecriteria'} title="Acceptance Criteria Matching Challenge" onClose={() => setActiveApplet(null)} wide>
+        <AcceptanceCriteriaGame />
+      </AppletModal>
     </div>
   );
 }

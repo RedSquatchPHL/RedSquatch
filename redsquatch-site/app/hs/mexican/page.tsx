@@ -7,9 +7,9 @@ import { Zap } from 'lucide-react';
 import ToolModal from '@/components/ToolModal';
 import { useToolModal } from '@/hooks/useToolModal';
 import AppletModal from '@/components/AppletModal';
-import SpanishTutor from '@/components/SpanishTutor';
-import MexicoCitizenshipTracker from '@/components/MexicoCitizenshipTracker';
-import PedroFanTracker from '@/components/PedroFanTracker';
+import SpanishTutor from '@/components/trackers/SpanishTutor';
+import MexicoCitizenshipTracker from '@/components/trackers/MexicoCitizenshipTracker';
+import PedroFanTracker from '@/components/trackers/PedroFanTracker';
 import CopperPanel from '@/components/cenote/CopperPanel';
 
 type Applet = 'spanishtutor' | 'citizenship' | 'fantracker' | null;

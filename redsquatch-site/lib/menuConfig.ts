@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
-import { FileText, LayoutDashboard, Target, Inbox, Briefcase, Wrench, Trophy, Gamepad2, Landmark } from 'lucide-react';
+import { FileText, LayoutDashboard, Target, GraduationCap, Briefcase, Wrench, Trophy, Gamepad2, Landmark } from 'lucide-react';
 
 export type MenuLeaf =
   | { id: string; label: string; icon: LucideIcon; type: 'internal'; path: string }
@@ -13,7 +13,7 @@ export type MenuLeaf =
 export const WS_NAV: MenuLeaf[] = [
   { id: 'ws-dashboard', label: 'Dashboard', icon: LayoutDashboard, type: 'internal', path: '/ws/dashboard' },
   { id: 'ws-goals', label: 'Goals', icon: Target, type: 'internal', path: '/ws/goals' },
-  { id: 'ws-intake', label: 'Intake', icon: Inbox, type: 'internal', path: '/ws/intake' },
+  { id: 'ws-intake', label: 'BA Tools', icon: GraduationCap, type: 'internal', path: '/ws/intake' },
   { id: 'ws-work', label: 'Work', icon: Briefcase, type: 'internal', path: '/ws/work' },
   { id: 'ws-tools', label: 'Tools', icon: Wrench, type: 'internal', path: '/ws/tools' },
 ];

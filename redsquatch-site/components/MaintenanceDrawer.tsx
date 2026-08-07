@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import type { Task } from '@/components/TasksBoard';
+import type { Task } from '@/components/work/TasksBoard';
 
 import { API } from '@/lib/api';
 

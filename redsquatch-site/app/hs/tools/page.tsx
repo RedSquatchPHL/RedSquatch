@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation';
 import { API } from '@/lib/api';
 import { Zap } from 'lucide-react';
 import AppletModal from '@/components/AppletModal';
-import MealPlanner from '@/components/MealPlanner';
-import BillPlanner from '@/components/BillPlanner';
+import MealPlanner from '@/components/planners/MealPlanner';
+import BillPlanner from '@/components/planners/BillPlanner';
 import PriceScout from '@/components/PriceScout';
 import CopperPanel from '@/components/cenote/CopperPanel';
 

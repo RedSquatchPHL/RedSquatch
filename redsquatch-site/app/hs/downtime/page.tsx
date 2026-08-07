@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { API } from '@/lib/api';
-import GamesModal from '@/components/GamesModal';
+import GamesModal from '@/components/games/GamesModal';
 import CopperPanel from '@/components/cenote/CopperPanel';
 
 export default function HSDowntimePage() {

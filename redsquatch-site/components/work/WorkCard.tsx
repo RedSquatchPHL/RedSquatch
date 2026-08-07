@@ -122,6 +122,7 @@ export default function WorkCard({
   const remainingMs = followUpActive ? new Date(card.follow_up_at as string).getTime() - now : 0;
   const allowedParentTypes = ALLOWED_PARENT_TYPES[card.task_type];
   const hasDetails = !!(card.description || card.related_project || card.related_enhancement);
+  const parentCard = card.parent_id != null ? allCards.find(c => c.id === card.parent_id) : undefined;
 
   function handleFollowUpClick() {
     if (followUpActive) {
@@ -183,6 +184,9 @@ export default function WorkCard({
                 <option key={c.id} value={c.id}>{c.ticket_number} — {c.short_description}</option>
               ))}
           </select>
+          {parentCard && (
+            <span className={styles.parentPickerConfirm}>✓ Linked to {parentCard.ticket_number} — {parentCard.short_description}</span>
+          )}
         </div>
       )}
 

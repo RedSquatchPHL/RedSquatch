@@ -9,7 +9,7 @@ import "@/styles/cenote-elements.css";
 import "@/styles/homesquatch-theme.css";
 import { ThemeProvider } from "@/components/ThemeContext";
 import { HomeSquatchGateProvider } from "@/components/HomeSquatchGate";
-import GlobalEffects from "@/components/GlobalEffects";
+import GlobalEffects from "@/components/effects/GlobalEffects";
 import { GATE_BOOT_SCRIPT } from "@/lib/homesquatch-gate";
 
 const inter = Inter({ subsets: ["latin"] });

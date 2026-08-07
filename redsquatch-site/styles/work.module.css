@@ -320,6 +320,48 @@
   word-break: break-all;
 }
 
+/* ── Staging list (post-import, pre-sort) ──────────────────────── */
+
+.stagingPanel {
+  border: 1px solid rgba(184, 115, 51, 0.3);
+  background: rgba(15, 15, 15, 0.4);
+}
+
+.stagingHeader {
+  align-items: center;
+  border-bottom: 1px solid rgba(184, 115, 51, 0.25);
+  color: #d4a373;
+  display: flex;
+  font-size: 0.9rem;
+  justify-content: space-between;
+  padding: 0.9rem 1.25rem;
+}
+
+.stagingList {
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.stagingRow {
+  align-items: center;
+  border-bottom: 1px solid rgba(184, 115, 51, 0.1);
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.6rem 1.25rem;
+}
+
+.stagingRow:last-child {
+  border-bottom: none;
+}
+
+.stagingRowDescription {
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.85rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* ── Work card carousel ────────────────────────────────────────── */
 
 .carousel {
@@ -597,6 +639,21 @@
   font-size: 0.8125rem;
   padding: 0.4rem 0.6rem;
   width: 100%;
+}
+
+/* Native <option> lists ignore the <select>'s own background/color and fall back to
+   the OS theme (often light), leaving copper text unreadable until browser-native
+   hover highlighting kicks in — set both explicitly on the options themselves. */
+.parentPickerSelect option {
+  background: #1a1006;
+  color: #d4a373;
+}
+
+.parentPickerConfirm {
+  color: #8fbf7a;
+  display: block;
+  font-size: 0.75rem;
+  margin-top: 0.4rem;
 }
 
 /* ── Cascade — nested subtree beneath the focal card ──────────────── */

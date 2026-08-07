@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import TypeBadge from '@/components/TypeBadge';
-import type { WorkItem } from '@/components/WorkItemsTable';
+import type { WorkItem } from '@/components/work/WorkItemsTable';
 
 export type Relationship = {
   id: number;

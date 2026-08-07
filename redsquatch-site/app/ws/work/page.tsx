@@ -3,14 +3,15 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { API } from '@/lib/api';
-import WorkCardCarousel from '@/components/WorkCardCarousel';
-import BackburnerPanel from '@/components/BackburnerPanel';
-import DoneListPanel from '@/components/DoneListPanel';
-import WorkCardJournalPanel from '@/components/WorkCardJournalPanel';
+import WorkCardCarousel from '@/components/work/WorkCardCarousel';
+import BackburnerPanel from '@/components/work/BackburnerPanel';
+import DoneListPanel from '@/components/work/DoneListPanel';
+import WorkCardJournalPanel from '@/components/work/WorkCardJournalPanel';
 import TimerTray from '@/components/TimerTray';
-import WorkCardUploadButton, { ImportResult } from '@/components/WorkCardUploadButton';
+import WorkCardUploadButton, { ImportResult } from '@/components/work/WorkCardUploadButton';
 import HeaderBrand from '@/components/cenote/HeaderBrand';
-import type { WorkCard } from '@/components/WorkCard';
+import TypeBadge from '@/components/TypeBadge';
+import type { WorkCard } from '@/components/work/WorkCard';
 import styles from '@/styles/work.module.css';
 
 export default function WorkCardsPage() {
@@ -19,7 +20,17 @@ export default function WorkCardsPage() {
   const [order, setOrder] = useState<number[]>([]);
   const [focalId, setFocalId] = useState<number | null>(null);
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
-  const [journalCardId, setJournalCardId] = useState<number | null>(null);
+  // Tracks open/closed only, not which card — the Journal button only ever exists on
+  // the current focal card, so the panel should always follow focalId as it advances
+  // (Done/Follow-Up/Backburner, Prev/Next, cascade clicks), never stay pinned to
+  // whichever card happened to be focal when it was opened.
+  const [journalOpen, setJournalOpen] = useState(false);
+  // Cards imported/updated since the last time "Start Sort" was pressed — while this is
+  // non-empty, the carousel stays hidden behind a staging list so freshly uploaded reports
+  // (possibly several in a row: demand/release/work-items) can be reviewed before diving
+  // into the sort workflow. Empty on a normal page load, so revisiting later the same day
+  // goes straight to the carousel with no gate.
+  const [stagedTickets, setStagedTickets] = useState<Set<string>>(new Set());
   const [now, setNow] = useState(() => Date.now());
   const firedRef = useRef<Set<number>>(new Set());
   const router = useRouter();
@@ -215,10 +226,20 @@ export default function WorkCardsPage() {
 
   function handleImported(result: ImportResult) {
     setImportResult(result);
+    setStagedTickets(prev => new Set([...Array.from(prev), ...result.tickets]));
     loadCards();
   }
 
-  const journalCard = cards.find(c => c.id === journalCardId) ?? null;
+  function handleStartSort() {
+    setStagedTickets(new Set());
+  }
+
+  const journalCard = journalOpen ? cards.find(c => c.id === focalId) ?? null : null;
+  const showStaging = stagedTickets.size > 0;
+  const stagedCards = useMemo(
+    () => cards.filter(c => stagedTickets.has(c.ticket_number)).sort((a, b) => a.ticket_number.localeCompare(b.ticket_number)),
+    [cards, stagedTickets]
+  );
 
   if (checking) {
     return (
@@ -261,27 +282,51 @@ export default function WorkCardsPage() {
           </div>
         )}
 
-        <WorkCardCarousel
-          cards={orderedActiveCards}
-          allCards={cards}
-          focalId={focalId}
-          now={now}
-          dueIds={dueIds}
-          onPrev={handlePrev}
-          onNext={handleNext}
-          onToggleDone={handleToggleDone}
-          onToggleBackburner={handleToggleBackburner}
-          onSetFollowUp={handleSetFollowUp}
-          onSetParent={handleSetParent}
-          onOpenJournal={setJournalCardId}
-          onFocusCard={handleFocusCard}
-        />
+        {showStaging ? (
+          <div className={styles.stagingPanel}>
+            <div className={styles.stagingHeader}>
+              <span>{stagedCards.length} record{stagedCards.length === 1 ? '' : 's'} staged from this upload</span>
+              <button type="button" className="glass-btn" style={{ padding: '0.5rem 1.25rem', fontSize: '0.85rem' }} onClick={handleStartSort}>
+                Start Sort
+              </button>
+            </div>
+            <div className={styles.stagingList}>
+              {stagedCards.map(c => (
+                <div key={c.id} className={styles.stagingRow}>
+                  <TypeBadge type={c.task_type} />
+                  <span className={styles.mono}>{c.ticket_number}</span>
+                  <span className={styles.stagingRowDescription}>{c.short_description}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <WorkCardCarousel
+            cards={orderedActiveCards}
+            allCards={cards}
+            focalId={focalId}
+            now={now}
+            dueIds={dueIds}
+            onPrev={handlePrev}
+            onNext={handleNext}
+            onToggleDone={handleToggleDone}
+            onToggleBackburner={handleToggleBackburner}
+            onSetFollowUp={handleSetFollowUp}
+            onSetParent={handleSetParent}
+            onOpenJournal={() => setJournalOpen(true)}
+            onFocusCard={handleFocusCard}
+          />
+        )}
       </div>
 
-      <DoneListPanel cards={doneCards} onRestore={handleFocusCard} />
-      <BackburnerPanel cards={backburnerCards} onRestore={handleFocusCard} />
-      <TimerTray cards={pendingFollowUps} now={now} onJumpTo={setFocalId} />
-      {journalCard && <WorkCardJournalPanel card={journalCard} onClose={() => setJournalCardId(null)} />}
+      {!showStaging && (
+        <>
+          <DoneListPanel cards={doneCards} onRestore={handleFocusCard} />
+          <BackburnerPanel cards={backburnerCards} onRestore={handleFocusCard} />
+          <TimerTray cards={pendingFollowUps} now={now} onJumpTo={setFocalId} />
+          {journalCard && <WorkCardJournalPanel card={journalCard} onClose={() => setJournalOpen(false)} />}
+        </>
+      )}
     </div>
   );
 }

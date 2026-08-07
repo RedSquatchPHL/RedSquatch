@@ -1,10 +1,10 @@
 'use client';
-import { useTheme } from './ThemeContext';
+import { useTheme } from '../ThemeContext';
 import WeatherBackground from './WeatherBackground';
 import FireflyBackground from './FireflyBackground';
 import StarBackground from './StarBackground';
 import DayBackground from './DayBackground';
-import ClockGateMenu from './ClockGateMenu';
+import ClockGateMenu from '../ClockGateMenu';
 
 export default function GlobalEffects() {
   const { active, season } = useTheme();

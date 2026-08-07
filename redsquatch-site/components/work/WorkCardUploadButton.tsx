@@ -9,6 +9,7 @@ export type ImportResult = {
   updated: number;
   removed: number;
   needsReview: unknown[];
+  tickets: string[];
 };
 
 export default function WorkCardUploadButton({

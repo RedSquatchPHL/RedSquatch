@@ -1,6 +1,6 @@
 'use client';
 
-import type { WorkCard } from '@/components/WorkCard';
+import type { WorkCard } from '@/components/work/WorkCard';
 import styles from '@/styles/work.module.css';
 
 export default function DoneListPanel({

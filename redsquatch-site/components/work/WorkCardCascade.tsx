@@ -1,7 +1,7 @@
 'use client';
 
 import TypeBadge from '@/components/TypeBadge';
-import type { WorkCard } from '@/components/WorkCard';
+import type { WorkCard } from '@/components/work/WorkCard';
 import styles from '@/styles/work.module.css';
 
 function CascadeNode({

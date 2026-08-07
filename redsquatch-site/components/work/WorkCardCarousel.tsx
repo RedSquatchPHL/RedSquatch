@@ -1,7 +1,7 @@
 'use client';
 
-import WorkCard, { WorkCard as WorkCardType } from '@/components/WorkCard';
-import WorkCardCascade from '@/components/WorkCardCascade';
+import WorkCard, { WorkCard as WorkCardType } from '@/components/work/WorkCard';
+import WorkCardCascade from '@/components/work/WorkCardCascade';
 import styles from '@/styles/work.module.css';
 
 export default function WorkCardCarousel({

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { ContextSwitcher, type AppContext } from '@/components/ContextSwitcher';
 import { GoalsPanel } from '@/components/GoalsPanel';
-import { TasksBoard, type Task } from '@/components/TasksBoard';
+import { TasksBoard, type Task } from '@/components/work/TasksBoard';
 import { MaintenanceDrawer } from '@/components/MaintenanceDrawer';
 import CopperPanel from '@/components/cenote/CopperPanel';
 import HeaderBrand from '@/components/cenote/HeaderBrand';

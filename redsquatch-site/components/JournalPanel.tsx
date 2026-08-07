@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { API } from '@/lib/api';
-import type { WorkGroupOption } from '@/components/WorkItemsTable';
+import type { WorkGroupOption } from '@/components/work/WorkItemsTable';
 
 export type JournalEntry = {
   id: number;

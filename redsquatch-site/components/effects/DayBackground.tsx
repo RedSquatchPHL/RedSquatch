@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useRef } from 'react';
-import type { Season } from './ThemeContext';
+import type { Season } from '../ThemeContext';
 
 interface Particle {
   x: number; y: number;
