@@ -2,16 +2,24 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Unbounded, JetBrains_Mono } from 'next/font/google';
 import { FileText, Lightbulb, ListChecks } from 'lucide-react';
 import { API } from '@/lib/api';
-import HeaderBrand from '@/components/cenote/HeaderBrand';
+import AztecHeader from '@/components/aztec/AztecHeader';
+import AztecMotion from '@/components/aztec/AztecMotion';
 import AppletModal from '@/components/AppletModal';
 import PDFReaderApplet from '@/components/ba-tools/PDFReaderApplet';
 import UserStoryGame from '@/components/ba-tools/UserStoryGame';
 import AcceptanceCriteriaGame from '@/components/ba-tools/AcceptanceCriteriaGame';
+import '@/styles/aztec-command.css';
+
+const unbounded = Unbounded({ subsets: ['latin'], weight: ['700', '800'], variable: '--font-unbounded' });
+const jbMono = JetBrains_Mono({ subsets: ['latin'], weight: ['400', '500'], variable: '--font-jbmono' });
 
 type Applet = 'babok' | 'userstory' | 'acceptancecriteria' | null;
 
+// All three are reference/practice material rather than active work, so they
+// share the codex glyph family (archive/record-keeping) — see AztecPanel.
 const APPLETS = [
   { key: 'babok' as const, label: 'BABOK Guide v3', description: 'Reference reader for the BABOK Guide (Member Edition)', icon: FileText },
   { key: 'userstory' as const, label: 'User Story Evaluation Game', description: 'Spot the solid story among the flawed ones — track your streak', icon: Lightbulb },
@@ -35,63 +43,46 @@ export default function WSIntakePage() {
 
   if (checking) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-[var(--copper-1)] text-lg">Loading...</div>
+      <div className={`aztec-command ${unbounded.variable} ${jbMono.variable} flex items-center justify-center min-h-screen`}>
+        <div className="text-[var(--ac-copper-light)] text-lg">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="jungle-bg min-h-screen flex items-center justify-center p-6">
-      <div className="stone-board stone-noise mono relative w-full max-w-[1200px] p-6 pb-24 text-[12px] text-[var(--copper-1)]">
-        <HeaderBrand version="2.3" showVersion label="Business Analyst Tools" />
+    <div className={`aztec-command ${unbounded.variable} ${jbMono.variable} min-h-screen flex items-center justify-center p-6`}>
+      <AztecMotion marqueeItems={['Goals', 'Work Items', 'Sports', 'Tools', 'RedSquatch']} />
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+      <div className="relative z-[1] w-full max-w-[1200px] pb-24">
+        <AztecHeader label="BUSINESS ANALYST TOOLS" />
+
+        <div className="ac-grid grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
           {APPLETS.map(applet => {
             const Icon = applet.icon;
             return (
               <button
                 key={applet.key}
                 onClick={() => setActiveApplet(applet.key)}
-                className="group cursor-pointer transition-all duration-300 text-left"
+                className="ac-panel ac-panel--codex group cursor-pointer text-left flex flex-col gap-2"
+                data-stagger
               >
+                <span className="ac-corner ac-corner--tl" />
+                <span className="ac-corner ac-corner--tr" />
+                <span className="ac-corner ac-corner--bl" />
+                <span className="ac-corner ac-corner--br" />
                 <div
-                  className="glass-surface rounded-xl p-3 h-full flex flex-col gap-2 border border-transparent"
-                  style={{
-                    borderColor: 'rgba(184,115,51,0.22)',
-                    boxShadow: '0 8px 32px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.05)',
-                  }}
-                  onMouseEnter={e => {
-                    const el = e.currentTarget as HTMLDivElement;
-                    el.style.borderColor = '#b87333';
-                    el.style.boxShadow = '0 8px 40px rgba(0,0,0,0.5), 0 0 24px rgba(184,115,51,0.25), inset 0 1px 0 rgba(255,255,255,0.06)';
-                    el.style.transform = 'translateY(-2px)';
-                  }}
-                  onMouseLeave={e => {
-                    const el = e.currentTarget as HTMLDivElement;
-                    el.style.borderColor = 'rgba(184,115,51,0.22)';
-                    el.style.boxShadow = '0 8px 32px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.05)';
-                    el.style.transform = 'translateY(0)';
-                  }}
+                  className="p-3 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform w-fit"
+                  style={{ backgroundColor: 'rgba(184,115,51,0.13)' }}
                 >
-                  <div
-                    className="p-3 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform w-fit"
-                    style={{ backgroundColor: '#b8733322' }}
-                  >
-                    <Icon size={24} style={{ color: '#b87333' }} />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-sm" style={{ color: '#d4a373' }}>
-                      {applet.label}
-                    </h3>
-                    <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.55)' }}>
-                      {applet.description}
-                    </p>
-                  </div>
-                  <div
-                    className="h-0.5 opacity-0 group-hover:opacity-100 transition-opacity rounded-full"
-                    style={{ background: 'linear-gradient(to right, transparent, #b87333, transparent)' }}
-                  />
+                  <Icon size={24} className="text-[var(--ac-copper)]" />
+                </div>
+                <div className="flex-1">
+                  <h3 style={{ fontFamily: 'var(--font-unbounded)' }} className="font-bold text-sm text-[var(--ac-copper-light)]">
+                    {applet.label}
+                  </h3>
+                  <p className="text-xs mt-0.5 text-[var(--ac-stone-light)]">
+                    {applet.description}
+                  </p>
                 </div>
               </button>
             );

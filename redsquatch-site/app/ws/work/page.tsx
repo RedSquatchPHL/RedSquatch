@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Unbounded, JetBrains_Mono } from 'next/font/google';
 import { API } from '@/lib/api';
 import WorkCardCarousel from '@/components/work/WorkCardCarousel';
 import BackburnerPanel from '@/components/work/BackburnerPanel';
@@ -9,10 +10,15 @@ import DoneListPanel from '@/components/work/DoneListPanel';
 import WorkCardJournalPanel from '@/components/work/WorkCardJournalPanel';
 import TimerTray from '@/components/TimerTray';
 import WorkCardUploadButton, { ImportResult } from '@/components/work/WorkCardUploadButton';
-import HeaderBrand from '@/components/cenote/HeaderBrand';
+import AztecHeader from '@/components/aztec/AztecHeader';
+import AztecMotion from '@/components/aztec/AztecMotion';
 import TypeBadge from '@/components/TypeBadge';
 import type { WorkCard } from '@/components/work/WorkCard';
 import styles from '@/styles/work.module.css';
+import '@/styles/aztec-command.css';
+
+const unbounded = Unbounded({ subsets: ['latin'], weight: ['700', '800'], variable: '--font-unbounded' });
+const jbMono = JetBrains_Mono({ subsets: ['latin'], weight: ['400', '500'], variable: '--font-jbmono' });
 
 export default function WorkCardsPage() {
   const [checking, setChecking] = useState(true);
@@ -250,12 +256,14 @@ export default function WorkCardsPage() {
   }
 
   return (
-    <div className={`work-page jungle-bg ${styles.workPage} pb-28`}>
-      <div className="max-w-[1400px] mx-auto mb-6">
-        <HeaderBrand version="3.1" showVersion />
+    <div className={`work-page aztec-command ${unbounded.variable} ${jbMono.variable} ${styles.workPage} pb-28`}>
+      <AztecMotion marqueeItems={['Goals', 'Work Items', 'Sports', 'Tools', 'RedSquatch']} />
+
+      <div className="relative z-[1] max-w-[1400px] mx-auto mb-6">
+        <AztecHeader label="OVERVIEW" />
       </div>
 
-      <div className={styles.content}>
+      <div className={`relative z-[1] ${styles.content}`}>
         <header className={styles.header}>
           <h1 className={styles.title}>Work Cards</h1>
           <p className={styles.subheader}>{cards.length} card{cards.length === 1 ? '' : 's'} on the board</p>
