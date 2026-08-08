@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { CheckCircle2, XCircle, Flame, Trophy } from 'lucide-react';
 import { API } from '@/lib/api';
 import { MOSCOW_ROUNDS, MOSCOW_CATEGORY_LABELS, type MoscowCategory } from '@/lib/ba-content';
@@ -14,6 +14,17 @@ interface Progress {
 
 const CATEGORIES: MoscowCategory[] = ['must', 'should', 'could', 'wont'];
 
+// Content is always authored Must/Should/Could/Won't in that fixed order —
+// shuffle for display so the round can't be solved by position alone.
+function shuffle<T>(arr: T[]): T[] {
+  const copy = [...arr];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
 export default function MoscowGame() {
   const [progress, setProgress] = useState<Progress | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -22,8 +33,9 @@ export default function MoscowGame() {
   const [submitted, setSubmitted] = useState(false);
 
   const round = MOSCOW_ROUNDS[roundIndex % MOSCOW_ROUNDS.length];
-  const allPicked = round.items.every(item => picks[item.id]);
-  const allCorrect = submitted && round.items.every(item => picks[item.id] === item.category);
+  const items = useMemo(() => shuffle(round.items), [round.id]);
+  const allPicked = items.every(item => picks[item.id]);
+  const allCorrect = submitted && items.every(item => picks[item.id] === item.category);
 
   useEffect(() => {
     (async () => {
@@ -95,7 +107,7 @@ export default function MoscowGame() {
       </div>
 
       <div className="flex flex-col gap-3">
-        {round.items.map(item => {
+        {items.map(item => {
           const picked = picks[item.id];
           const isCorrect = submitted && picked === item.category;
           const isWrong = submitted && picked !== undefined && picked !== item.category;

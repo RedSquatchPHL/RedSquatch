@@ -221,8 +221,10 @@ export const AC_ROUNDS: ACRound[] = [
         flaw: 'Missing negative case',
         criteria: [
           'Given a registered customer enters valid credentials, when they submit, then they are logged in and see the dashboard.',
+          'Given a customer lands on the dashboard after login, when the page loads, then their name appears in the header and their order history is visible.',
+          'Given a customer checked "Remember Me" on a prior visit, when they return to the login page, then their email address is pre-filled.',
         ],
-        explanation: 'Only the happy path is specified — the story\'s behavior on a wrong password or unregistered email is left completely undefined.',
+        explanation: 'Only the happy path is specified, three times over — the story\'s behavior on a wrong password or unregistered email is left completely undefined.',
       },
       {
         id: 'login-ac-vague',
@@ -231,6 +233,7 @@ export const AC_ROUNDS: ACRound[] = [
         criteria: [
           'The login process should be quick and easy to use.',
           'Users should feel confident their data is safe.',
+          'The experience should feel modern and trustworthy.',
         ],
         explanation: 'No Given/When/Then, no trigger, no observable outcome — "quick," "easy," and "feel confident" can\'t be checked off by a tester.',
       },
@@ -240,7 +243,8 @@ export const AC_ROUNDS: ACRound[] = [
         flaw: 'Implementation detail',
         criteria: [
           'The login button shall be styled with a copper gradient background (#b87333) and 8px border radius.',
-          'The password field shall use <input type="password">.',
+          'The password field shall use <input type="password"> with autocomplete="current-password".',
+          'The login form shall submit via a POST request to /api/auth/login using fetch with credentials: "include".',
         ],
         explanation: 'Describes visual and markup implementation, not a business-observable behavior — this belongs in a design spec, not an acceptance criterion for this story.',
       },
@@ -265,9 +269,11 @@ export const AC_ROUNDS: ACRound[] = [
         correct: false,
         flaw: 'Off-topic',
         criteria: [
-          'Given a shopper is on the homepage, when they click "Shop Now", then they are taken to the product listing page.',
+          'Given a shopper is on the homepage, when they click "Shop Now", then they are taken to the product listing page with the default sort order applied.',
+          'Given a shopper is on the product listing page, when they click the site logo, then they are returned to the homepage and any active filters are cleared.',
+          'Given a shopper hovers over the main navigation menu, when a category is highlighted, then a dropdown of subcategories appears with icons and a "View All" link.',
         ],
-        explanation: 'Tests navigation to the listing page, not price filtering at all — it doesn\'t verify anything the story actually promises.',
+        explanation: 'Tests navigation around the site, not price filtering at all — none of these three lines verify anything the story actually promises.',
       },
       {
         id: 'filter-ac-vague',
@@ -276,6 +282,7 @@ export const AC_ROUNDS: ACRound[] = [
         criteria: [
           'The filter should return relevant results quickly.',
           'Filtering should feel intuitive.',
+          'The filter experience should meet modern e-commerce standards.',
         ],
         explanation: '"Relevant," "quickly," and "intuitive" aren\'t measurable without criteria this AC never defines.',
       },
@@ -285,8 +292,10 @@ export const AC_ROUNDS: ACRound[] = [
         flaw: 'Missing negative case',
         criteria: [
           'Given a shopper sets a valid price range, when they apply it, then matching products are shown.',
+          'Given matching products are shown, when the shopper scrolls, then results load in pages of 20.',
+          'Given a shopper applies a price filter, when they also select a category, then both filters apply together.',
         ],
-        explanation: 'Never specifies what happens with an invalid range (min > max) or zero matching results — both are real states a tester would hit immediately.',
+        explanation: 'All three lines stay on the happy path — never specifies what happens with an invalid range (min > max) or zero matching results, both real states a tester would hit immediately.',
       },
     ],
   },
@@ -310,6 +319,8 @@ export const AC_ROUNDS: ACRound[] = [
         flaw: 'Untestable / fluff',
         criteria: [
           'Project managers should be notified about overdue tasks in a timely and helpful manner.',
+          'The notification should be clear and easy to understand.',
+          'Managers should feel on top of their team\'s overdue work.',
         ],
         explanation: '"Timely and helpful" defines no channel, no content, and no trigger — this is a restatement of the story, not an acceptance criterion.',
       },
@@ -318,7 +329,9 @@ export const AC_ROUNDS: ACRound[] = [
         correct: false,
         flaw: 'Implementation detail',
         criteria: [
-          'The system shall run a cron job at 00:00 UTC using node-cron and query the tasks table via an indexed due_date column.',
+          'The system shall run a cron job at 00:00 UTC using node-cron and query the tasks table via an indexed due_date column, batching results in groups of 500 to avoid connection pool exhaustion.',
+          'The email shall be sent using the existing SMTP relay via the nodemailer library, with retries handled by a Bull queue backed by Redis.',
+          'The overdue check shall be implemented as a separate microservice deployed alongside the main API, communicating over an internal channel secured with mutual TLS.',
         ],
         explanation: 'Describes how the feature is built, not what a project manager observes — it also isn\'t testable from the outside without reading the code.',
       },
@@ -328,8 +341,10 @@ export const AC_ROUNDS: ACRound[] = [
         flaw: 'Missing negative case',
         criteria: [
           'Given a task is overdue, when the check runs, then an email is sent to the project manager.',
+          'Given the email is sent, when the manager opens it, then it displays the task name and days overdue.',
+          'Given a manager clicks the link in the email, when the page loads, then they are taken directly to that task.',
         ],
-        explanation: 'Never addresses the "already completed" or "notifications disabled" cases — both are real scenarios the story implies but this AC leaves unspecified.',
+        explanation: 'All three lines stay on the happy path — never addresses the "already completed" or "notifications disabled" cases, both real scenarios the story implies but this AC leaves unspecified.',
       },
     ],
   },
@@ -353,8 +368,10 @@ export const AC_ROUNDS: ACRound[] = [
         flaw: 'Off-topic',
         criteria: [
           'Given a finance analyst is logged in, when they navigate to Settings, then they can change their display name.',
+          'Given an analyst is on the Settings page, when they update their password, then a confirmation email is sent.',
+          'Given an analyst is on any page, when they click their avatar, then a profile dropdown menu appears.',
         ],
-        explanation: 'Has nothing to do with exporting a report — this AC doesn\'t verify anything the story is asking for.',
+        explanation: 'None of these three lines have anything to do with exporting a report — this AC doesn\'t verify anything the story is asking for.',
       },
       {
         id: 'reporting-ac-vague',
@@ -362,6 +379,8 @@ export const AC_ROUNDS: ACRound[] = [
         flaw: 'Untestable / fluff',
         criteria: [
           'The export feature should be reliable and produce accurate data.',
+          'Exporting should feel fast and effortless.',
+          'The report should look professional when opened.',
         ],
         explanation: '"Reliable" and "accurate" aren\'t bad goals, but without a Given/When/Then a tester has no concrete case to check against.',
       },
@@ -371,8 +390,10 @@ export const AC_ROUNDS: ACRound[] = [
         flaw: 'Missing negative case',
         criteria: [
           'Given a finance analyst clicks "Export CSV", then a CSV file downloads with the month\'s expense data.',
+          'Given the CSV downloads, when the analyst opens it, then column headers match the on-screen report.',
+          'Given the export completes, when the analyst checks the filename, then it includes the report month and year.',
         ],
-        explanation: 'Doesn\'t say what happens with zero expenses that month or a double-click — both are edge cases a real export button will hit.',
+        explanation: 'All three lines stay on the happy path — doesn\'t say what happens with zero expenses that month or a double-click, both edge cases a real export button will hit.',
       },
     ],
   },
