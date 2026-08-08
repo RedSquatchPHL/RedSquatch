@@ -12,15 +12,12 @@ const { scrapeAll } = require('./sports-scraper');
 const { runMigrations: runWorkCardsMigrations, makeRouter: makeWorkCardsRouter } = require('./routes/work-cards');
 const { runMigrations: runResearchMigrations, makeRouter: makeResearchRouter } = require('./routes/research');
 const { runMigrations: runNotesMigrations, makeRouter: makeNotesRouter } = require('./routes/notes');
-const { runMigrations: runMealsMigrations, makeRouter: makeMealsRouter } = require('./routes/meals');
 const { runMigrations: runSpanishMigrations, makeRouter: makeSpanishRouter } = require('./routes/spanish');
-const { runMigrations: runBillsMigrations, makeRouter: makeBillsRouter } = require('./routes/bills');
 const { runMigrations: runIntakeMigrations, makeRouter: makeIntakeRouter } = require('./routes/intake');
 const { runMigrations: runCitizenshipMigrations, makeRouter: makeCitizenshipRouter } = require('./routes/citizenship');
 const { runMigrations: runFanTrackerMigrations, makeRouter: makeFanTrackerRouter } = require('./routes/fan-tracker');
 const { runMigrations: runFilesMigrations, makeRouter: makeFilesRouter } = require('./routes/files');
 const { runMigrations: runBaToolsMigrations, makeRouter: makeBaToolsRouter } = require('./routes/ba-tools');
-const { makeRouter: makePricesRouter } = require('./routes/prices');
 
 const SPORTS_FILE = path.join(__dirname, 'public', 'sports.json');
 
@@ -1028,15 +1025,12 @@ app.post('/api/client/sports/refresh', requireAuth, async (req, res) => {
 app.use('/api/client/work-cards', makeWorkCardsRouter(db));
 app.use('/api/client/research', makeResearchRouter(db));
 app.use('/api/client/notes', makeNotesRouter(db));
-app.use('/api/client/meals', makeMealsRouter(db));
 app.use('/api/client/spanish', makeSpanishRouter(db));
-app.use('/api/client/bills', makeBillsRouter(db));
 app.use('/api/client/files', makeFilesRouter(db));
 app.use('/api/client/citizenship', makeCitizenshipRouter(db));
 app.use('/api/client/fan-tracker', makeFanTrackerRouter(db));
 app.use('/api/client/ba-tools', makeBaToolsRouter(db));
 app.use('/api/client', makeIntakeRouter(db));
-app.use('/api/client/prices', makePricesRouter());
 
 // ============ TOOLS ============
 
@@ -1090,9 +1084,7 @@ async function initializeApp() {
     await runWorkCardsMigrations(db);
     await runResearchMigrations(db);
     await runNotesMigrations(db);
-    await runMealsMigrations(db);
     await runSpanishMigrations(db);
-    await runBillsMigrations(db);
     await runIntakeMigrations(db);
     await runCitizenshipMigrations(db);
     await runFanTrackerMigrations(db);
