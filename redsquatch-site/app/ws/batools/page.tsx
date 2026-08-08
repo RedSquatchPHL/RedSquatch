@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Unbounded, JetBrains_Mono } from 'next/font/google';
-import { FileText, Lightbulb, ListChecks } from 'lucide-react';
+import { FileText, Lightbulb, ListChecks, Search, SlidersHorizontal, BookOpen } from 'lucide-react';
 import { API } from '@/lib/api';
 import AztecHeader from '@/components/aztec/AztecHeader';
 import AztecMotion from '@/components/aztec/AztecMotion';
@@ -11,22 +11,28 @@ import AppletModal from '@/components/AppletModal';
 import PDFReaderApplet from '@/components/ba-tools/PDFReaderApplet';
 import UserStoryGame from '@/components/ba-tools/UserStoryGame';
 import AcceptanceCriteriaGame from '@/components/ba-tools/AcceptanceCriteriaGame';
+import ElicitationGame from '@/components/ba-tools/ElicitationGame';
+import MoscowGame from '@/components/ba-tools/MoscowGame';
+import GlossaryReference from '@/components/ba-tools/GlossaryReference';
 import '@/styles/aztec-command.css';
 
 const unbounded = Unbounded({ subsets: ['latin'], weight: ['700', '800'], variable: '--font-unbounded' });
 const jbMono = JetBrains_Mono({ subsets: ['latin'], weight: ['400', '500'], variable: '--font-jbmono' });
 
-type Applet = 'babok' | 'userstory' | 'acceptancecriteria' | null;
+type Applet = 'babok' | 'glossary' | 'userstory' | 'acceptancecriteria' | 'elicitation' | 'moscow' | null;
 
-// All three are reference/practice material rather than active work, so they
+// All six are reference/practice material rather than active work, so they
 // share the codex glyph family (archive/record-keeping) — see AztecPanel.
 const APPLETS = [
   { key: 'babok' as const, label: 'BABOK Guide v3', description: 'Reference reader for the BABOK Guide (Member Edition)', icon: FileText },
+  { key: 'glossary' as const, label: 'BA Glossary', description: 'Searchable quick-reference for core BA terms and techniques', icon: BookOpen },
   { key: 'userstory' as const, label: 'User Story Evaluation Game', description: 'Spot the solid story among the flawed ones — track your streak', icon: Lightbulb },
   { key: 'acceptancecriteria' as const, label: 'Acceptance Criteria Matching Challenge', description: 'Match a user story to the AC set that actually verifies it', icon: ListChecks },
+  { key: 'elicitation' as const, label: 'Elicitation Technique Matcher', description: 'Pick the right technique for the situation — every option is real, only one fits', icon: Search },
+  { key: 'moscow' as const, label: 'MoSCoW Prioritization Challenge', description: 'Sort a backlog into Must/Should/Could/Won\'t and defend the call', icon: SlidersHorizontal },
 ];
 
-export default function WSIntakePage() {
+export default function WSBAToolsPage() {
   const [checking, setChecking] = useState(true);
   const [activeApplet, setActiveApplet] = useState<Applet>(null);
   const router = useRouter();
@@ -94,12 +100,24 @@ export default function WSIntakePage() {
         <PDFReaderApplet />
       </AppletModal>
 
+      <AppletModal isOpen={activeApplet === 'glossary'} title="BA Glossary" onClose={() => setActiveApplet(null)}>
+        <GlossaryReference />
+      </AppletModal>
+
       <AppletModal isOpen={activeApplet === 'userstory'} title="User Story Evaluation Game" onClose={() => setActiveApplet(null)}>
         <UserStoryGame />
       </AppletModal>
 
       <AppletModal isOpen={activeApplet === 'acceptancecriteria'} title="Acceptance Criteria Matching Challenge" onClose={() => setActiveApplet(null)} wide>
         <AcceptanceCriteriaGame />
+      </AppletModal>
+
+      <AppletModal isOpen={activeApplet === 'elicitation'} title="Elicitation Technique Matcher" onClose={() => setActiveApplet(null)}>
+        <ElicitationGame />
+      </AppletModal>
+
+      <AppletModal isOpen={activeApplet === 'moscow'} title="MoSCoW Prioritization Challenge" onClose={() => setActiveApplet(null)} wide>
+        <MoscowGame />
       </AppletModal>
     </div>
   );

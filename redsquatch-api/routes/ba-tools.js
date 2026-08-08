@@ -22,7 +22,7 @@ async function runMigrations(db) {
   }
 }
 
-const VALID_GAME_KEYS = ['user-story', 'acceptance-criteria'];
+const VALID_GAME_KEYS = ['user-story', 'acceptance-criteria', 'elicitation-technique', 'moscow-prioritization'];
 
 async function getClientId(db, req) {
   const username = req.session?.user?.username;

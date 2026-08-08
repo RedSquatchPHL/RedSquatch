@@ -13,7 +13,7 @@ export type MenuLeaf =
 export const WS_NAV: MenuLeaf[] = [
   { id: 'ws-dashboard', label: 'Dashboard', icon: LayoutDashboard, type: 'internal', path: '/ws/dashboard' },
   { id: 'ws-goals', label: 'Goals', icon: Target, type: 'internal', path: '/ws/goals' },
-  { id: 'ws-intake', label: 'BA Tools', icon: GraduationCap, type: 'internal', path: '/ws/intake' },
+  { id: 'ws-batools', label: 'BA Tools', icon: GraduationCap, type: 'internal', path: '/ws/batools' },
   { id: 'ws-work', label: 'Work', icon: Briefcase, type: 'internal', path: '/ws/work' },
   { id: 'ws-tools', label: 'Tools', icon: Wrench, type: 'internal', path: '/ws/tools' },
 ];
