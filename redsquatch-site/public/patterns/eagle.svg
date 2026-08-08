@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs><g id="u">
+        <g transform="translate(0.6,0.6)" stroke="#0a0a0a" stroke-width="1.4" fill="none" opacity="0.35" stroke-linecap="round"><path d="M1,12 L5,6 L9,12 M9,12 L13,6 L17,12 M17,12 L21,6 L25,12 M25,12 L29,6 L33,12"/></g>
+        <g transform="translate(-0.6,-0.6)" stroke="#cbb89a" stroke-width="1.2" fill="none" opacity="0.28" stroke-linecap="round"><path d="M1,12 L5,6 L9,12 M9,12 L13,6 L17,12 M17,12 L21,6 L25,12 M25,12 L29,6 L33,12"/></g>
+        <g stroke="#b87333" stroke-width="1.6" fill="none" opacity="0.85" stroke-linecap="round"><path d="M1,12 L5,6 L9,12 M9,12 L13,6 L17,12 M17,12 L21,6 L25,12 M25,12 L29,6 L33,12"/></g>
+    </g></defs>
+  <use href="#u" transform="translate(16,0)"/>
+  <use href="#u" transform="translate(16,64) scale(1,-1)"/>
+  <use href="#u" transform="matrix(0,1,1,0,0,16)"/>
+  <use href="#u" transform="matrix(0,1,-1,0,64,16)"/>
+</svg>

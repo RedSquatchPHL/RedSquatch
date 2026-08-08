@@ -3,11 +3,17 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { Unbounded, JetBrains_Mono } from 'next/font/google';
 import { ChevronLeft, ChevronRight, Target } from 'lucide-react';
 import { API } from '@/lib/api';
-import HeaderBrand from '@/components/cenote/HeaderBrand';
 import StoneTile from '@/components/cenote/StoneTile';
-import CopperPanel from '@/components/cenote/CopperPanel';
+import AztecHeader from '@/components/aztec/AztecHeader';
+import AztecPanel from '@/components/aztec/AztecPanel';
+import AztecMotion from '@/components/aztec/AztecMotion';
+import '@/styles/aztec-command.css';
+
+const unbounded = Unbounded({ subsets: ['latin'], weight: ['700', '800'], variable: '--font-unbounded' });
+const jbMono = JetBrains_Mono({ subsets: ['latin'], weight: ['400', '500'], variable: '--font-jbmono' });
 
 interface Goal {
   id: number;
@@ -36,17 +42,17 @@ function PagerControls({ page, pageCount, onPrev, onNext }: { page: number; page
       <button
         onClick={onPrev}
         disabled={page === 0}
-        className="flex items-center gap-1 text-[var(--copper-1)] hover:text-[var(--copper-2)] disabled:opacity-30 disabled:cursor-not-allowed"
+        className="flex items-center gap-1 text-[var(--ac-copper-light)] hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
       >
         <ChevronLeft size={14} /> Prev
       </button>
-      <span className="text-[var(--copper-0)] text-[11px]">
+      <span className="text-[var(--ac-stone)] text-[11px]">
         {page + 1} / {pageCount}
       </span>
       <button
         onClick={onNext}
         disabled={page === pageCount - 1}
-        className="flex items-center gap-1 text-[var(--copper-1)] hover:text-[var(--copper-2)] disabled:opacity-30 disabled:cursor-not-allowed"
+        className="flex items-center gap-1 text-[var(--ac-copper-light)] hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
       >
         Next <ChevronRight size={14} />
       </button>
@@ -88,8 +94,8 @@ export default function WSDashboardPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-[var(--copper-1)] text-lg">Loading...</div>
+      <div className={`aztec-command ${unbounded.variable} ${jbMono.variable} flex items-center justify-center min-h-screen`}>
+        <div className="text-[var(--ac-copper-light)] text-lg">Loading...</div>
       </div>
     );
   }
@@ -110,32 +116,42 @@ export default function WSDashboardPage() {
   );
 
   return (
-    <div className="jungle-bg min-h-screen flex items-center justify-center p-6">
-      <div className="stone-board stone-noise mono relative w-full max-w-[1200px] p-6 pb-24 text-[12px] text-[var(--copper-1)]">
-        <HeaderBrand version="2.3" showVersion label="Overview" />
+    <div className={`aztec-command ${unbounded.variable} ${jbMono.variable} min-h-screen p-6`}>
+      <AztecMotion marqueeItems={['Goals', 'Work Items', 'Sports', 'Tools', 'RedSquatch']} />
 
-        <div className="grid grid-cols-1 lg:grid-cols-[88px_1fr_1fr] gap-6 mt-6">
-          {/* Quick nav rail */}
+      <div className="relative z-[1] mx-auto w-full max-w-[1200px] pb-12">
+        <AztecHeader label="OVERVIEW" />
+
+        <div className="ac-marquee-frame">
+          <div className="ac-greca-band dim" aria-hidden="true" />
+          <div className="ac-marquee-wrap" aria-hidden="true">
+            <div className="ac-marquee-track" id="ac-marquee" />
+          </div>
+          <div className="ac-greca-band dim" aria-hidden="true" />
+        </div>
+
+        <div className="ac-grid grid grid-cols-1 lg:grid-cols-[88px_1fr_1fr] gap-6 mt-6 text-[12px]">
+          {/* Quick nav rail — unchanged, still cenote-styled (StoneTile isn't part of this reskin) */}
           <section className="flex lg:flex-col flex-row flex-wrap gap-4">
             <StoneTile isActive icon="lucide:target" title="Goals" subtitle={`${goals.length} goals`} href="/ws/goals" />
             <StoneTile isActive={false} icon="lucide:activity" title="Sports" subtitle="Team standings" href="/hs/sports" />
             <StoneTile isActive={false} icon="lucide:wrench" title="Tools" subtitle="Scratchpad" href="/ws/tools" />
           </section>
 
-          {/* Goals summary */}
-          <CopperPanel title="Goals" subtitle={goals.length ? `${goals.length} total` : undefined}>
+          {/* Goals summary — ascending eagle glyph border */}
+          <AztecPanel family="eagle" title="Goals" subtitle={goals.length ? `${goals.length} total` : undefined}>
             {goals.length === 0 ? (
-              <div className="py-2 text-[var(--copper-0)]">No goals yet.</div>
+              <div className="py-2 text-[var(--ac-stone)]">No goals yet.</div>
             ) : (
               <div className="space-y-3">
                 {pagedGoals.map(goal => (
-                  <div key={goal.id} className="border-b border-[var(--stone-3)] pb-2 last:border-0">
+                  <div key={goal.id} className="border-b border-[rgba(184,115,51,0.15)] pb-2 last:border-0">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-[var(--copper-2)]">{goal.title}</span>
-                      <span className="text-[var(--copper-0)] text-[11px] whitespace-nowrap">{goal.progress}%</span>
+                      <span className="text-[var(--ac-copper-light)]">{goal.title}</span>
+                      <span className="text-[var(--ac-stone)] text-[11px] whitespace-nowrap">{goal.progress}%</span>
                     </div>
-                    <div className="mt-1 h-1 w-full rounded-full bg-[var(--stone-2)] overflow-hidden">
-                      <div className="h-full bg-[var(--copper-1)]" style={{ width: `${goal.progress}%` }} />
+                    <div className="mt-1 h-1 w-full rounded-full bg-[rgba(255,255,255,0.06)] overflow-hidden">
+                      <div className="h-full bg-[var(--ac-copper)]" style={{ width: `${goal.progress}%` }} />
                     </div>
                   </div>
                 ))}
@@ -147,24 +163,24 @@ export default function WSDashboardPage() {
               onPrev={() => setGoalsPage(p => Math.max(0, p - 1))}
               onNext={() => setGoalsPage(p => Math.min(goalsPageCount - 1, p + 1))}
             />
-            <Link href="/ws/goals" className="mt-3 inline-flex items-center gap-1 text-[var(--copper-1)] hover:text-[var(--copper-2)]">
+            <Link href="/ws/goals" className="mt-3 inline-flex items-center gap-1 text-[var(--ac-copper-light)] hover:text-white">
               <Target size={14} /> View all goals
             </Link>
-          </CopperPanel>
+          </AztecPanel>
 
-          {/* Work items summary */}
-          <CopperPanel title="Work Items" subtitle={openWorkItems.length ? `${openWorkItems.length} open` : undefined}>
+          {/* Work items summary — fire/energy glyph border */}
+          <AztecPanel family="fire" title="Work Items" subtitle={openWorkItems.length ? `${openWorkItems.length} open` : undefined}>
             {openWorkItems.length === 0 ? (
-              <div className="py-2 text-[var(--copper-0)]">No open work items.</div>
+              <div className="py-2 text-[var(--ac-stone)]">No open work items.</div>
             ) : (
               <div className="space-y-2">
                 {pagedWorkItems.map(item => (
-                  <div key={item.id} className="flex items-center justify-between gap-3 border-b border-[var(--stone-3)] py-1.5 last:border-0">
+                  <div key={item.id} className="flex items-center justify-between gap-3 border-b border-[rgba(184,115,51,0.15)] py-1.5 last:border-0">
                     <div className="min-w-0">
-                      <span className="text-[var(--copper-0)]">{item.ticket_number}</span>{' '}
-                      <span className="text-[var(--copper-2)] truncate">{item.title}</span>
+                      <span className="text-[var(--ac-stone)]">{item.ticket_number}</span>{' '}
+                      <span className="text-[var(--ac-copper-light)] truncate">{item.title}</span>
                     </div>
-                    <span className="text-[var(--copper-1)] text-[11px] whitespace-nowrap">{item.status}</span>
+                    <span className="text-[var(--ac-stone-light)] text-[11px] whitespace-nowrap">{item.status}</span>
                   </div>
                 ))}
               </div>
@@ -175,10 +191,10 @@ export default function WSDashboardPage() {
               onPrev={() => setWorkItemsPage(p => Math.max(0, p - 1))}
               onNext={() => setWorkItemsPage(p => Math.min(workItemsPageCount - 1, p + 1))}
             />
-            <Link href="/ws/work" className="mt-3 inline-block text-[var(--copper-1)] hover:text-[var(--copper-2)]">
+            <Link href="/ws/work" className="mt-3 inline-block text-[var(--ac-copper-light)] hover:text-white">
               View all work items
             </Link>
-          </CopperPanel>
+          </AztecPanel>
         </div>
       </div>
     </div>

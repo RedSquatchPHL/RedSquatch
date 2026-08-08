@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs><g id="u">
+        <g stroke="#1a5c4a" stroke-width="2.8" fill="none" opacity="0.4" stroke-linecap="round"><path d="M0,13 L4,13 L4,6 L8,6 L8,13 L12,13 L12,6 L16,6 L16,13 L20,13 L20,6 L24,6 L24,13 L28,13 L28,6 L32,6"/></g>
+        <g stroke="#d4a373" stroke-width="1.8" fill="none" opacity="1" stroke-linecap="round"><path d="M0,13 L4,13 L4,6 L8,6 L8,13 L12,13 L12,6 L16,6 L16,13 L20,13 L20,6 L24,6 L24,13 L28,13 L28,6 L32,6"/></g>
+    </g></defs>
+  <use href="#u" transform="translate(16,0)"/>
+  <use href="#u" transform="translate(16,64) scale(1,-1)"/>
+  <use href="#u" transform="matrix(0,1,1,0,0,16)"/>
+  <use href="#u" transform="matrix(0,1,-1,0,64,16)"/>
+</svg>

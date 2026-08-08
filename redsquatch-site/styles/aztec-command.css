@@ -1,0 +1,272 @@
+/* Aztec Command Center — visual system for /ws/dashboard only.
+   Everything here is scoped under .aztec-command so it can never leak into
+   or fight the cenote tokens (--copper and --stone families) the rest of
+   /ws and /hs pages still use. Tokens below are the "locked" set from
+   RedSquatch-ComponentLibrary.tsx (Red1) — kept under an --ac- prefix
+   rather than reusing --copper/--stone so this page's values can never
+   accidentally drift the shared cenote palette or vice versa. */
+
+.aztec-command {
+  --ac-obsidian: #0f0f0f;
+  --ac-copper: #b87333;
+  --ac-copper-light: #d4a373;
+  --ac-copper-light-rgb: 212, 163, 115;
+  --ac-dark-gold: #996515;
+  --ac-jade: #1a5c4a;
+  --ac-stone: #8b7355;
+  --ac-stone-light: #a89968;
+  --ac-card-bg: rgba(255, 255, 255, 0.03);
+  --ac-card-border: rgba(184, 115, 51, 0.2);
+  --ac-shadow-md: 0 12px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.08), inset 0 -16px 24px rgba(0, 0, 0, 0.2);
+  --ac-shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1), inset 0 -20px 40px rgba(0, 0, 0, 0.3);
+
+  position: relative;
+  background: var(--ac-obsidian);
+  color: #e6e6e6;
+  min-height: 100vh;
+  isolation: isolate; /* keep this page's z-index stack self-contained */
+}
+
+.aztec-command * { box-sizing: border-box; }
+
+/* ---------- custom cursor (sun symbol), scoped so it never affects other pages ---------- */
+.aztec-command #ac-cursor-dot {
+  width: 26px; height: 26px;
+  position: fixed; top: 0; left: 0;
+  pointer-events: none; z-index: 9999;
+  transform: translate(-50%, -50%);
+  transition: width 0.2s, height 0.2s, color 0.2s;
+  mix-blend-mode: exclusion;
+  color: var(--ac-copper-light);
+}
+.aztec-command #ac-cursor-dot svg {
+  width: 100%; height: 100%; display: block;
+  animation: ac-sun-spin 14s linear infinite;
+}
+.aztec-command #ac-cursor-ring {
+  width: 34px; height: 34px;
+  border: 2px dashed rgba(212, 163, 115, 0.5);
+  border-radius: 50%;
+  position: fixed; top: 0; left: 0;
+  pointer-events: none; z-index: 9998;
+  transition: width 0.3s, height 0.3s, border-color 0.3s;
+  animation: ac-coil-spin 6s linear infinite;
+}
+@keyframes ac-coil-spin {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to   { transform: translate(-50%, -50%) rotate(360deg); }
+}
+@keyframes ac-sun-spin { to { transform: rotate(360deg); } }
+.aztec-command.ac-custom-cursor,
+.aztec-command.ac-custom-cursor a,
+.aztec-command.ac-custom-cursor button,
+.aztec-command.ac-custom-cursor .ac-panel { cursor: none; }
+.aztec-command:has(a:hover) #ac-cursor-dot,
+.aztec-command:has(.ac-panel:hover) #ac-cursor-dot,
+.aztec-command:has(button:hover) #ac-cursor-dot {
+  width: 36px; height: 36px; color: var(--ac-dark-gold);
+}
+.aztec-command:has(a:hover) #ac-cursor-ring,
+.aztec-command:has(.ac-panel:hover) #ac-cursor-ring,
+.aztec-command:has(button:hover) #ac-cursor-ring {
+  width: 58px; height: 58px; border-color: var(--ac-dark-gold);
+}
+@media (hover: none) {
+  .aztec-command #ac-cursor-dot, .aztec-command #ac-cursor-ring { display: none !important; }
+  .aztec-command.ac-custom-cursor, .aztec-command.ac-custom-cursor a,
+  .aztec-command.ac-custom-cursor button, .aztec-command.ac-custom-cursor .ac-panel { cursor: auto; }
+}
+
+/* ---------- aurora + noise + ambient spotlight ---------- */
+.aztec-command .ac-aurora { position: fixed; inset: -10%; z-index: -3; overflow: hidden; pointer-events: none; }
+.aztec-command .ac-aurora-blob { position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.14; animation: ac-aurora-drift 18s ease-in-out infinite alternate; }
+.aztec-command .ac-aurora-blob:nth-child(1) { width: 60vw; height: 55vh; background: radial-gradient(circle, var(--ac-copper) 0%, transparent 70%); top: -15%; left: -8%; animation-duration: 16s; }
+.aztec-command .ac-aurora-blob:nth-child(2) { width: 45vw; height: 60vh; background: radial-gradient(circle, var(--ac-jade) 0%, transparent 70%); top: 25%; right: -12%; animation-duration: 20s; animation-delay: -6s; }
+.aztec-command .ac-aurora-blob:nth-child(3) { width: 50vw; height: 50vh; background: radial-gradient(circle, var(--ac-dark-gold) 0%, transparent 70%); bottom: -12%; left: 25%; animation-duration: 22s; animation-delay: -3s; }
+@keyframes ac-aurora-drift {
+  0% { transform: translate(0,0) scale(1); }
+  33% { transform: translate(5vw,-3vh) scale(1.06); }
+  66% { transform: translate(-3vw,4vh) scale(0.96); }
+  100% { transform: translate(2vw,2vh) scale(1.04); }
+}
+.aztec-command .ac-noise {
+  position: fixed; inset: 0; z-index: -2; opacity: 0.035; pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+}
+.aztec-command #ac-spotlight { position: fixed; inset: 0; z-index: -1; pointer-events: none; }
+
+/* ---------- greca (step-fret) frieze ---------- */
+.aztec-command .ac-greca-band {
+  height: 12px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='12' viewBox='0 0 40 12'%3E%3Cpath d='M0,12 L0,6 L6,6 L6,0 L12,0 L12,6 L18,6 L18,12 L24,12 L24,6 L30,6 L30,0 L36,0 L36,6 L40,6' fill='none' stroke='%23b87333' stroke-width='1.6'/%3E%3C/svg%3E");
+  background-repeat: repeat-x;
+  background-size: 40px 12px;
+  opacity: 0.5;
+}
+.aztec-command .ac-greca-band.dim { opacity: 0.28; }
+
+/* ---------- sun-stone watermark ---------- */
+.aztec-command .ac-sunstone-wrap { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
+.aztec-command .ac-sunstone {
+  position: absolute; top: 50%; left: 50%;
+  width: 260px; height: 260px; margin: -130px 0 0 -130px;
+  background-image: url("/patterns/sunstone.svg");
+  background-size: contain;
+  opacity: 0.07;
+  animation: ac-sunstone-spin 90s linear infinite;
+}
+@keyframes ac-sunstone-spin { to { transform: rotate(360deg); } }
+
+/* ---------- header ---------- */
+.aztec-command .ac-header { position: relative; padding: 28px 0 8px; }
+.aztec-command .ac-header-inner { position: relative; z-index: 1; text-align: center; }
+.aztec-command .ac-wordmark {
+  font-family: var(--font-unbounded), sans-serif;
+  font-weight: 800;
+  font-size: clamp(22px, 3.4vw, 32px);
+  position: relative;
+  display: inline-block;
+  background: linear-gradient(135deg, var(--ac-copper-light) 0%, var(--ac-dark-gold) 50%, var(--ac-jade) 100%);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+  animation: ac-glitch-main 6s infinite;
+}
+.aztec-command .ac-wordmark::before, .aztec-command .ac-wordmark::after {
+  content: attr(data-text);
+  position: absolute; top: 0; left: 0;
+  font-family: inherit; font-weight: inherit; font-size: inherit; letter-spacing: inherit;
+  pointer-events: none;
+}
+.aztec-command .ac-wordmark::before {
+  -webkit-text-fill-color: var(--ac-dark-gold); color: var(--ac-dark-gold);
+  clip-path: polygon(0 30%, 100% 30%, 100% 50%, 0 50%);
+  animation: ac-glitch-before 6s infinite; opacity: 0.7;
+}
+.aztec-command .ac-wordmark::after {
+  -webkit-text-fill-color: var(--ac-jade); color: var(--ac-jade);
+  clip-path: polygon(0 60%, 100% 60%, 100% 80%, 0 80%);
+  animation: ac-glitch-after 6s infinite; opacity: 0.7;
+}
+@keyframes ac-glitch-main {
+  0%, 94%, 100% { transform: none; }
+  95% { transform: skewX(-0.5deg); }
+  96% { transform: skewX(0.8deg) translateX(-2px); }
+  97% { transform: none; }
+  98% { transform: translateX(2px); }
+  99% { transform: skewX(-0.3deg); }
+}
+@keyframes ac-glitch-before {
+  0%, 94%, 100% { transform: none; opacity: 0; }
+  95% { transform: translateX(-4px); opacity: .7; }
+  96% { transform: translateX(3px) scaleY(1.02); opacity: .7; }
+  97% { transform: none; opacity: 0; }
+  98%, 99% { transform: translateX(-2px); opacity: .5; }
+}
+@keyframes ac-glitch-after {
+  0%, 95%, 100% { transform: none; opacity: 0; }
+  96% { transform: translateX(4px); opacity: .7; }
+  97% { transform: translateX(-3px); opacity: .7; }
+  98% { transform: none; opacity: 0; }
+  99% { transform: translateX(1px); opacity: .4; }
+}
+.aztec-command .ac-wordmark-sub {
+  font-family: var(--font-jbmono), ui-monospace, monospace;
+  font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--ac-stone-light); margin-top: 6px;
+}
+
+/* ---------- marquee ---------- */
+.aztec-command .ac-marquee-frame { margin: 18px 0 24px; }
+.aztec-command .ac-marquee-wrap { width: 100%; overflow: hidden; padding: 8px 0; }
+.aztec-command .ac-marquee-track { display: flex; width: max-content; gap: 2.5rem; animation: ac-marquee-scroll 26s linear infinite; }
+.aztec-command .ac-marquee-wrap:hover .ac-marquee-track { animation-play-state: paused; }
+.aztec-command .ac-marquee-item {
+  font-family: var(--font-jbmono), ui-monospace, monospace;
+  font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+  white-space: nowrap; color: var(--ac-stone-light); text-decoration: none;
+  transition: color 0.3s;
+}
+.aztec-command .ac-marquee-item:hover { color: var(--ac-copper-light); }
+.aztec-command .ac-marquee-sep { color: var(--ac-dark-gold); }
+@keyframes ac-marquee-scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+/* ---------- carved glyph panels ---------- */
+.aztec-command .ac-panel {
+  background: var(--ac-card-bg);
+  backdrop-filter: blur(12px);
+  border-width: 6px;
+  border-style: solid;
+  border-color: var(--ac-card-border);
+  border-image-repeat: repeat;
+  border-image-slice: 16;
+  border-image-width: 6px;
+  border-radius: 3px;
+  padding: 22px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--ac-shadow-md), inset 0 0 7px 2px rgba(0,0,0,0.4);
+  transition: box-shadow 0.3s;
+}
+.aztec-command .ac-panel:hover { box-shadow: var(--ac-shadow-lg), inset 0 0 7px 2px rgba(0,0,0,0.4); }
+.aztec-command .ac-panel::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(105deg, transparent 40%, rgba(212,163,115,0.10) 50%, transparent 60%);
+  background-size: 200% 100%;
+  background-position: -100% 0;
+  transition: background-position 0.6s ease;
+  border-radius: inherit;
+  pointer-events: none;
+}
+.aztec-command .ac-panel:hover::before { background-position: 200% 0; }
+.aztec-command .ac-panel::after {
+  content: '';
+  position: absolute; inset: 0;
+  border-width: 6px; border-style: solid; border-color: transparent;
+  border-image-repeat: repeat; border-image-slice: 16; border-image-width: 6px;
+  opacity: 0; transition: opacity 0.35s; pointer-events: none;
+}
+.aztec-command .ac-panel:hover::after { opacity: 1; }
+
+.aztec-command .ac-panel--fire  { border-image-source: url("/patterns/fire.svg"); }
+.aztec-command .ac-panel--fire::after  { border-image-source: url("/patterns/fire-bloom.svg"); }
+.aztec-command .ac-panel--codex { border-image-source: url("/patterns/codex.svg"); }
+.aztec-command .ac-panel--codex::after { border-image-source: url("/patterns/codex-bloom.svg"); }
+.aztec-command .ac-panel--water { border-image-source: url("/patterns/water.svg"); }
+.aztec-command .ac-panel--water::after { border-image-source: url("/patterns/water-bloom.svg"); }
+.aztec-command .ac-panel--eagle { border-image-source: url("/patterns/eagle.svg"); }
+.aztec-command .ac-panel--eagle::after { border-image-source: url("/patterns/eagle-bloom.svg"); }
+
+/* stepped-pyramid corners */
+.aztec-command .ac-corner {
+  position: absolute; width: 22px; height: 22px; opacity: 0.75; z-index: 2;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M0,24 L0,16 L8,16 L8,8 L16,8 L16,0 L24,0' fill='none' stroke='%23b87333' stroke-width='2.2'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-size: contain;
+}
+.aztec-command .ac-corner--tl { top: 0; left: 0; }
+.aztec-command .ac-corner--tr { top: 0; right: 0; transform: scaleX(-1); }
+.aztec-command .ac-corner--bl { bottom: 0; left: 0; transform: scaleY(-1); }
+.aztec-command .ac-corner--br { bottom: 0; right: 0; transform: scale(-1, -1); }
+
+.aztec-command .ac-panel-head { margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--ac-card-border); }
+.aztec-command .ac-panel-title {
+  font-family: var(--font-unbounded), sans-serif;
+  font-weight: 700; font-size: 15px; letter-spacing: 0.01em;
+  color: var(--ac-copper-light); text-shadow: 0 0 12px rgba(var(--ac-copper-light-rgb), 0.22);
+  margin: 0 0 2px;
+}
+.aztec-command .ac-panel-subtitle { font-size: 11px; color: var(--ac-stone); font-family: var(--font-jbmono), monospace; }
+
+/* ---------- responsive & accessibility ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .aztec-command .ac-panel, .aztec-command .ac-panel::before { transition: none !important; }
+  .aztec-command .ac-panel::after { transition: none !important; }
+  .aztec-command .ac-aurora-blob, .aztec-command .ac-wordmark,
+  .aztec-command .ac-wordmark::before, .aztec-command .ac-wordmark::after,
+  .aztec-command .ac-marquee-track, .aztec-command .ac-sunstone,
+  .aztec-command #ac-cursor-ring, .aztec-command #ac-cursor-dot svg { animation: none !important; }
+  .aztec-command #ac-cursor-dot, .aztec-command #ac-cursor-ring { display: none !important; }
+  .aztec-command.ac-custom-cursor, .aztec-command.ac-custom-cursor a,
+  .aztec-command.ac-custom-cursor button, .aztec-command.ac-custom-cursor .ac-panel { cursor: auto; }
+}
