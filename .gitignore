@@ -49,7 +49,10 @@ temp/
 .bashrc
 .zshrc
 .profile
-.claude/
+.claude/*
+!.claude/skills/
+.claude/skills/*
+!.claude/skills/impeccable/
 .claude.json
 .cursor/
 .cursor-server/
