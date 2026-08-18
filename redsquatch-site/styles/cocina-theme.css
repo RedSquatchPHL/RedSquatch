@@ -4,10 +4,14 @@
 
 .cocina-root {
   --cocina-bg: #efe0c9;
+  --cocina-bg-rgb: 239, 224, 201;
   --cocina-surface: #fff5e7;
+  --cocina-surface-rgb: 255, 245, 231;
   --cocina-surface-alt: #fff8ed;
   --cocina-surface-strong: #faead4;
+  --cocina-surface-strong-rgb: 250, 234, 212;
   --cocina-tile: #ead4b9;
+  --cocina-tile-rgb: 234, 212, 185;
 
   --cocina-border: #dfc4a3;
   --cocina-border-soft: #ead7c0;
@@ -35,23 +39,35 @@
   --cocina-shadow: 0 8px 24px rgba(61, 40, 23, 0.12);
   --cocina-shadow-strong: 0 12px 32px rgba(61, 40, 23, 0.18);
   --cocina-noise-color: rgba(61, 40, 23, 0.12);
+  /* Tint over the hero photo — same hue as --cocina-bg, strong enough to keep
+     text legible without hiding the kitchen behind it. */
+  --cocina-hero-tint: rgba(239, 224, 201, 0.78);
 
-  background-color: var(--cocina-bg);
-  background-image: radial-gradient(var(--cocina-noise-color) 0.7px, transparent 0.7px);
-  background-size: 5px 5px;
+  background-image:
+    radial-gradient(var(--cocina-noise-color) 0.7px, transparent 0.7px),
+    linear-gradient(var(--cocina-hero-tint), var(--cocina-hero-tint)),
+    url('/images/cocina/cocina-hero.jpg');
+  background-size: 5px 5px, cover, cover;
+  background-position: 0 0, center, center 30%;
+  background-repeat: repeat, no-repeat, no-repeat;
+  background-attachment: scroll, fixed, fixed;
   color: var(--cocina-text);
   font-family: var(--font-cocina-sans), sans-serif;
   min-height: 100vh;
-  transition: background-color 0.25s ease, color 0.25s ease;
+  transition: color 0.25s ease;
 }
 
 /* Deep brown, not black — same accent hues as light mode, brightened for contrast. */
 .cocina-root[data-cocina-theme='dark'] {
   --cocina-bg: #241509;
+  --cocina-bg-rgb: 36, 21, 9;
   --cocina-surface: #2f1c0f;
+  --cocina-surface-rgb: 47, 28, 15;
   --cocina-surface-alt: #35200f;
   --cocina-surface-strong: #3c2512;
+  --cocina-surface-strong-rgb: 60, 37, 18;
   --cocina-tile: #3a2412;
+  --cocina-tile-rgb: 58, 36, 18;
 
   --cocina-border: #4a3018;
   --cocina-border-soft: #432c16;
@@ -79,6 +95,7 @@
   --cocina-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
   --cocina-shadow-strong: 0 12px 32px rgba(0, 0, 0, 0.45);
   --cocina-noise-color: rgba(255, 235, 210, 0.05);
+  --cocina-hero-tint: rgba(36, 21, 9, 0.8);
 }
 
 .cocina-root h1,
@@ -90,7 +107,9 @@
 }
 
 .cocina-card {
-  background: var(--cocina-surface);
+  background: rgba(var(--cocina-surface-rgb), 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border: 1px solid var(--cocina-border);
   border-radius: 16px;
   box-shadow: var(--cocina-shadow);
@@ -113,7 +132,9 @@
 }
 
 .cocina-tile {
-  background-color: var(--cocina-tile);
+  background-color: rgba(var(--cocina-tile-rgb), 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   background-image: linear-gradient(
     135deg,
     rgba(193, 100, 15, 0.08) 25%,
@@ -149,7 +170,7 @@
 }
 
 .cocina-btn-secondary:hover {
-  background: var(--cocina-surface-strong);
+  background: rgba(var(--cocina-surface-strong-rgb), 0.8);
   border-color: var(--cocina-terracotta-soft);
 }
 
@@ -161,7 +182,7 @@
   border-radius: 999px;
   font-size: 0.75rem;
   font-weight: 600;
-  background: var(--cocina-surface-strong);
+  background: rgba(var(--cocina-surface-strong-rgb), 0.8);
   color: var(--cocina-heading-soft);
   border: 1px solid var(--cocina-border-soft);
 }
