@@ -21,13 +21,93 @@ function parseIsoDurationMinutes(iso) {
   return minutes > 0 ? minutes : null;
 }
 
+function isPrivateIPv4Parts(a, b, c, d) {
+  if (a === 0) return true; // 0.0.0.0/8
+  if (a === 127) return true; // loopback
+  if (a === 10) return true; // RFC1918
+  if (a === 169 && b === 254) return true; // link-local
+  if (a === 172 && b >= 16 && b <= 31) return true; // RFC1918
+  if (a === 192 && b === 168) return true; // RFC1918
+  if (a === 100 && b >= 64 && b <= 127) return true; // CGNAT 100.64.0.0/10
+  return false;
+}
+
+// Expands a bracket-stripped IPv6 literal ("::1", "fc00::1") into 8 16-bit
+// groups, handling the "::" zero-run shorthand. Returns null if malformed.
+function expandIPv6(addr) {
+  const parts = addr.split('::');
+  if (parts.length > 2) return null;
+  const head = parts[0] ? parts[0].split(':') : [];
+  const tail = parts.length === 2 && parts[1] ? parts[1].split(':') : [];
+  if (parts.length === 1 && head.length !== 8) return null;
+  const missing = 8 - head.length - tail.length;
+  if (missing < 0) return null;
+  const groups = [...head, ...Array(parts.length === 2 ? missing : 0).fill('0'), ...tail];
+  if (groups.length !== 8) return null;
+  const nums = groups.map(g => parseInt(g || '0', 16));
+  if (nums.some(n => Number.isNaN(n) || n < 0 || n > 0xffff)) return null;
+  return nums;
+}
+
+// Blocks loopback/RFC1918/link-local/CGNAT/IPv6-ULA hosts so the importer
+// can't be pointed at internal services or cloud metadata endpoints. The
+// WHATWG URL parser already canonicalizes IPv4 obfuscation (decimal/hex/
+// octal/shorthand, e.g. "2130706433" or "0x7f000001") into plain
+// dotted-decimal before `hostname` is read, so only that canonical form
+// needs checking here — but IPv6 literals arrive bracketed ("[::1]") and
+// need their own range checks (including the IPv4-mapped "::ffff:a.b.c.d"
+// form, which must be unwrapped and checked against the same IPv4 ranges).
 function isPrivateHost(hostname) {
-  const h = String(hostname || '').toLowerCase();
-  return (
-    h === 'localhost' || h === '0.0.0.0' || h === '::1' ||
-    /^127\./.test(h) || /^10\./.test(h) || /^192\.168\./.test(h) ||
-    /^172\.(1[6-9]|2\d|3[0-1])\./.test(h) || /^169\.254\./.test(h)
-  );
+  const h = String(hostname || '').toLowerCase().trim();
+  if (h === 'localhost') return true;
+
+  if (h.startsWith('[') && h.endsWith(']')) {
+    const groups = expandIPv6(h.slice(1, -1));
+    if (!groups) return true; // unparseable IPv6 literal -> fail closed
+    const [g0, g1, g2, g3, g4, g5, g6, g7] = groups;
+    if (groups.every(g => g === 0)) return true; // :: (unspecified)
+    if (g0 === 0 && g1 === 0 && g2 === 0 && g3 === 0 && g4 === 0 && g5 === 0 && g6 === 0 && g7 === 1) return true; // ::1
+    if ((g0 & 0xffc0) === 0xfe80) return true; // fe80::/10 link-local
+    if ((g0 & 0xfe00) === 0xfc00) return true; // fc00::/7 unique local
+    if (g0 === 0 && g1 === 0 && g2 === 0 && g3 === 0 && g4 === 0 && g5 === 0xffff) {
+      return isPrivateIPv4Parts((g6 >> 8) & 0xff, g6 & 0xff, (g7 >> 8) & 0xff, g7 & 0xff);
+    }
+    return false;
+  }
+
+  const m = h.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+  if (m) {
+    const parts = m.slice(1).map(Number);
+    if (parts.some(n => n > 255)) return true; // malformed -> fail closed
+    return isPrivateIPv4Parts(...parts);
+  }
+
+  return false;
+}
+
+const MAX_IMPORT_RESPONSE_BYTES = 2 * 1024 * 1024;
+
+// Reads a fetch Response body up to a byte cap so a huge or slow page can't
+// tie up memory — response.text() alone has no size limit.
+async function readLimitedText(response, maxBytes) {
+  const reader = response.body.getReader();
+  const chunks = [];
+  let total = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      total += value.byteLength;
+      if (total > maxBytes) {
+        await reader.cancel();
+        throw new Error('Response exceeded size limit');
+      }
+      chunks.push(value);
+    }
+  } finally {
+    reader.releaseLock?.();
+  }
+  return Buffer.concat(chunks.map(c => Buffer.from(c))).toString('utf-8');
 }
 
 function extractJsonLdRecipes(html) {
@@ -457,7 +537,13 @@ function makeRouter(db) {
         return res.status(400).json({ error: 'That URL is not allowed' });
       }
 
-      const html = await response.text();
+      let html;
+      try {
+        html = await readLimitedText(response, MAX_IMPORT_RESPONSE_BYTES);
+      } catch {
+        return res.status(422).json({ error: 'That page is too large to import' });
+      }
+
       const recipes = extractJsonLdRecipes(html);
       if (recipes.length > 0) return res.json(draftFromJsonLdRecipe(recipes[0]));
 
