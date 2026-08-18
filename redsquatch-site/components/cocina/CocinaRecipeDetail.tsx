@@ -84,7 +84,12 @@ export default function CocinaRecipeDetail({ salsaId, onBack, onSalsaChanged, on
         <ArrowLeft size={14} /> Back
       </button>
 
-      <div className="cocina-card cocina-noise p-6">
+      <div className="cocina-card cocina-noise overflow-hidden">
+        {salsa.image_url && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={salsa.image_url} alt="" className="w-full h-52 object-cover" />
+        )}
+        <div className="p-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h2 className="text-2xl">{salsa.title}</h2>
@@ -120,6 +125,7 @@ export default function CocinaRecipeDetail({ salsaId, onBack, onSalsaChanged, on
             {salsa.tags.map(tag => <span key={tag} className="cocina-pill">{tag}</span>)}
           </div>
         )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -8,6 +8,99 @@
 const VALID_HEAT = ['mild', 'medium', 'hot'];
 const VALID_STORAGE = ['fresh', 'dried', 'jarred', 'frozen'];
 
+// ---- Recipe import (schema.org JSON-LD) ----
+
+const HEAT_HOT_WORDS = ['hot', 'spicy', 'habanero', 'ghost pepper', 'scotch bonnet', 'fiery', 'scorpion'];
+const HEAT_MILD_WORDS = ['mild', 'gentle', 'sweet'];
+
+function parseIsoDurationMinutes(iso) {
+  if (!iso || typeof iso !== 'string') return null;
+  const match = iso.match(/^P(?:\d+D)?T(?:(\d+)H)?(?:(\d+)M)?/);
+  if (!match) return null;
+  const minutes = Number(match[1] || 0) * 60 + Number(match[2] || 0);
+  return minutes > 0 ? minutes : null;
+}
+
+function isPrivateHost(hostname) {
+  const h = String(hostname || '').toLowerCase();
+  return (
+    h === 'localhost' || h === '0.0.0.0' || h === '::1' ||
+    /^127\./.test(h) || /^10\./.test(h) || /^192\.168\./.test(h) ||
+    /^172\.(1[6-9]|2\d|3[0-1])\./.test(h) || /^169\.254\./.test(h)
+  );
+}
+
+function extractJsonLdRecipes(html) {
+  const scripts = [...html.matchAll(/<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)];
+  const recipes = [];
+  for (const [, raw] of scripts) {
+    let data;
+    try { data = JSON.parse(raw.trim()); } catch { continue; }
+    const items = Array.isArray(data) ? data : (Array.isArray(data['@graph']) ? data['@graph'] : [data]);
+    for (const item of items) {
+      const types = Array.isArray(item?.['@type']) ? item['@type'] : [item?.['@type']];
+      if (types.includes('Recipe')) recipes.push(item);
+    }
+  }
+  return recipes;
+}
+
+function normalizeImage(image) {
+  if (!image) return null;
+  if (typeof image === 'string') return image;
+  if (Array.isArray(image)) return normalizeImage(image[0]);
+  if (typeof image === 'object' && image.url) return image.url;
+  return null;
+}
+
+function flattenInstructions(instructions) {
+  if (!instructions) return [];
+  const list = Array.isArray(instructions) ? instructions : [instructions];
+  const steps = [];
+  for (const entry of list) {
+    if (typeof entry === 'string') steps.push(entry);
+    else if (entry?.['@type'] === 'HowToSection' && Array.isArray(entry.itemListElement)) steps.push(...flattenInstructions(entry.itemListElement));
+    else if (entry?.text) steps.push(entry.text);
+  }
+  return steps.map(s => String(s).trim()).filter(Boolean);
+}
+
+function guessHeatLevel(text) {
+  const lower = text.toLowerCase();
+  if (HEAT_HOT_WORDS.some(w => lower.includes(w))) return 'hot';
+  if (HEAT_MILD_WORDS.some(w => lower.includes(w))) return 'mild';
+  return 'medium';
+}
+
+function draftFromJsonLdRecipe(recipe) {
+  const title = recipe.name ? String(recipe.name).trim() : 'Imported recipe';
+  const description = recipe.description ? String(recipe.description).trim() : null;
+  const ingredients = (Array.isArray(recipe.recipeIngredient) ? recipe.recipeIngredient : [])
+    .map(line => String(line).trim())
+    .filter(Boolean)
+    .map(name => ({ name, quantity: null }));
+  const steps = flattenInstructions(recipe.recipeInstructions).map(instruction => ({ instruction, minutes: null }));
+
+  const prepMinutes = parseIsoDurationMinutes(recipe.totalTime) ?? (() => {
+    const sum = (parseIsoDurationMinutes(recipe.prepTime) || 0) + (parseIsoDurationMinutes(recipe.cookTime) || 0);
+    return sum > 0 ? sum : null;
+  })();
+
+  const keywordsRaw = [recipe.recipeCategory, recipe.keywords].filter(Boolean).join(', ');
+  const tags = keywordsRaw.split(',').map(t => t.trim()).filter(Boolean).slice(0, 8);
+
+  return {
+    title,
+    description,
+    heat_level: guessHeatLevel(`${title} ${description || ''} ${keywordsRaw}`),
+    prep_minutes: prepMinutes,
+    tags,
+    image_url: normalizeImage(recipe.image),
+    ingredients,
+    steps,
+  };
+}
+
 const SCHEMA_STATEMENTS = [
   `CREATE TABLE IF NOT EXISTS cocina_pantry_items (
     id                SERIAL PRIMARY KEY,
@@ -232,6 +325,47 @@ function makeRouter(db) {
   });
 
   // ---- Salsas ----
+
+  // POST /salsas/import — body: { url }. Fetches the page server-side (browser
+  // CORS would block this client-side) and pulls schema.org Recipe JSON-LD,
+  // which nearly every recipe site publishes. Returns a draft in the same
+  // shape POST /salsas accepts, for the frontend to prefill and let the user
+  // review/edit before saving — nothing is written to the DB here.
+  router.post('/salsas/import', auth, async (req, res) => {
+    const rawUrl = req.body?.url;
+    if (!rawUrl || typeof rawUrl !== 'string') return res.status(400).json({ error: 'url is required' });
+
+    let target;
+    try {
+      target = new URL(rawUrl);
+    } catch {
+      return res.status(400).json({ error: 'That doesn\'t look like a valid URL' });
+    }
+    if (!['http:', 'https:'].includes(target.protocol) || isPrivateHost(target.hostname)) {
+      return res.status(400).json({ error: 'That URL is not allowed' });
+    }
+
+    try {
+      const response = await fetch(target.toString(), {
+        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; CocinaRecipeImporter/1.0)' },
+        redirect: 'follow',
+        signal: AbortSignal.timeout(10000),
+      });
+      if (!response.ok) return res.status(422).json({ error: `Could not fetch that page (HTTP ${response.status})` });
+      if (isPrivateHost(new URL(response.url).hostname)) {
+        return res.status(400).json({ error: 'That URL is not allowed' });
+      }
+
+      const html = await response.text();
+      const recipes = extractJsonLdRecipes(html);
+      if (recipes.length === 0) return res.status(422).json({ error: 'No recipe data found on that page' });
+
+      res.json(draftFromJsonLdRecipe(recipes[0]));
+    } catch (err) {
+      console.error('Cocina recipe import error:', err.message);
+      res.status(502).json({ error: 'Failed to import that recipe' });
+    }
+  });
 
   router.get('/salsas', auth, async (req, res) => {
     try {

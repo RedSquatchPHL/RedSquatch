@@ -43,11 +43,18 @@
      text legible without hiding the kitchen behind it. */
   --cocina-hero-tint: rgba(239, 224, 201, 0.78);
 
+  /* Fallback + edge-gap fill for the photo layer below — same hue as the tint,
+     so where the (portrait) photo doesn't reach, it blends in rather than
+     showing a hard letterbox edge. */
+  background-color: var(--cocina-bg);
   background-image:
     radial-gradient(var(--cocina-noise-color) 0.7px, transparent 0.7px),
     linear-gradient(var(--cocina-hero-tint), var(--cocina-hero-tint)),
     url('/images/cocina/cocina-hero.jpg');
-  background-size: 5px 5px, cover, cover;
+  /* The photo is a tall portrait shot; sizing it by height (instead of
+     `cover`, which was scaling it up to match viewport width and cropping
+     out ~2/3 of the actual scene) shows much more of it, "zoomed out". */
+  background-size: 5px 5px, cover, auto 150%;
   background-position: 0 0, center, center 30%;
   background-repeat: repeat, no-repeat, no-repeat;
   background-attachment: scroll, fixed, fixed;
