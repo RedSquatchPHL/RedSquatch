@@ -286,12 +286,13 @@ export default function CocinaSalsas({ salsas, onChanged, onOpenRecipe }: Props)
           <div>
             <div className="text-sm font-semibold mb-2" style={{ color: 'var(--cocina-heading)' }}>Steps</div>
             {steps.map((step, i) => (
-              <div key={i} className="flex gap-2 mb-2">
-                <input
+              <div key={i} className="flex gap-2 mb-2 items-start">
+                <textarea
                   value={step.instruction}
                   onChange={e => setSteps(prev => prev.map((row, idx) => idx === i ? { ...row, instruction: e.target.value } : row))}
                   placeholder={`Step ${i + 1}`}
-                  className="cocina-card flex-1 px-3 py-1.5 text-sm"
+                  rows={2}
+                  className="cocina-card flex-1 px-3 py-1.5 text-sm resize-y"
                   style={{ color: 'var(--cocina-heading-soft)' }}
                 />
                 <input
@@ -302,7 +303,7 @@ export default function CocinaSalsas({ salsas, onChanged, onOpenRecipe }: Props)
                   className="cocina-card w-20 px-3 py-1.5 text-sm"
                   style={{ color: 'var(--cocina-heading-soft)' }}
                 />
-                <button onClick={() => setSteps(prev => prev.filter((_, idx) => idx !== i))} style={{ color: 'var(--cocina-terracotta-strong)' }}>
+                <button onClick={() => setSteps(prev => prev.filter((_, idx) => idx !== i))} style={{ color: 'var(--cocina-terracotta-strong)' }} className="mt-2">
                   <Trash2 size={16} />
                 </button>
               </div>
