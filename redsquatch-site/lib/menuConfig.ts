@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
-import { FileText, LayoutDashboard, Target, GraduationCap, Briefcase, Wrench, Trophy, Gamepad2, Landmark } from 'lucide-react';
+import { FileText, LayoutDashboard, Target, GraduationCap, Briefcase, Wrench, Trophy, Gamepad2, Landmark, ChefHat } from 'lucide-react';
 
 export type MenuLeaf =
   | { id: string; label: string; icon: LucideIcon; type: 'internal'; path: string }
@@ -24,6 +24,7 @@ export const HS_NAV: MenuLeaf[] = [
   { id: 'hs-sports', label: 'Sports', icon: Trophy, type: 'internal', path: '/hs/sports' },
   { id: 'hs-tools', label: 'Tools', icon: Wrench, type: 'internal', path: '/hs/tools' },
   { id: 'hs-mexican', label: 'Mexican', icon: Landmark, type: 'internal', path: '/hs/mexican' },
+  { id: 'hs-cocina', label: 'Cocina', icon: ChefHat, type: 'internal', path: '/hs/cocina' },
   { id: 'hs-downtime', label: 'Downtime', icon: Gamepad2, type: 'internal', path: '/hs/downtime' },
 ];
 
