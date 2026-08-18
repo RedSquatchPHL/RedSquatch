@@ -101,6 +101,107 @@ function draftFromJsonLdRecipe(recipe) {
   };
 }
 
+// ---- Recipe import fallback: no JSON-LD Recipe (e.g. sites whose theme
+// renders recipes as plain semantic HTML with no schema.org markup at all,
+// like rickbayless.com). Scrapes common patterns instead: og: meta tags for
+// title/image/description, and any container whose class or itemprop names
+// "ingredient"/"instruction" for the ingredient and step lists.
+
+const HTML_ENTITY_MAP = {
+  amp: '&', lt: '<', gt: '>', quot: '"', nbsp: ' ', apos: "'",
+  rsquo: '’', lsquo: '‘', rdquo: '”', ldquo: '“',
+  hellip: '…', mdash: '—', ndash: '–',
+};
+
+function decodeHtmlEntities(str) {
+  return str
+    .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => String.fromCodePoint(parseInt(hex, 16)))
+    .replace(/&#(\d+);/g, (_, dec) => String.fromCodePoint(parseInt(dec, 10)))
+    .replace(/&(amp|lt|gt|quot|nbsp|apos|rsquo|lsquo|rdquo|ldquo|hellip|mdash|ndash);/g, (_, name) => HTML_ENTITY_MAP[name] || '');
+}
+
+function stripTags(fragment) {
+  return decodeHtmlEntities(fragment.replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' ').trim();
+}
+
+// Manually depth-counts <div>/</div> from just after an opening tag to find
+// its true matching close — a plain non-greedy regex can't do this correctly
+// once the container has nested divs, which recipe markup always does.
+function findMatchingDivEnd(html, openTagEndIndex) {
+  let depth = 1;
+  const re = /<div\b[^>]*>|<\/div\s*>/gi;
+  re.lastIndex = openTagEndIndex;
+  let match;
+  while ((match = re.exec(html))) {
+    if (match[0].startsWith('</')) depth--;
+    else depth++;
+    if (depth === 0) return match.index;
+  }
+  return html.length;
+}
+
+function extractDivContainer(html, markerRegex) {
+  const m = markerRegex.exec(html);
+  if (!m) return null;
+  const openTagEnd = m.index + m[0].length;
+  return html.slice(openTagEnd, findMatchingDivEnd(html, openTagEnd));
+}
+
+function extractListItems(containerHtml, minLength = 1) {
+  return [...containerHtml.matchAll(/<li[^>]*>([\s\S]*?)<\/li>/gi)]
+    .map(m => stripTags(m[1]))
+    .filter(t => t.length >= minLength);
+}
+
+function extractParagraphSteps(containerHtml) {
+  // Strip embeds first so an iframe-only paragraph (e.g. an embedded video)
+  // doesn't become an empty "step".
+  const cleaned = containerHtml.replace(/<iframe[\s\S]*?<\/iframe>/gi, '').replace(/<script[\s\S]*?<\/script>/gi, '');
+  const paras = [...cleaned.matchAll(/<p[^>]*>([\s\S]*?)<\/p>/gi)].map(m => stripTags(m[1]));
+  const items = paras.length > 0 ? paras : extractListItems(cleaned);
+  return items.filter(t => t.length >= 8);
+}
+
+function scrapeGenericRecipe(html) {
+  const h1 = html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i);
+  const ogTitle = html.match(/<meta[^>]*property=["']og:title["'][^>]*content=["']([^"']*)["']/i);
+  const titleTag = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+  const title = (h1 && stripTags(h1[1])) || (ogTitle && decodeHtmlEntities(ogTitle[1])) || (titleTag && stripTags(titleTag[1])) || 'Imported recipe';
+
+  const ogImage = html.match(/<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']*)["']/i);
+  const image_url = ogImage ? ogImage[1] : null;
+
+  const metaDesc = html.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']*)["']/i);
+  const descContainer = extractDivContainer(html, /<div[^>]*class=["'][^"']*\bdescription\b[^"']*["'][^>]*>/i);
+  const description = (metaDesc && decodeHtmlEntities(metaDesc[1])) || (descContainer && stripTags(descContainer).slice(0, 600)) || null;
+
+  const ingredientsContainer = extractDivContainer(
+    html,
+    /<div[^>]*(?:class=["'][^"']*ingredient[^"']*["']|itemprop=["'](?:ingredients|recipeIngredient)["'])[^>]*>/i
+  );
+  const ingredients = ingredientsContainer ? extractListItems(ingredientsContainer).map(name => ({ name, quantity: null })) : [];
+
+  const instructionsContainer = extractDivContainer(
+    html,
+    /<div[^>]*(?:class=["'][^"']*(?:instruction|direction)[^"']*["']|itemprop=["']recipeInstructions["'])[^>]*>/i
+  );
+  const steps = instructionsContainer ? extractParagraphSteps(instructionsContainer).map(instruction => ({ instruction, minutes: null })) : [];
+
+  const metaKeywords = html.match(/<meta[^>]*name=["']keywords["'][^>]*content=["']([^"']*)["']/i);
+  const tags = metaKeywords ? decodeHtmlEntities(metaKeywords[1]).split(',').map(t => t.trim()).filter(Boolean).slice(0, 8) : [];
+
+  return {
+    title,
+    description,
+    heat_level: guessHeatLevel(`${title} ${description || ''} ${tags.join(' ')}`),
+    prep_minutes: null,
+    tags,
+    image_url,
+    ingredients,
+    steps,
+  };
+}
+
 const SCHEMA_STATEMENTS = [
   `CREATE TABLE IF NOT EXISTS cocina_pantry_items (
     id                SERIAL PRIMARY KEY,
@@ -358,9 +459,15 @@ function makeRouter(db) {
 
       const html = await response.text();
       const recipes = extractJsonLdRecipes(html);
-      if (recipes.length === 0) return res.status(422).json({ error: 'No recipe data found on that page' });
+      if (recipes.length > 0) return res.json(draftFromJsonLdRecipe(recipes[0]));
 
-      res.json(draftFromJsonLdRecipe(recipes[0]));
+      // No schema.org Recipe JSON-LD — fall back to scraping common semantic
+      // HTML patterns (og: meta tags, ingredient/instruction containers).
+      const fallback = scrapeGenericRecipe(html);
+      if (fallback.ingredients.length === 0 && fallback.steps.length === 0) {
+        return res.status(422).json({ error: 'No recipe data found on that page' });
+      }
+      res.json(fallback);
     } catch (err) {
       console.error('Cocina recipe import error:', err.message);
       res.status(502).json({ error: 'Failed to import that recipe' });
