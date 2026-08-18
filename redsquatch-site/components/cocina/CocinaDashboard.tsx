@@ -27,7 +27,7 @@ export default function CocinaDashboard({ pantryItems, salsas, onOpenRecipe, onN
 
   return (
     <div className="space-y-6">
-      <div className="cocina-card p-6">
+      <div className="cocina-card cocina-noise p-6">
         <h2 className="text-2xl mb-1">{greeting()}</h2>
         <p className="text-sm" style={{ color: 'var(--cocina-text-soft)' }}>
           {pantryItems.length === 0

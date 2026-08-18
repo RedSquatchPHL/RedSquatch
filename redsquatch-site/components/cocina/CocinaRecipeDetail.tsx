@@ -84,7 +84,7 @@ export default function CocinaRecipeDetail({ salsaId, onBack, onSalsaChanged, on
         <ArrowLeft size={14} /> Back
       </button>
 
-      <div className="cocina-card p-6">
+      <div className="cocina-card cocina-noise p-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h2 className="text-2xl">{salsa.title}</h2>

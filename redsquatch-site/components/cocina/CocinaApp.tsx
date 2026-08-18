@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { Sun, Moon } from 'lucide-react';
 import { API } from '@/lib/api';
 import { fontCocinaDisplay, fontCocinaSans } from '@/lib/fonts';
 import '@/styles/cocina-theme.css';
@@ -20,6 +21,19 @@ export default function CocinaApp() {
   const [shoppingItems, setShoppingItems] = useState<ShoppingItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [darkMode, setDarkMode] = useState(false);
+
+  useEffect(() => {
+    setDarkMode(localStorage.getItem('cocina_theme') === 'dark');
+  }, []);
+
+  function toggleDarkMode() {
+    setDarkMode(prev => {
+      const next = !prev;
+      localStorage.setItem('cocina_theme', next ? 'dark' : 'light');
+      return next;
+    });
+  }
 
   const refreshPantry = useCallback(async () => {
     const res = await fetch(`${API}/api/client/cocina/pantry`, { credentials: 'include' });
@@ -70,28 +84,37 @@ export default function CocinaApp() {
   }
 
   return (
-    <div className={rootClass}>
+    <div className={rootClass} data-cocina-theme={darkMode ? 'dark' : 'light'}>
       <div className="max-w-5xl mx-auto space-y-6">
         <header className="flex flex-wrap items-center justify-between gap-3 pb-2">
           <h1 className="text-3xl font-semibold">Cocina de Salsa</h1>
-          <nav className="flex flex-wrap gap-2">
-            {([
-              ['dashboard', 'Dashboard'],
-              ['pantry', 'Pantry'],
-              ['salsas', 'Saved Salsas'],
-              ['shopping', 'Shopping'],
-            ] as [CocinaView, string][]).map(([key, label]) => (
-              <button
-                key={key}
-                onClick={() => setView(key)}
-                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
-                  view === key ? 'cocina-btn-primary' : 'cocina-btn-secondary'
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </nav>
+          <div className="flex flex-wrap items-center gap-2">
+            <nav className="flex flex-wrap gap-2">
+              {([
+                ['dashboard', 'Dashboard'],
+                ['pantry', 'Pantry'],
+                ['salsas', 'Saved Salsas'],
+                ['shopping', 'Shopping'],
+              ] as [CocinaView, string][]).map(([key, label]) => (
+                <button
+                  key={key}
+                  onClick={() => setView(key)}
+                  className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                    view === key ? 'cocina-btn-primary' : 'cocina-btn-secondary'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </nav>
+            <button
+              onClick={toggleDarkMode}
+              title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+              className="cocina-btn-secondary p-2 rounded-full flex items-center justify-center"
+            >
+              {darkMode ? <Sun size={16} /> : <Moon size={16} />}
+            </button>
+          </div>
         </header>
 
         {error && (
