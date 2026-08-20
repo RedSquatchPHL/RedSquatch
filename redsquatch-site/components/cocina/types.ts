@@ -9,8 +9,18 @@ export interface PantryItem {
   quantity: string | null;
   unit: string | null;
   storage_condition: StorageCondition;
+  barcode: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface BarcodeLookupResult {
+  barcode: string;
+  name: string;
+  category: string | null;
+  image_url: string | null;
+  source: string;
+  cached: boolean;
 }
 
 export interface Salsa {

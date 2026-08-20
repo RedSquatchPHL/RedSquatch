@@ -16,6 +16,8 @@
   "dependencies": {
     "@radix-ui/react-slot": "^1.0.2",
     "@types/prismjs": "^1.26.6",
+    "@zxing/browser": "^0.2.1",
+    "@zxing/library": "^0.21.3",
     "class-variance-authority": "^0.4.0",
     "clsx": "^1.2.1",
     "docx": "^9.7.1",
