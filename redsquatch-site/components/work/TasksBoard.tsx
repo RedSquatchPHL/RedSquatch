@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { CareerTrajectoryBoard } from '@/components/work/CareerTrajectoryBoard';
 
 import { API } from '@/lib/api';
 
@@ -110,7 +111,6 @@ export function TasksBoard({ onOpenLogs }: Props) {
   }
 
   const goalTasks = tasks.filter(t => !t.is_maintenance);
-  const maintTasks = tasks.filter(t => t.is_maintenance);
 
   if (loading) return <div className="text-muted-foreground text-sm p-4">Loading tasks…</div>;
 
@@ -138,28 +138,7 @@ export function TasksBoard({ onOpenLogs }: Props) {
         onDrop={onDrop}
         onOpenLogs={onOpenLogs}
       />
-      <TaskSection
-        label="Maintenance Chores"
-        badge="chore"
-        tasks={maintTasks}
-        isMaintenance={true}
-        addingIn={addingIn}
-        newTitle={newTitle}
-        dragId={dragId}
-        overCol={overCol}
-        inputRef={inputRef}
-        onStartAdd={(status) => { setAddingIn({ status, isMaintenance: true }); setNewTitle(''); }}
-        onCancelAdd={() => setAddingIn(null)}
-        onTitleChange={setNewTitle}
-        onCreateTask={createTask}
-        onMove={moveTask}
-        onDelete={deleteTask}
-        onDragStart={onDragStart}
-        onDragEnd={onDragEnd}
-        onDragOver={onDragOver}
-        onDrop={onDrop}
-        onOpenLogs={onOpenLogs}
-      />
+      <CareerTrajectoryBoard />
     </div>
   );
 }

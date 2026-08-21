@@ -20,6 +20,7 @@ const { runMigrations: runFilesMigrations, makeRouter: makeFilesRouter } = requi
 const { runMigrations: runBaToolsMigrations, makeRouter: makeBaToolsRouter } = require('./routes/ba-tools');
 const { runMigrations: runCocinaMigrations, makeRouter: makeCocinaRouter } = require('./routes/cocina');
 const { runMigrations: runWorkRoadmapMigrations, makeRouter: makeWorkRoadmapRouter } = require('./routes/work-roadmap');
+const { runMigrations: runCareerTrajectoryMigrations, makeRouter: makeCareerTrajectoryRouter } = require('./routes/career-trajectory');
 
 const SPORTS_FILE = path.join(__dirname, 'public', 'sports.json');
 
@@ -1034,6 +1035,7 @@ app.use('/api/client/fan-tracker', makeFanTrackerRouter(db));
 app.use('/api/client/ba-tools', makeBaToolsRouter(db));
 app.use('/api/client/cocina', makeCocinaRouter(db));
 app.use('/api/client/work-roadmap', makeWorkRoadmapRouter(db));
+app.use('/api/client/career-trajectory', makeCareerTrajectoryRouter(db));
 app.use('/api/client', makeIntakeRouter(db));
 
 // ============ TOOLS ============
@@ -1096,6 +1098,7 @@ async function initializeApp() {
     await runBaToolsMigrations(db);
     await runCocinaMigrations(db);
     await runWorkRoadmapMigrations(db);
+    await runCareerTrajectoryMigrations(db);
 
     app.listen(PORT, () => {
       console.log(`✓ RedSquatch API running on port ${PORT}`);
