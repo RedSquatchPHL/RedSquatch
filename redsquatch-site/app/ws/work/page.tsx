@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Unbounded, JetBrains_Mono } from 'next/font/google';
 import { API } from '@/lib/api';
@@ -271,6 +272,9 @@ export default function WorkCardsPage() {
 
         <div className={styles.toolbar}>
           <WorkCardUploadButton onImported={handleImported} />
+          <Link href="/ws/work/roadmap" className="glass-btn" style={{ padding: '0.5rem 1.25rem', fontSize: '0.85rem', textDecoration: 'none', width: 'fit-content' }}>
+            Roadmap
+          </Link>
         </div>
 
         {importResult && (
