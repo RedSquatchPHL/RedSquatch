@@ -34,6 +34,32 @@ const SEED_ITEMS = [
   { category: 'improve', text: "Reflect on role fit — reporting/analytics was called out as a real strength. Worth an open conversation about how much of that vs. core BA work makes sense going forward." },
 ];
 
+// Content corrections (2026-08-22) — the original seed above was drafted from the
+// verbal 1:1 alone; the actual written warning (surfaced afterward) has more precise
+// language for a few of these and one standard (staying focused during work hours)
+// that never came up on the call at all. Matched by exact old text, so each update is
+// a no-op after it's applied once — safe to run on every boot like SCHEMA_STATEMENTS.
+const CONTENT_UPDATES = [
+  {
+    match: "Resolve stakeholder questions and missing info independently within the same business days as assignment. Escalate through the documented process if truly stuck — don't let it sit.",
+    replace: "Resolve stakeholder questions, missing information, and requirement clarifications within 5 business days of assignment, unless a documented blocker requires escalation. (Literal standard from the written warning.)",
+  },
+  {
+    match: "Know and follow the team's established ways of working / playbook before assuming a process doesn't exist.",
+    replace: "Follow the Team Playbook and established sprint/refinement process — bring ready items to refinement and sprint planning at the appropriate stage, rather than reaching out directly for a developer assignment.",
+  },
+  {
+    match: "Come to refinement and stakeholder meetings prepared enough to state the business purpose and value without going in circles.",
+    replace: "Come to meetings prepared — questions, business needs, decisions required, and next steps thought through in advance, so purpose and value never get worked out live in the room.",
+  },
+];
+
+const EXTRA_SEED_ITEMS = [
+  { category: 'demonstrate', text: "Stay focused on work during working hours — no non-work distractions (personal email, browsing, phone, other conversation). This is a written standard, not just a norm." },
+  { category: 'improve', text: "Two concrete data points are already in the written record, not just tone: KeyFactor's missed access requirements (surfaced 6/2/2026, after the requirements phase closed 2/25) and the Problem Mgmt enhancement still circling months after its 3/19 assignment (review meetings 5/21 and 7/27)." },
+  { category: 'improve', text: "SNWR0028146 sat untouched for a month (6/18 → 7/20) with no escalation and no comment on the ticket. The fix isn't \"work faster\" — it's leaving a trail: comment the moment something is unclear, even before it's a formal blocker." },
+];
+
 async function runMigrations(db) {
   for (const sql of SCHEMA_STATEMENTS) {
     await db.query(sql);
@@ -45,6 +71,27 @@ async function runMigrations(db) {
       await db.query(
         'INSERT INTO work_roadmap_items (category, text, sort_order) VALUES ($1, $2, $3)',
         [item.category, item.text, i]
+      );
+    }
+  }
+
+  for (const { match, replace } of CONTENT_UPDATES) {
+    await db.query(
+      'UPDATE work_roadmap_items SET text = $1, updated_at = NOW() WHERE text = $2',
+      [replace, match]
+    );
+  }
+
+  for (const item of EXTRA_SEED_ITEMS) {
+    const { rows: existing } = await db.query('SELECT id FROM work_roadmap_items WHERE text = $1', [item.text]);
+    if (existing.length === 0) {
+      const { rows: orderRows } = await db.query(
+        'SELECT COALESCE(MAX(sort_order), -1) + 1 AS next_order FROM work_roadmap_items WHERE category = $1',
+        [item.category]
+      );
+      await db.query(
+        'INSERT INTO work_roadmap_items (category, text, sort_order) VALUES ($1, $2, $3)',
+        [item.category, item.text, orderRows[0].next_order]
       );
     }
   }

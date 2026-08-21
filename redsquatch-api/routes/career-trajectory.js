@@ -33,6 +33,13 @@ const SEED_ITEMS = [
   { lane: 'external', title: "Set a personal checkpoint for the end of the 60-day review window, independent of how the review itself goes." },
 ];
 
+// Content addition (2026-08-22) — the written warning surfaced a concrete example
+// (SNWR0028146) that the verbal 1:1 alone didn't name specifically. Guarded by an
+// exact-text existence check, so it's a no-op after it's inserted once.
+const EXTRA_SEED_ITEMS = [
+  { lane: 'stay', title: "Leave a comment trail the moment something is unclear or blocked — SNWR0028146 sitting a month (6/18–7/20) with zero notes is the exact pattern not to repeat." },
+];
+
 async function runMigrations(db) {
   for (const sql of SCHEMA_STATEMENTS) {
     await db.query(sql);
@@ -44,6 +51,20 @@ async function runMigrations(db) {
       await db.query(
         'INSERT INTO career_trajectory_items (lane, title, sort_order) VALUES ($1, $2, $3)',
         [item.lane, item.title, i]
+      );
+    }
+  }
+
+  for (const item of EXTRA_SEED_ITEMS) {
+    const { rows: existing } = await db.query('SELECT id FROM career_trajectory_items WHERE title = $1', [item.title]);
+    if (existing.length === 0) {
+      const { rows: orderRows } = await db.query(
+        'SELECT COALESCE(MAX(sort_order), -1) + 1 AS next_order FROM career_trajectory_items WHERE lane = $1',
+        [item.lane]
+      );
+      await db.query(
+        'INSERT INTO career_trajectory_items (lane, title, sort_order) VALUES ($1, $2, $3)',
+        [item.lane, item.title, orderRows[0].next_order]
       );
     }
   }
