@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
-import { FileText, LayoutDashboard, Target, GraduationCap, Briefcase, Wrench, Trophy, Gamepad2, Landmark, ChefHat } from 'lucide-react';
+import { FileText, LayoutDashboard, Target, GraduationCap, Briefcase, Wrench, Trophy, Gamepad2, Landmark, ChefHat, FileSearch } from 'lucide-react';
 
 export type MenuLeaf =
   | { id: string; label: string; icon: LucideIcon; type: 'internal'; path: string }
@@ -15,6 +15,7 @@ export const WS_NAV: MenuLeaf[] = [
   { id: 'ws-goals', label: 'Goals', icon: Target, type: 'internal', path: '/ws/goals' },
   { id: 'ws-batools', label: 'BA Tools', icon: GraduationCap, type: 'internal', path: '/ws/batools' },
   { id: 'ws-work', label: 'Work', icon: Briefcase, type: 'internal', path: '/ws/work' },
+  { id: 'ws-jobsearch', label: 'Job Search', icon: FileSearch, type: 'internal', path: '/ws/jobsearch' },
   { id: 'ws-tools', label: 'Tools', icon: Wrench, type: 'internal', path: '/ws/tools' },
 ];
 
