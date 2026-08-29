@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { CheckCircle2, Circle, Clock } from 'lucide-react';
 import { API } from '@/lib/api';
 import SnowPanel from './SnowPanel';
+import pageStyles from './snow-page.module.css';
 
 // ServiceNow's actual brand palette (confirmed 2026-08-29, not the site-wide
 // copper/tan) — dark green #293E40 + sea-glass mint #81B5A1. SNOW_BRIGHT is a
@@ -133,7 +134,7 @@ export default function HSSnowPage() {
   if (loading) return null;
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-6 space-y-6">
+    <div className={`${pageStyles.snowBg} flex flex-col items-center justify-center p-6 space-y-6`}>
       <div className="w-full max-w-3xl">
         <SnowPanel>
           <h1 className="text-3xl font-bold" style={{ color: SNOW_BRIGHT, textShadow: `0 0 16px rgba(${SNOW_MINT_RGB},0.3)` }}>
