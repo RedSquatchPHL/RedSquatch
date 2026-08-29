@@ -17,7 +17,7 @@ Each page renders its own `<HeaderBrand>` + `<BottomToolbar activeItem="...">`.
 | `/hs/dashboard` | `app/hs/dashboard/page.tsx` |
 | `/hs/goals` | `app/hs/goals/page.tsx` |
 | `/hs/sports` | `app/hs/sports/page.tsx` |
-| `/hs/tools` | `app/hs/tools/page.tsx` |
+| `/hs/snow` | `app/hs/snow/page.tsx` |
 | `/hs/downtime` | `app/hs/downtime/page.tsx` |
 
 All wrapped by `app/hs/layout.tsx`, which renders `<MagnificationDock nav={HS_NAV} switchTo={HS_SWITCH} />` once — `HS_SWITCH` already points back to `/ws/dashboard` (mode `'work'`). **This task adds the missing reverse direction**: a Switch control on the WS side pointing to `/hs/dashboard` (mode `'home'`).

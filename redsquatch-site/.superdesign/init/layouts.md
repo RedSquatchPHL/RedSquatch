@@ -99,7 +99,7 @@ const HS_NAV = [
   { label: 'Dashboard', icon: BarChart3, href: '/hs/dashboard' },
   { label: 'Goals',     icon: Target,    href: '/hs/goals'     },
   { label: 'Sports',    icon: Trophy,    href: '/hs/sports'    },
-  { label: 'Tools',     icon: Settings,  href: '/hs/tools'     },
+  { label: 'ServiceNow', icon: Snowflake, href: '/hs/snow'     },
   { label: 'Downtime',  icon: Gamepad2,  href: '/hs/downtime'  },
 ];
 
