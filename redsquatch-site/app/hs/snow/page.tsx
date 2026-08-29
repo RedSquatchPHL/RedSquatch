@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { CheckCircle2, Circle, Clock } from 'lucide-react';
+import { CheckCircle2, Circle, Clock, Compass, Code2, Award, Layers, RefreshCw, type LucideIcon } from 'lucide-react';
 import { API } from '@/lib/api';
 import SnowPanel from './SnowPanel';
 import pageStyles from './snow-page.module.css';
@@ -38,6 +38,34 @@ const STATUS_CYCLE: Status[] = ['not_started', 'in_progress', 'completed'];
 
 function nextStatus(current: Status): Status {
   return STATUS_CYCLE[(STATUS_CYCLE.indexOf(current) + 1) % STATUS_CYCLE.length];
+}
+
+// Original mark, not a copy of ServiceNow's actual logo file — an incomplete
+// ring echoes the real logo's "bitten O" shape (a gap at the bottom, meant to
+// read as a head-and-shoulders), same homage approach as the custom EagleIcon
+// on the citizenship tracker rather than embedding trademarked brand assets.
+function ServiceNowMark({ size = 40 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 40 40" aria-hidden="true">
+      <circle
+        cx="20" cy="20" r="14"
+        fill="none"
+        stroke={SNOW_MINT}
+        strokeWidth="5"
+        strokeLinecap="round"
+        strokeDasharray="76 14"
+        transform="rotate(100 20 20)"
+      />
+    </svg>
+  );
+}
+
+// Stage 0-4 order matches SNOW_CAREER_ITEMS in redsquatch-api/routes/snow-career.js.
+const STAGE_ICONS: LucideIcon[] = [Compass, Code2, Award, Layers, RefreshCw];
+
+function StageIcon({ stage, size = 16 }: { stage: number; size?: number }) {
+  const Icon = STAGE_ICONS[stage] ?? Compass;
+  return <Icon size={size} color={SNOW_MINT} />;
 }
 
 function StatusIcon({ status, size = 16 }: { status: Status; size?: number }) {
@@ -137,11 +165,17 @@ export default function HSSnowPage() {
     <div className={`${pageStyles.snowBg} flex flex-col items-center justify-center p-6 space-y-6`}>
       <div className="w-full max-w-3xl">
         <SnowPanel>
-          <h1 className="text-3xl font-bold" style={{ color: SNOW_BRIGHT, textShadow: `0 0 16px rgba(${SNOW_MINT_RGB},0.3)` }}>
-            ServiceNow Career Path
-          </h1>
-          <p className="text-sm mt-1" style={{ color: `rgba(${SNOW_MINT_RGB},0.6)` }}>
+          <div className="flex items-center gap-3">
+            <ServiceNowMark size={40} />
+            <h1 className="text-3xl font-bold" style={{ color: SNOW_BRIGHT, textShadow: `0 0 16px rgba(${SNOW_MINT_RGB},0.3)` }}>
+              ServiceNow Career Path
+            </h1>
+          </div>
+          <p className="text-sm mt-2" style={{ color: `rgba(${SNOW_MINT_RGB},0.6)` }}>
             Certified Application Developer (CAD) pathway
+          </p>
+          <p className="text-xs mt-1 italic" style={{ color: `rgba(${SNOW_MINT_RGB},0.4)` }}>
+            &ldquo;The world works with ServiceNow.&rdquo;
           </p>
           {error && <p className="text-xs mt-2 text-red-400">{error}</p>}
           <ProgressBar completed={totalCompleted} total={items.length} />
@@ -153,7 +187,8 @@ export default function HSSnowPage() {
           const completed = stageItems.filter(i => i.status === 'completed').length;
           return (
             <SnowPanel key={stage}>
-              <h2 className="text-sm font-semibold uppercase tracking-wide mb-3" style={{ color: SNOW_MINT }}>
+              <h2 className="text-sm font-semibold uppercase tracking-wide mb-3 flex items-center gap-2" style={{ color: SNOW_MINT }}>
+                <StageIcon stage={stage} />
                 {label} ({completed}/{stageItems.length})
               </h2>
               <div className="space-y-1">
