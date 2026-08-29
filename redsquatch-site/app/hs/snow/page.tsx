@@ -4,7 +4,15 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { CheckCircle2, Circle, Clock } from 'lucide-react';
 import { API } from '@/lib/api';
-import CopperPanel from '@/components/cenote/CopperPanel';
+import SnowPanel from './SnowPanel';
+
+// ServiceNow's actual brand palette (confirmed 2026-08-29, not the site-wide
+// copper/tan) — dark green #293E40 + sea-glass mint #81B5A1. SNOW_BRIGHT is a
+// lightened tint of the mint for headline pop, same role --color-copper-bright
+// plays for CopperPanel.
+const SNOW_MINT = '#81B5A1';
+const SNOW_MINT_RGB = '129, 181, 161';
+const SNOW_BRIGHT = '#b8d8cb';
 
 type Status = 'not_started' | 'in_progress' | 'completed';
 
@@ -34,7 +42,7 @@ function nextStatus(current: Status): Status {
 function StatusIcon({ status, size = 16 }: { status: Status; size?: number }) {
   switch (status) {
     case 'completed': return <CheckCircle2 size={size} color="#4caf50" />;
-    case 'in_progress': return <Clock size={size} color="var(--copper-tan)" />;
+    case 'in_progress': return <Clock size={size} color={SNOW_MINT} />;
     default: return <Circle size={size} color="#757575" />;
   }
 }
@@ -43,14 +51,14 @@ function ProgressBar({ completed, total }: { completed: number; total: number })
   const pct = total ? Math.round((completed / total) * 100) : 0;
   return (
     <div className="my-4">
-      <div className="text-sm font-semibold mb-2" style={{ color: 'var(--copper-tan)' }}>
+      <div className="text-sm font-semibold mb-2" style={{ color: SNOW_MINT }}>
         Progress: {completed} / {total} completed
       </div>
       <div
         className="relative h-4 rounded-sm overflow-hidden"
-        style={{ background: 'rgba(var(--copper-bold-rgb),0.15)', border: '1px solid rgba(var(--copper-bold-rgb),0.3)' }}
+        style={{ background: `rgba(${SNOW_MINT_RGB},0.15)`, border: `1px solid rgba(${SNOW_MINT_RGB},0.3)` }}
       >
-        <div className="absolute inset-y-0 left-0" style={{ width: `${pct}%`, background: 'var(--copper-bold)' }} />
+        <div className="absolute inset-y-0 left-0" style={{ width: `${pct}%`, background: SNOW_MINT }} />
       </div>
     </div>
   );
@@ -127,24 +135,24 @@ export default function HSSnowPage() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-6 space-y-6">
       <div className="w-full max-w-3xl">
-        <CopperPanel>
-          <h1 className="text-3xl font-bold" style={{ color: '#d4a373', textShadow: '0 0 16px rgba(184,115,51,0.3)' }}>
+        <SnowPanel>
+          <h1 className="text-3xl font-bold" style={{ color: SNOW_BRIGHT, textShadow: `0 0 16px rgba(${SNOW_MINT_RGB},0.3)` }}>
             ServiceNow Career Path
           </h1>
-          <p className="text-sm mt-1" style={{ color: 'rgba(var(--copper-tan-rgb),0.6)' }}>
+          <p className="text-sm mt-1" style={{ color: `rgba(${SNOW_MINT_RGB},0.6)` }}>
             Certified Application Developer (CAD) pathway
           </p>
           {error && <p className="text-xs mt-2 text-red-400">{error}</p>}
           <ProgressBar completed={totalCompleted} total={items.length} />
-        </CopperPanel>
+        </SnowPanel>
       </div>
 
       <div className="w-full max-w-3xl space-y-6">
         {stages.map(([stage, { label, items: stageItems }]) => {
           const completed = stageItems.filter(i => i.status === 'completed').length;
           return (
-            <CopperPanel key={stage}>
-              <h2 className="text-sm font-semibold uppercase tracking-wide mb-3" style={{ color: 'var(--copper-tan)' }}>
+            <SnowPanel key={stage}>
+              <h2 className="text-sm font-semibold uppercase tracking-wide mb-3" style={{ color: SNOW_MINT }}>
                 {label} ({completed}/{stageItems.length})
               </h2>
               <div className="space-y-1">
@@ -152,7 +160,7 @@ export default function HSSnowPage() {
                   <div
                     key={item.id}
                     className="flex items-start gap-3 py-2"
-                    style={{ borderBottom: '1px solid rgba(var(--copper-bold-rgb),0.15)', opacity: savingId === item.id ? 0.6 : 1 }}
+                    style={{ borderBottom: `1px solid rgba(${SNOW_MINT_RGB},0.15)`, opacity: savingId === item.id ? 0.6 : 1 }}
                   >
                     <button
                       type="button"
@@ -165,9 +173,9 @@ export default function HSSnowPage() {
                       <StatusIcon status={item.status} />
                     </button>
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm" style={{ color: 'var(--copper-tan)' }}>{item.title}</div>
+                      <div className="text-sm" style={{ color: SNOW_MINT }}>{item.title}</div>
                       {item.description && (
-                        <div className="text-xs mt-0.5" style={{ color: 'rgba(var(--copper-tan-rgb),0.55)' }}>
+                        <div className="text-xs mt-0.5" style={{ color: `rgba(${SNOW_MINT_RGB},0.55)` }}>
                           {item.description}
                         </div>
                       )}
@@ -175,7 +183,7 @@ export default function HSSnowPage() {
                   </div>
                 ))}
               </div>
-            </CopperPanel>
+            </SnowPanel>
           );
         })}
       </div>
