@@ -1,0 +1,376 @@
+/* Light Aztec palette for /ws/work — same copper/terracotta motif as the rest
+   of the site's Aztec system, but on parchment instead of obsidian. Scoped
+   entirely to this module so it can't collide with aztec-command.css (dark,
+   used by /ws/dashboard) or the cenote --copper/--stone tokens. */
+
+.page {
+  --tk-parchment: #faf3e6;
+  --tk-parchment-deep: #f0e4cc;
+  --tk-copper: #b87333;
+  --tk-copper-dark: #8e5a26;
+  --tk-terracotta: #c1573a;
+  --tk-ink: #4a3423;
+  --tk-ink-soft: #7a6248;
+  --tk-border: rgba(184, 115, 51, 0.28);
+  --tk-card-bg: #ffffff;
+  --tk-lincoln: #5b6b8c;
+  --tk-redsquatch: #b87333;
+  --tk-personal: #6b8f5a;
+
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 15% 8%, rgba(184, 115, 51, 0.08), transparent 45%),
+    var(--tk-parchment);
+  color: var(--tk-ink);
+  padding: 2rem;
+}
+
+.header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid var(--tk-border);
+  padding-bottom: 1rem;
+}
+
+.title {
+  font-family: 'Stardom', serif;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 2rem;
+  margin: 0;
+  color: var(--tk-copper-dark);
+}
+
+.subheader {
+  color: var(--tk-ink-soft);
+  font-size: 0.85rem;
+  margin: 0.25rem 0 0;
+}
+
+/* ── Board scaffolding ─────────────────────────────────────────── */
+
+.board {
+  overflow-x: auto;
+  padding-bottom: 1rem;
+}
+
+.lane {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.laneHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 0.5rem;
+  color: var(--tk-ink-soft);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.laneTitleInput {
+  background: transparent;
+  border: none;
+  border-bottom: 1px dashed transparent;
+  color: var(--tk-ink-soft);
+  font: inherit;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.1rem 0.2rem;
+}
+
+.laneTitleInput:hover,
+.laneTitleInput:focus {
+  border-bottom-color: var(--tk-copper);
+  outline: none;
+}
+
+.laneDeleteBtn {
+  background: none;
+  border: none;
+  color: rgba(74, 52, 35, 0.35);
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+.laneDeleteBtn:hover {
+  color: var(--tk-terracotta);
+}
+
+.columnsRow {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.column {
+  background: var(--tk-parchment-deep);
+  border: 1px solid var(--tk-border);
+  border-radius: 6px;
+  flex-shrink: 0;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.columnDragOver {
+  background: rgba(184, 115, 51, 0.16);
+  border-color: var(--tk-copper);
+}
+
+.columnHeader {
+  align-items: center;
+  border-bottom: 1px solid var(--tk-border);
+  display: flex;
+  gap: 0.4rem;
+  padding: 0.6rem 0.75rem;
+}
+
+.columnTitleInput {
+  background: transparent;
+  border: none;
+  border-bottom: 1px dashed transparent;
+  color: var(--tk-copper-dark);
+  flex: 1;
+  font-size: 0.85rem;
+  font-weight: 700;
+  min-width: 0;
+  padding: 0.1rem 0.2rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.columnTitleInput:hover,
+.columnTitleInput:focus {
+  border-bottom-color: var(--tk-copper);
+  outline: none;
+}
+
+.columnCount {
+  color: var(--tk-ink-soft);
+  font-size: 0.7rem;
+  flex-shrink: 0;
+}
+
+.columnDeleteBtn {
+  background: none;
+  border: none;
+  color: rgba(74, 52, 35, 0.35);
+  cursor: pointer;
+  flex-shrink: 0;
+  font-size: 0.85rem;
+}
+
+.columnDeleteBtn:hover {
+  color: var(--tk-terracotta);
+}
+
+.columnBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-height: 4rem;
+  padding: 0.6rem;
+}
+
+.resizeHandle {
+  cursor: col-resize;
+  position: absolute;
+  right: -3px;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  z-index: 2;
+}
+
+.resizeHandle:hover {
+  background: rgba(184, 115, 51, 0.35);
+}
+
+.addColumnBtn {
+  background: transparent;
+  border: 1px dashed var(--tk-border);
+  border-radius: 6px;
+  color: var(--tk-ink-soft);
+  cursor: pointer;
+  flex-shrink: 0;
+  font-size: 0.8rem;
+  padding: 0.6rem 1rem;
+  align-self: stretch;
+}
+
+.addColumnBtn:hover {
+  border-color: var(--tk-copper);
+  color: var(--tk-copper-dark);
+}
+
+.addLaneBtn {
+  background: transparent;
+  border: 1px dashed var(--tk-border);
+  border-radius: 6px;
+  color: var(--tk-ink-soft);
+  cursor: pointer;
+  font-size: 0.8rem;
+  padding: 0.5rem 1rem;
+}
+
+.addLaneBtn:hover {
+  border-color: var(--tk-copper);
+  color: var(--tk-copper-dark);
+}
+
+/* ── Cards ─────────────────────────────────────────────────────── */
+
+.card {
+  background: var(--tk-card-bg);
+  border: 1px solid var(--tk-border);
+  border-left: 3px solid var(--tk-copper);
+  border-radius: 4px;
+  cursor: grab;
+  padding: 0.6rem 0.7rem;
+  box-shadow: 0 1px 2px rgba(74, 52, 35, 0.08);
+}
+
+.card:active {
+  cursor: grabbing;
+}
+
+.cardDragging {
+  opacity: 0.4;
+}
+
+.cardDone {
+  opacity: 0.6;
+}
+
+.cardTitle {
+  color: var(--tk-ink);
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin: 0 0 0.35rem;
+  word-break: break-word;
+}
+
+.cardDoneTitle {
+  text-decoration: line-through;
+}
+
+.cardMeta {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.badge {
+  border-radius: 3px;
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 0.1rem 0.4rem;
+  text-transform: uppercase;
+}
+
+.dueDate {
+  color: var(--tk-ink-soft);
+  font-size: 0.7rem;
+  margin-left: auto;
+}
+
+.cardDeleteBtn {
+  background: none;
+  border: none;
+  color: rgba(74, 52, 35, 0.3);
+  cursor: pointer;
+  font-size: 0.75rem;
+  padding: 0 0.15rem;
+}
+
+.cardDeleteBtn:hover {
+  color: var(--tk-terracotta);
+}
+
+/* ── Quick-add form ────────────────────────────────────────────── */
+
+.addTaskBtn {
+  background: transparent;
+  border: none;
+  color: var(--tk-ink-soft);
+  cursor: pointer;
+  font-size: 0.78rem;
+  padding: 0.3rem 0.2rem;
+  text-align: left;
+}
+
+.addTaskBtn:hover {
+  color: var(--tk-copper-dark);
+}
+
+.addTaskForm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.addTaskInput {
+  background: #fff;
+  border: 1px solid var(--tk-border);
+  border-radius: 3px;
+  color: var(--tk-ink);
+  font-size: 0.8rem;
+  padding: 0.3rem 0.45rem;
+}
+
+.addTaskInput:focus {
+  border-color: var(--tk-copper);
+  outline: none;
+}
+
+.addTaskRow {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.addTaskSelect {
+  background: #fff;
+  border: 1px solid var(--tk-border);
+  border-radius: 3px;
+  color: var(--tk-ink);
+  font-size: 0.7rem;
+  padding: 0.2rem;
+}
+
+.addTaskActions {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.1rem;
+}
+
+.addTaskSave {
+  background: var(--tk-copper);
+  border: none;
+  border-radius: 3px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.72rem;
+  padding: 0.25rem 0.6rem;
+}
+
+.addTaskSave:hover {
+  background: var(--tk-copper-dark);
+}
+
+.addTaskCancel {
+  background: none;
+  border: none;
+  color: var(--tk-ink-soft);
+  cursor: pointer;
+  font-size: 0.72rem;
+}

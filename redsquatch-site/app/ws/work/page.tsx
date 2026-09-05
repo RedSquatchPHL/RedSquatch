@@ -1,45 +1,21 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
-import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Unbounded, JetBrains_Mono } from 'next/font/google';
 import { API } from '@/lib/api';
-import WorkCardCarousel from '@/components/work/WorkCardCarousel';
-import BackburnerPanel from '@/components/work/BackburnerPanel';
-import DoneListPanel from '@/components/work/DoneListPanel';
-import WorkCardJournalPanel from '@/components/work/WorkCardJournalPanel';
-import TimerTray from '@/components/TimerTray';
-import WorkCardUploadButton, { ImportResult } from '@/components/work/WorkCardUploadButton';
-import AztecHeader from '@/components/aztec/AztecHeader';
-import AztecMotion from '@/components/aztec/AztecMotion';
-import TypeBadge from '@/components/TypeBadge';
-import type { WorkCard } from '@/components/work/WorkCard';
-import styles from '@/styles/work.module.css';
-import '@/styles/aztec-command.css';
+import KanbanBoard, { Task, TaskColumn, TaskSwimlane } from '@/components/tasks/KanbanBoard';
+import styles from '@/styles/tasks.module.css';
 
-const unbounded = Unbounded({ subsets: ['latin'], weight: ['700', '800'], variable: '--font-unbounded' });
-const jbMono = JetBrains_Mono({ subsets: ['latin'], weight: ['400', '500'], variable: '--font-jbmono' });
+interface BoardData {
+  columns: TaskColumn[];
+  swimlanes: TaskSwimlane[];
+  tasks: Task[];
+  contexts: string[];
+}
 
-export default function WorkCardsPage() {
+export default function TasksPage() {
   const [checking, setChecking] = useState(true);
-  const [cards, setCards] = useState<WorkCard[]>([]);
-  const [order, setOrder] = useState<number[]>([]);
-  const [focalId, setFocalId] = useState<number | null>(null);
-  const [importResult, setImportResult] = useState<ImportResult | null>(null);
-  // Tracks open/closed only, not which card — the Journal button only ever exists on
-  // the current focal card, so the panel should always follow focalId as it advances
-  // (Done/Follow-Up/Backburner, Prev/Next, cascade clicks), never stay pinned to
-  // whichever card happened to be focal when it was opened.
-  const [journalOpen, setJournalOpen] = useState(false);
-  // Cards imported/updated since the last time "Start Sort" was pressed — while this is
-  // non-empty, the carousel stays hidden behind a staging list so freshly uploaded reports
-  // (possibly several in a row: demand/release/work-items) can be reviewed before diving
-  // into the sort workflow. Empty on a normal page load, so revisiting later the same day
-  // goes straight to the carousel with no gate.
-  const [stagedTickets, setStagedTickets] = useState<Set<string>>(new Set());
-  const [now, setNow] = useState(() => Date.now());
-  const firedRef = useRef<Set<number>>(new Set());
+  const [board, setBoard] = useState<BoardData | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -52,203 +28,88 @@ export default function WorkCardsPage() {
       .catch(() => router.push('/'));
   }, [router]);
 
-  async function loadCards() {
-    const res = await fetch(`${API}/api/client/work-cards`, { credentials: 'include' });
-    if (res.ok) {
-      const data = await res.json();
-      setCards(data.cards ?? []);
-    }
+  async function loadBoard() {
+    const res = await fetch(`${API}/api/client/tasks`, { credentials: 'include' });
+    if (res.ok) setBoard(await res.json());
   }
 
   useEffect(() => {
-    if (checking) return;
-    loadCards();
-    const poll = setInterval(loadCards, 60000);
-    return () => clearInterval(poll);
+    if (!checking) loadBoard();
   }, [checking]);
 
-  // Single shared clock — every countdown (card badges, timer tray) derives its
-  // remaining time from this plus each card's server-authoritative follow_up_at,
-  // so a page reload just recomputes correctly instead of losing state.
-  useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(id);
-  }, []);
-
-  // Done cards move out to the left-hand list; Backburner cards move out to the
-  // right-hand list. Only cards in neither state occupy the carousel.
-  const activeCards = useMemo(
-    () => cards.filter(c => !c.backburner && !c.done).sort((a, b) => a.ticket_number.localeCompare(b.ticket_number)),
-    [cards]
-  );
-  const backburnerCards = useMemo(() => cards.filter(c => c.backburner), [cards]);
-  const doneCards = useMemo(() => cards.filter(c => c.done), [cards]);
-  const pendingFollowUps = useMemo(() => cards.filter(c => c.follow_up_at != null), [cards]);
-  const dueIds = useMemo(() => {
-    const s = new Set<number>();
-    for (const c of cards) {
-      if (c.follow_up_at && new Date(c.follow_up_at).getTime() <= now) s.add(c.id);
-    }
-    return s;
-  }, [cards, now]);
-
-  // Keep the manual carousel order stable across data refreshes: cards still active
-  // keep their current position (so a due-triggered reorder below survives a poll),
-  // newly-appeared ones (fresh import, or just restored from Done/Backburner) land
-  // at the end.
-  useEffect(() => {
-    setOrder(prevOrder => {
-      const activeIds = activeCards.map(c => c.id);
-      const activeIdSet = new Set(activeIds);
-      const kept = prevOrder.filter(id => activeIdSet.has(id));
-      const keptSet = new Set(kept);
-      const missing = activeIds.filter(id => !keptSet.has(id));
-      return [...kept, ...missing];
-    });
-  }, [activeCards]);
-
-  // When a follow-up timer fires, splice that card to just after the current focal
-  // position (per spec: pulse + jump-to-next-in-queue, not a toast). firedRef stops
-  // this from re-splicing on every clock tick once a card has already been surfaced.
-  useEffect(() => {
-    const newlyDue: number[] = [];
-    for (const c of cards) {
-      const isDue = !!c.follow_up_at && new Date(c.follow_up_at).getTime() <= now;
-      if (isDue && !firedRef.current.has(c.id)) {
-        newlyDue.push(c.id);
-        firedRef.current.add(c.id);
-      } else if (!isDue) {
-        firedRef.current.delete(c.id);
-      }
-    }
-    if (newlyDue.length === 0) return;
-    setOrder(prev => {
-      const next = prev.filter(id => !newlyDue.includes(id));
-      const focalIdx = focalId != null ? next.indexOf(focalId) : -1;
-      const insertAt = focalIdx >= 0 ? focalIdx + 1 : 0;
-      next.splice(insertAt, 0, ...newlyDue);
-      return next;
-    });
-  }, [cards, now, focalId]);
-
-  const cardsById = useMemo(() => new Map(cards.map(c => [c.id, c])), [cards]);
-  const orderedActiveCards = useMemo(
-    () => order.map(id => cardsById.get(id)).filter((c): c is WorkCard => !!c),
-    [order, cardsById]
-  );
-
-  // Seed/repair the focal card whenever it's unset or has drifted out of the active pool.
-  useEffect(() => {
-    if (focalId != null && orderedActiveCards.some(c => c.id === focalId)) return;
-    setFocalId(orderedActiveCards[0]?.id ?? null);
-  }, [orderedActiveCards, focalId]);
-
-  async function patchCard(id: number, body: Record<string, unknown>) {
-    const res = await fetch(`${API}/api/client/work-cards/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+  async function api(path: string, method: string, body?: unknown) {
+    const res = await fetch(`${API}/api/client/tasks${path}`, {
+      method,
       credentials: 'include',
-      body: JSON.stringify(body),
+      headers: body ? { 'Content-Type': 'application/json' } : undefined,
+      body: body ? JSON.stringify(body) : undefined,
     });
-    if (res.ok) {
-      const updated = await res.json();
-      setCards(prev => prev.map(c => (c.id === id ? updated : c)));
+    return res.ok ? (res.status === 204 ? null : res.json()) : null;
+  }
+
+  async function handleCreateTask(columnId: number, swimlaneId: number | null, data: { title: string; priority: string; context: string | null }) {
+    const created = await api('/', 'POST', { ...data, column_id: columnId, swimlane_id: swimlaneId });
+    if (created) setBoard(b => b && { ...b, tasks: [...b.tasks, created] });
+  }
+
+  async function handleMoveTask(taskId: number, columnId: number, swimlaneId: number | null, position: number) {
+    setBoard(b => b && { ...b, tasks: b.tasks.map(t => t.id === taskId ? { ...t, column_id: columnId, swimlane_id: swimlaneId, position } : t) });
+    const updated = await api(`/${taskId}`, 'PUT', { column_id: columnId, swimlane_id: swimlaneId, position });
+    if (updated) setBoard(b => b && { ...b, tasks: b.tasks.map(t => t.id === taskId ? updated : t) });
+  }
+
+  async function handleDeleteTask(taskId: number) {
+    setBoard(b => b && { ...b, tasks: b.tasks.filter(t => t.id !== taskId) });
+    await api(`/${taskId}`, 'DELETE');
+  }
+
+  async function handleAddColumn() {
+    const title = window.prompt('Column name?');
+    if (!title?.trim()) return;
+    const created = await api('/columns', 'POST', { title: title.trim() });
+    if (created) setBoard(b => b && { ...b, columns: [...b.columns, created] });
+  }
+
+  async function handleRenameColumn(id: number, title: string) {
+    setBoard(b => b && { ...b, columns: b.columns.map(c => c.id === id ? { ...c, title } : c) });
+    await api(`/columns/${id}`, 'PUT', { title });
+  }
+
+  async function handleResizeColumn(id: number, widthPx: number) {
+    setBoard(b => b && { ...b, columns: b.columns.map(c => c.id === id ? { ...c, width_px: widthPx } : c) });
+    await api(`/columns/${id}`, 'PUT', { width_px: widthPx });
+  }
+
+  async function handleDeleteColumn(id: number) {
+    if (board && board.columns.length <= 1) {
+      window.alert('Cannot delete the last remaining column.');
+      return;
     }
+    if (!window.confirm('Remove this column? Its tasks move to the leftmost remaining column.')) return;
+    await api(`/columns/${id}`, 'DELETE');
+    await loadBoard();
   }
 
-  // Shared by Done/Backburner toggling on: when a card leaves the active pool, hand
-  // focus to whatever's next in the carousel order rather than leaving it dangling.
-  function advanceFocalAwayFrom(id: number) {
-    setFocalId(prevFocal => {
-      if (prevFocal !== id) return prevFocal;
-      const idx = order.indexOf(id);
-      const remaining = order.filter(oid => oid !== id);
-      return remaining.length === 0 ? null : remaining[Math.min(idx, remaining.length - 1)];
-    });
+  async function handleAddSwimlane() {
+    const title = window.prompt('Swimlane name?');
+    if (!title?.trim()) return;
+    const created = await api('/swimlanes', 'POST', { title: title.trim() });
+    if (created) setBoard(b => b && { ...b, swimlanes: [...b.swimlanes, created] });
   }
 
-  function handleToggleDone(id: number) {
-    const card = cards.find(c => c.id === id);
-    if (!card) return;
-    const next = !card.done;
-    setCards(prev => prev.map(c => (c.id === id ? { ...c, done: next } : c)));
-    patchCard(id, { done: next });
-    if (next) advanceFocalAwayFrom(id);
+  async function handleRenameSwimlane(id: number, title: string) {
+    setBoard(b => b && { ...b, swimlanes: b.swimlanes.map(l => l.id === id ? { ...l, title } : l) });
+    await api(`/swimlanes/${id}`, 'PUT', { title });
   }
 
-  function handleToggleBackburner(id: number) {
-    const card = cards.find(c => c.id === id);
-    if (!card) return;
-    const next = !card.backburner;
-    setCards(prev => prev.map(c => (c.id === id ? { ...c, backburner: next } : c)));
-    patchCard(id, { backburner: next });
-    if (next) advanceFocalAwayFrom(id);
-    else setFocalId(id);
+  async function handleDeleteSwimlane(id: number) {
+    if (!window.confirm('Remove this swimlane? Its tasks fall back to the unlaned row.')) return;
+    setBoard(b => b && { ...b, swimlanes: b.swimlanes.filter(l => l.id !== id) });
+    await api(`/swimlanes/${id}`, 'DELETE');
+    await loadBoard();
   }
 
-  function handleSetFollowUp(id: number, minutes: number | null) {
-    if (minutes == null) {
-      setCards(prev => prev.map(c => (c.id === id ? { ...c, follow_up_at: null } : c)));
-      patchCard(id, { clear_follow_up: true });
-    } else {
-      const target = new Date(Date.now() + minutes * 60000).toISOString();
-      setCards(prev => prev.map(c => (c.id === id ? { ...c, follow_up_at: target } : c)));
-      patchCard(id, { follow_up_minutes: minutes });
-    }
-  }
-
-  function handleSetParent(id: number, parentId: number | null) {
-    setCards(prev => prev.map(c => (c.id === id ? { ...c, parent_id: parentId } : c)));
-    patchCard(id, { parent_id: parentId });
-  }
-
-  // Used by the Backburner panel, Done list, and cascade clicks: pulls a card out of
-  // whichever side-list it's in (if any) and brings it front-and-center as the focal card.
-  function handleFocusCard(id: number) {
-    const card = cards.find(c => c.id === id);
-    if (!card) return;
-    const patch: Record<string, unknown> = {};
-    if (card.backburner) patch.backburner = false;
-    if (card.done) patch.done = false;
-    if (Object.keys(patch).length > 0) {
-      setCards(prev => prev.map(c => (c.id === id ? { ...c, ...patch } : c)));
-      patchCard(id, patch);
-    }
-    setFocalId(id);
-  }
-
-  function handlePrev() {
-    if (orderedActiveCards.length === 0) return;
-    const idx = orderedActiveCards.findIndex(c => c.id === focalId);
-    const nextIdx = idx <= 0 ? orderedActiveCards.length - 1 : idx - 1;
-    setFocalId(orderedActiveCards[nextIdx].id);
-  }
-
-  function handleNext() {
-    if (orderedActiveCards.length === 0) return;
-    const idx = orderedActiveCards.findIndex(c => c.id === focalId);
-    const nextIdx = idx < 0 || idx === orderedActiveCards.length - 1 ? 0 : idx + 1;
-    setFocalId(orderedActiveCards[nextIdx].id);
-  }
-
-  function handleImported(result: ImportResult) {
-    setImportResult(result);
-    setStagedTickets(prev => new Set([...Array.from(prev), ...result.tickets]));
-    loadCards();
-  }
-
-  function handleStartSort() {
-    setStagedTickets(new Set());
-  }
-
-  const journalCard = journalOpen ? cards.find(c => c.id === focalId) ?? null : null;
-  const showStaging = stagedTickets.size > 0;
-  const stagedCards = useMemo(
-    () => cards.filter(c => stagedTickets.has(c.ticket_number)).sort((a, b) => a.ticket_number.localeCompare(b.ticket_number)),
-    [cards, stagedTickets]
-  );
-
-  if (checking) {
+  if (checking || !board) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-lg" style={{ color: '#b87333' }}>Loading...</div>
@@ -257,88 +118,30 @@ export default function WorkCardsPage() {
   }
 
   return (
-    <div className={`work-page aztec-command ${unbounded.variable} ${jbMono.variable} ${styles.workPage} pb-28`}>
-      <AztecMotion marqueeItems={['Goals', 'Work Items', 'Sports', 'Tools', 'RedSquatch']} />
-
-      <div className="relative z-[1] max-w-[1400px] mx-auto mb-6">
-        <AztecHeader label="OVERVIEW" />
-      </div>
-
-      <div className={`relative z-[1] ${styles.content}`}>
-        <header className={styles.header}>
-          <h1 className={styles.title}>Work Cards</h1>
-          <p className={styles.subheader}>{cards.length} card{cards.length === 1 ? '' : 's'} on the board</p>
-        </header>
-
-        <div className={styles.toolbar}>
-          <WorkCardUploadButton onImported={handleImported} />
-          <Link href="/ws/work/roadmap" className="glass-btn" style={{ padding: '0.5rem 1.25rem', fontSize: '0.85rem', textDecoration: 'none', width: 'fit-content' }}>
-            Roadmap
-          </Link>
+    <div className={styles.page}>
+      <header className={styles.header}>
+        <div>
+          <h1 className={styles.title}>Work</h1>
+          <p className={styles.subheader}>{board.tasks.length} task{board.tasks.length === 1 ? '' : 's'} on the board</p>
         </div>
+      </header>
 
-        {importResult && (
-          <div className={styles.importSummary}>
-            <span>
-              Imported {importResult.imported}, updated {importResult.updated}, removed {importResult.removed}
-              {importResult.needsReview.length > 0 && ` — ${importResult.needsReview.length} row(s) need review`}
-            </span>
-            <button type="button" className={styles.dismissBtn} onClick={() => setImportResult(null)}>×</button>
-          </div>
-        )}
-        {importResult && importResult.needsReview.length > 0 && (
-          <div className={styles.needsReviewBox}>
-            {importResult.needsReview.map((row, i) => (
-              <pre key={i} className={styles.needsReviewRow}>{JSON.stringify(row)}</pre>
-            ))}
-          </div>
-        )}
-
-        {showStaging ? (
-          <div className={styles.stagingPanel}>
-            <div className={styles.stagingHeader}>
-              <span>{stagedCards.length} record{stagedCards.length === 1 ? '' : 's'} staged from this upload</span>
-              <button type="button" className="glass-btn" style={{ padding: '0.5rem 1.25rem', fontSize: '0.85rem' }} onClick={handleStartSort}>
-                Start Sort
-              </button>
-            </div>
-            <div className={styles.stagingList}>
-              {stagedCards.map(c => (
-                <div key={c.id} className={styles.stagingRow}>
-                  <TypeBadge type={c.task_type} />
-                  <span className={styles.mono}>{c.ticket_number}</span>
-                  <span className={styles.stagingRowDescription}>{c.short_description}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        ) : (
-          <WorkCardCarousel
-            cards={orderedActiveCards}
-            allCards={cards}
-            focalId={focalId}
-            now={now}
-            dueIds={dueIds}
-            onPrev={handlePrev}
-            onNext={handleNext}
-            onToggleDone={handleToggleDone}
-            onToggleBackburner={handleToggleBackburner}
-            onSetFollowUp={handleSetFollowUp}
-            onSetParent={handleSetParent}
-            onOpenJournal={() => setJournalOpen(true)}
-            onFocusCard={handleFocusCard}
-          />
-        )}
-      </div>
-
-      {!showStaging && (
-        <>
-          <DoneListPanel cards={doneCards} onRestore={handleFocusCard} />
-          <BackburnerPanel cards={backburnerCards} onRestore={handleFocusCard} />
-          <TimerTray cards={pendingFollowUps} now={now} onJumpTo={setFocalId} />
-          {journalCard && <WorkCardJournalPanel card={journalCard} onClose={() => setJournalOpen(false)} />}
-        </>
-      )}
+      <KanbanBoard
+        columns={board.columns}
+        swimlanes={board.swimlanes}
+        tasks={board.tasks}
+        contexts={board.contexts}
+        onCreateTask={handleCreateTask}
+        onMoveTask={handleMoveTask}
+        onDeleteTask={handleDeleteTask}
+        onAddColumn={handleAddColumn}
+        onRenameColumn={handleRenameColumn}
+        onResizeColumn={handleResizeColumn}
+        onDeleteColumn={handleDeleteColumn}
+        onAddSwimlane={handleAddSwimlane}
+        onRenameSwimlane={handleRenameSwimlane}
+        onDeleteSwimlane={handleDeleteSwimlane}
+      />
     </div>
   );
 }
