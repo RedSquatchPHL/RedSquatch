@@ -53,10 +53,22 @@ const CONTEXT_COLORS: Record<string, string> = {
   Personal: 'var(--tk-personal)',
 };
 
-const PRIORITY_COLORS: Record<string, string> = {
-  high: '#c1573a',
-  medium: '#b87333',
-  low: '#8d7a6a',
+// Each context gets a stamped "seal" glyph rather than a colored word —
+// Lincoln (the day job) reads as a squared-off ledger mark, RedSquatch wears
+// the site's own sun, Personal gets a loose star. Border color still carries
+// the context identity; the glyph carries its meaning.
+const CONTEXT_GLYPHS: Record<string, string> = {
+  Lincoln: '▪',
+  RedSquatch: '☀',
+  Personal: '✦',
+};
+
+// Priority as tally marks — one to three ticks — so severity is legible by
+// count as well as by color, the way a carved tally would read.
+const PRIORITY_TALLIES: Record<string, { marks: string; className: string }> = {
+  high: { marks: '▲▲▲', className: '' },
+  medium: { marks: '▲▲', className: 'tallyMedium' },
+  low: { marks: '▲', className: 'tallyLow' },
 };
 
 // A lane of `null` renders as one unlaned row so tasks never disappear just
@@ -125,6 +137,7 @@ export default function KanbanBoard({
           <div key={laneId ?? 'unlaned'} className={styles.lane} style={{ flexDirection: 'column' }}>
             {lane && (
               <div className={styles.laneHeader}>
+                <span className={styles.laneGlyph} aria-hidden="true">≈</span>
                 <input
                   className={styles.laneTitleInput}
                   defaultValue={lane.title}
@@ -148,6 +161,7 @@ export default function KanbanBoard({
                     onDragLeave={() => setDragOverCell(prev => (prev === key ? null : prev))}
                     onDrop={(e) => { e.preventDefault(); handleDrop(col.id, laneId); }}
                   >
+                    <div className={styles.columnFrieze} aria-hidden="true" />
                     {!lane && (
                       <div className={styles.columnHeader}>
                         <input
@@ -171,9 +185,20 @@ export default function KanbanBoard({
                           <p className={`${styles.cardTitle} ${task.completed_at ? styles.cardDoneTitle : ''}`}>{task.title}</p>
                           <div className={styles.cardMeta}>
                             {task.context && (
-                              <span className={styles.badge} style={{ background: CONTEXT_COLORS[task.context] ?? '#8d7a6a' }}>{task.context}</span>
+                              <span
+                                className={styles.seal}
+                                style={{ color: CONTEXT_COLORS[task.context] ?? 'var(--tk-ink-soft)' }}
+                                title={task.context}
+                              >
+                                {CONTEXT_GLYPHS[task.context] ?? '●'}
+                              </span>
                             )}
-                            <span className={styles.badge} style={{ background: PRIORITY_COLORS[task.priority] }}>{task.priority}</span>
+                            <span
+                              className={`${styles.tally} ${styles[PRIORITY_TALLIES[task.priority]?.className] ?? ''}`}
+                              title={`${task.priority} priority`}
+                            >
+                              {PRIORITY_TALLIES[task.priority]?.marks ?? '▲'}
+                            </span>
                             {task.due_date && <span className={styles.dueDate}>{new Date(task.due_date).toLocaleDateString()}</span>}
                             <button className={styles.cardDeleteBtn} onClick={() => onDeleteTask(task.id)}>✕</button>
                           </div>

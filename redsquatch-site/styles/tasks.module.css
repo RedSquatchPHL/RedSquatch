@@ -1,54 +1,113 @@
-/* Light Aztec palette for /ws/work — same copper/terracotta motif as the rest
-   of the site's Aztec system, but on parchment instead of obsidian. Scoped
-   entirely to this module so it can't collide with aztec-command.css (dark,
-   used by /ws/dashboard) or the cenote --copper/--stone tokens. */
+/* Light Aztec palette for /ws/work — carried as a stone-tablet/codex motif on
+   parchment instead of the dark obsidian aztec-command.css system (used by
+   /ws/dashboard). Scoped entirely to this module.
+
+   Signature element: each column header wears a stepped-pyramid frieze (the
+   temple silhouette from the site's sunstone motif, reworked in copper/gold
+   on light stone) — the board reads as a row of shrines, one per stage of
+   work. Swimlanes are drawn as canals (a nod to the site's cenote branding)
+   rather than plain table rows. Priority is tally marks, not color-only —
+   severity is legible by count as well as hue. */
 
 .page {
-  --tk-parchment: #faf3e6;
-  --tk-parchment-deep: #f0e4cc;
+  --tk-parchment: #f6ecd8;
+  --tk-parchment-deep: #ecdec0;
+  --tk-card-bg: #fffdf8;
   --tk-copper: #b87333;
   --tk-copper-dark: #8e5a26;
+  --tk-gold: #d9a441;
+  --tk-jade: #2f6f5e;
   --tk-terracotta: #c1573a;
-  --tk-ink: #4a3423;
-  --tk-ink-soft: #7a6248;
-  --tk-border: rgba(184, 115, 51, 0.28);
-  --tk-card-bg: #ffffff;
+  --tk-ink: #3d2a1a;
+  --tk-ink-soft: #8a7052;
+  --tk-border: rgba(142, 90, 38, 0.28);
   --tk-lincoln: #5b6b8c;
   --tk-redsquatch: #b87333;
   --tk-personal: #6b8f5a;
 
+  position: relative;
   min-height: 100vh;
-  background:
-    radial-gradient(circle at 15% 8%, rgba(184, 115, 51, 0.08), transparent 45%),
-    var(--tk-parchment);
+  background: var(--tk-parchment);
   color: var(--tk-ink);
   padding: 2rem;
+  isolation: isolate;
+}
+
+/* Faint fiber grain across the whole page — amate paper, not flat vector. */
+.page::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    repeating-linear-gradient(115deg, rgba(142, 90, 38, 0.035) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(25deg, rgba(142, 90, 38, 0.025) 0 1px, transparent 1px 4px);
 }
 
 .header {
+  position: relative;
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 0.75rem;
-  margin-bottom: 1.5rem;
-  border-bottom: 2px solid var(--tk-border);
-  padding-bottom: 1rem;
+  margin-bottom: 1.75rem;
+  padding-bottom: 1.1rem;
+  padding-left: 0.25rem;
+}
+
+/* Tally-marked rule instead of a plain line — small carved ticks, denser near
+   the title, thinning out — rather than a uniform hairline. */
+.header::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background-image: repeating-linear-gradient(
+    to right,
+    var(--tk-copper) 0 6px,
+    transparent 6px 14px
+  );
+  opacity: 0.55;
+}
+
+/* Sundial watermark behind the title — quiet concentric rays, not a hero
+   graphic; it should read as texture on the stone, not as a logo. */
+.header::before {
+  content: '';
+  position: absolute;
+  left: -40px;
+  top: -60px;
+  width: 220px;
+  height: 220px;
+  z-index: -1;
+  background: conic-gradient(
+    from 0deg,
+    rgba(184, 115, 51, 0.09) 0deg 8deg,
+    transparent 8deg 24deg
+  );
+  border-radius: 50%;
+  mask-image: radial-gradient(circle, black 55%, transparent 78%);
 }
 
 .title {
   font-family: 'Stardom', serif;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  font-size: 2rem;
+  letter-spacing: 0.06em;
+  font-size: 2.1rem;
   margin: 0;
   color: var(--tk-copper-dark);
 }
 
 .subheader {
   color: var(--tk-ink-soft);
-  font-size: 0.85rem;
-  margin: 0.25rem 0 0;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+  margin: 0.3rem 0 0;
 }
 
 /* ── Board scaffolding ─────────────────────────────────────────── */
@@ -61,41 +120,52 @@
 .lane {
   display: flex;
   gap: 1rem;
-  margin-bottom: 1.25rem;
+  margin-bottom: 1.75rem;
 }
 
+/* Swimlane header reads as a canal marker: a jade waterline with a ripple
+   glyph, not a generic section label — the site already uses water/cenote
+   imagery elsewhere, this is the same idea in miniature. */
 .laneHeader {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin: 0 0 0.5rem;
-  color: var(--tk-ink-soft);
-  font-size: 0.75rem;
+  margin: 0 0 0.6rem;
+  padding-bottom: 0.35rem;
+  color: var(--tk-jade);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
+  border-bottom: 2px dashed rgba(47, 111, 94, 0.35);
+}
+
+.laneGlyph {
+  font-size: 0.9rem;
+  opacity: 0.8;
 }
 
 .laneTitleInput {
   background: transparent;
   border: none;
   border-bottom: 1px dashed transparent;
-  color: var(--tk-ink-soft);
+  color: var(--tk-jade);
   font: inherit;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   padding: 0.1rem 0.2rem;
 }
 
 .laneTitleInput:hover,
 .laneTitleInput:focus {
-  border-bottom-color: var(--tk-copper);
+  border-bottom-color: var(--tk-jade);
   outline: none;
 }
 
 .laneDeleteBtn {
   background: none;
   border: none;
-  color: rgba(74, 52, 35, 0.35);
+  color: rgba(47, 111, 94, 0.4);
   cursor: pointer;
   font-size: 0.8rem;
 }
@@ -106,23 +176,38 @@
 
 .columnsRow {
   display: flex;
-  gap: 1rem;
+  gap: 1.1rem;
   align-items: flex-start;
 }
 
 .column {
   background: var(--tk-parchment-deep);
   border: 1px solid var(--tk-border);
-  border-radius: 6px;
+  border-top: none;
+  border-radius: 0 0 6px 6px;
   flex-shrink: 0;
   position: relative;
   display: flex;
   flex-direction: column;
+  box-shadow: 0 10px 22px -14px rgba(61, 42, 26, 0.35);
+  transition: box-shadow 0.18s ease, background 0.18s ease;
+}
+
+/* The signature element: a stepped-pyramid frieze standing on top of every
+   column, like a shrine facade. Built with a clipped gradient strip, no
+   image asset. */
+.columnFrieze {
+  height: 14px;
+  background: linear-gradient(135deg, var(--tk-gold), var(--tk-copper) 60%, var(--tk-copper-dark));
+  clip-path: polygon(
+    0% 100%, 0% 60%, 10% 60%, 10% 30%, 25% 30%, 25% 0%,
+    75% 0%, 75% 30%, 90% 30%, 90% 60%, 100% 60%, 100% 100%
+  );
 }
 
 .columnDragOver {
-  background: rgba(184, 115, 51, 0.16);
-  border-color: var(--tk-copper);
+  background: rgba(47, 111, 94, 0.14);
+  box-shadow: 0 0 0 2px var(--tk-jade), 0 12px 26px -12px rgba(47, 111, 94, 0.5);
 }
 
 .columnHeader {
@@ -130,7 +215,7 @@
   border-bottom: 1px solid var(--tk-border);
   display: flex;
   gap: 0.4rem;
-  padding: 0.6rem 0.75rem;
+  padding: 0.55rem 0.75rem 0.6rem;
 }
 
 .columnTitleInput {
@@ -139,12 +224,12 @@
   border-bottom: 1px dashed transparent;
   color: var(--tk-copper-dark);
   flex: 1;
-  font-size: 0.85rem;
-  font-weight: 700;
+  font-family: 'Stardom', serif;
+  font-size: 0.95rem;
   min-width: 0;
   padding: 0.1rem 0.2rem;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.05em;
 }
 
 .columnTitleInput:hover,
@@ -155,14 +240,15 @@
 
 .columnCount {
   color: var(--tk-ink-soft);
-  font-size: 0.7rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem;
   flex-shrink: 0;
 }
 
 .columnDeleteBtn {
   background: none;
   border: none;
-  color: rgba(74, 52, 35, 0.35);
+  color: rgba(61, 42, 26, 0.35);
   cursor: pointer;
   flex-shrink: 0;
   font-size: 0.85rem;
@@ -175,16 +261,16 @@
 .columnBody {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.55rem;
   min-height: 4rem;
-  padding: 0.6rem;
+  padding: 0.65rem;
 }
 
 .resizeHandle {
   cursor: col-resize;
   position: absolute;
   right: -3px;
-  top: 0;
+  top: 14px;
   bottom: 0;
   width: 6px;
   z-index: 2;
@@ -201,41 +287,54 @@
   color: var(--tk-ink-soft);
   cursor: pointer;
   flex-shrink: 0;
-  font-size: 0.8rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
   padding: 0.6rem 1rem;
   align-self: stretch;
+  margin-top: 14px;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
 }
 
 .addColumnBtn:hover {
   border-color: var(--tk-copper);
   color: var(--tk-copper-dark);
+  background: rgba(184, 115, 51, 0.08);
 }
 
 .addLaneBtn {
   background: transparent;
-  border: 1px dashed var(--tk-border);
+  border: 1px dashed rgba(47, 111, 94, 0.35);
   border-radius: 6px;
-  color: var(--tk-ink-soft);
+  color: var(--tk-jade);
   cursor: pointer;
-  font-size: 0.8rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
   padding: 0.5rem 1rem;
+  transition: border-color 0.15s ease, background 0.15s ease;
 }
 
 .addLaneBtn:hover {
-  border-color: var(--tk-copper);
-  color: var(--tk-copper-dark);
+  border-color: var(--tk-jade);
+  background: rgba(47, 111, 94, 0.08);
 }
 
 /* ── Cards ─────────────────────────────────────────────────────── */
 
 .card {
   background: var(--tk-card-bg);
+  background-image: repeating-linear-gradient(170deg, rgba(142, 90, 38, 0.025) 0 1px, transparent 1px 5px);
   border: 1px solid var(--tk-border);
   border-left: 3px solid var(--tk-copper);
   border-radius: 4px;
   cursor: grab;
-  padding: 0.6rem 0.7rem;
-  box-shadow: 0 1px 2px rgba(74, 52, 35, 0.08);
+  padding: 0.65rem 0.7rem;
+  box-shadow: 0 1px 2px rgba(61, 42, 26, 0.1);
+  transition: transform 0.14s ease, box-shadow 0.14s ease;
+}
+
+.card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px -8px rgba(61, 42, 26, 0.35);
 }
 
 .card:active {
@@ -243,7 +342,8 @@
 }
 
 .cardDragging {
-  opacity: 0.4;
+  opacity: 0.45;
+  transform: rotate(-1.5deg) scale(0.98);
 }
 
 .cardDone {
@@ -254,7 +354,7 @@
   color: var(--tk-ink);
   font-size: 0.85rem;
   font-weight: 600;
-  margin: 0 0 0.35rem;
+  margin: 0 0 0.4rem;
   word-break: break-word;
 }
 
@@ -266,28 +366,45 @@
   align-items: center;
   display: flex;
   flex-wrap: wrap;
-  gap: 0.35rem;
+  gap: 0.4rem;
 }
 
-.badge {
-  border-radius: 3px;
-  color: #fff;
-  font-size: 0.65rem;
-  font-weight: 600;
-  padding: 0.1rem 0.4rem;
-  text-transform: uppercase;
+/* Context "seal" — a small stamped glyph chip rather than a flat color word.
+   Border-color carries the context identity; the glyph carries its meaning. */
+.seal {
+  align-items: center;
+  border-radius: 50%;
+  display: inline-flex;
+  justify-content: center;
+  width: 1.15rem;
+  height: 1.15rem;
+  font-size: 0.68rem;
+  border: 1.5px solid currentColor;
+  flex-shrink: 0;
 }
+
+/* Priority as tally marks — severity legible by count, not just by color. */
+.tally {
+  color: var(--tk-terracotta);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+}
+
+.tallyMedium { color: var(--tk-copper-dark); }
+.tallyLow { color: var(--tk-ink-soft); }
 
 .dueDate {
   color: var(--tk-ink-soft);
-  font-size: 0.7rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem;
   margin-left: auto;
 }
 
 .cardDeleteBtn {
   background: none;
   border: none;
-  color: rgba(74, 52, 35, 0.3);
+  color: rgba(61, 42, 26, 0.3);
   cursor: pointer;
   font-size: 0.75rem;
   padding: 0 0.15rem;
@@ -304,7 +421,8 @@
   border: none;
   color: var(--tk-ink-soft);
   cursor: pointer;
-  font-size: 0.78rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
   padding: 0.3rem 0.2rem;
   text-align: left;
 }
@@ -314,9 +432,13 @@
 }
 
 .addTaskForm {
+  background: var(--tk-card-bg);
+  border: 1px solid var(--tk-border);
+  border-radius: 4px;
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
+  padding: 0.5rem;
 }
 
 .addTaskInput {
@@ -343,7 +465,8 @@
   border: 1px solid var(--tk-border);
   border-radius: 3px;
   color: var(--tk-ink);
-  font-size: 0.7rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem;
   padding: 0.2rem;
 }
 
@@ -359,8 +482,10 @@
   border-radius: 3px;
   color: #fff;
   cursor: pointer;
-  font-size: 0.72rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
   padding: 0.25rem 0.6rem;
+  transition: background 0.15s ease;
 }
 
 .addTaskSave:hover {
@@ -372,5 +497,33 @@
   border: none;
   color: var(--tk-ink-soft);
   cursor: pointer;
-  font-size: 0.72rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+}
+
+/* ── Accessibility ─────────────────────────────────────────────── */
+
+.page :global(button):focus-visible,
+.page :global(input):focus-visible,
+.page :global(select):focus-visible {
+  outline: 2px solid var(--tk-jade);
+  outline-offset: 1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .column,
+  .addColumnBtn,
+  .addLaneBtn,
+  .addTaskSave {
+    transition: none;
+  }
+
+  .card:hover {
+    transform: none;
+  }
+
+  .cardDragging {
+    transform: none;
+  }
 }
