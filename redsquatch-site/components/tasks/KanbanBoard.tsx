@@ -64,7 +64,7 @@ const PRIORITY_COLORS: Record<string, string> = {
 type LaneKey = number | null;
 
 export default function KanbanBoard({
-  columns, swimlanes, tasks, contexts,
+  columns = [], swimlanes = [], tasks = [], contexts = [],
   onCreateTask, onMoveTask, onDeleteTask,
   onAddColumn, onRenameColumn, onResizeColumn, onDeleteColumn,
   onAddSwimlane, onRenameSwimlane, onDeleteSwimlane,

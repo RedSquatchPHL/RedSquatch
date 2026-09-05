@@ -30,7 +30,14 @@ export default function TasksPage() {
 
   async function loadBoard() {
     const res = await fetch(`${API}/api/client/tasks`, { credentials: 'include' });
-    if (res.ok) setBoard(await res.json());
+    if (!res.ok) return;
+    const data = await res.json();
+    setBoard({
+      columns: data.columns ?? [],
+      swimlanes: data.swimlanes ?? [],
+      tasks: data.tasks ?? [],
+      contexts: data.contexts ?? [],
+    });
   }
 
   useEffect(() => {
