@@ -33,8 +33,27 @@
   isolation: isolate;
 }
 
-/* Faint fiber grain across the whole page — amate paper, not flat vector. */
+/* Jalisco agave fields, faded well back so parchment cards and copper text
+   stay legible on top — a personal touch behind the board, not a hero image.
+   Photo: Tomascastelazo, Wikimedia Commons, CC BY-SA 4.0 (credited in the
+   page footer). Muted via filter (not just opacity) so it reads as sun-
+   bleached stone rather than a washed-out photo. */
 .page::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background-image: url('/images/jalisco-agave.jpg');
+  background-size: cover;
+  background-position: center 35%;
+  filter: saturate(0.4) sepia(0.2) brightness(1.15) contrast(0.92);
+  opacity: 0.5;
+}
+
+/* Parchment tint + fiber grain over the photo — the same amate-paper texture
+   as before, now doubling as the layer that mutes the image underneath. */
+.page::after {
   content: '';
   position: fixed;
   inset: 0;
@@ -42,7 +61,8 @@
   pointer-events: none;
   background-image:
     repeating-linear-gradient(115deg, rgba(142, 90, 38, 0.035) 0 1px, transparent 1px 3px),
-    repeating-linear-gradient(25deg, rgba(142, 90, 38, 0.025) 0 1px, transparent 1px 4px);
+    repeating-linear-gradient(25deg, rgba(142, 90, 38, 0.025) 0 1px, transparent 1px 4px),
+    linear-gradient(rgba(246, 236, 216, 0.8), rgba(246, 236, 216, 0.8));
 }
 
 .header {
@@ -499,6 +519,19 @@
   cursor: pointer;
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.7rem;
+}
+
+.photoCredit {
+  color: var(--tk-ink-soft);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  margin-top: 2rem;
+  opacity: 0.65;
+  text-align: right;
+}
+
+.photoCredit a {
+  color: inherit;
 }
 
 /* ── Accessibility ─────────────────────────────────────────────── */

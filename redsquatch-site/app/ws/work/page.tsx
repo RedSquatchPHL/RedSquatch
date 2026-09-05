@@ -149,6 +149,10 @@ export default function TasksPage() {
         onRenameSwimlane={handleRenameSwimlane}
         onDeleteSwimlane={handleDeleteSwimlane}
       />
+
+      <p className={styles.photoCredit}>
+        Background: agave fields, Jalisco — <a href="https://commons.wikimedia.org/wiki/File:Agave_field_in_Jalisco,_Mexico.jpg" target="_blank" rel="noopener noreferrer">Tomascastelazo</a>, CC BY-SA 4.0
+      </p>
     </div>
   );
 }
