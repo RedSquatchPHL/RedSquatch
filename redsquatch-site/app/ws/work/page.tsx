@@ -29,7 +29,7 @@ export default function TasksPage() {
   }, [router]);
 
   async function loadBoard() {
-    const res = await fetch(`${API}/api/client/tasks`, { credentials: 'include' });
+    const res = await fetch(`${API}/api/client/task-board`, { credentials: 'include' });
     if (!res.ok) return;
     const data = await res.json();
     setBoard({
@@ -45,7 +45,7 @@ export default function TasksPage() {
   }, [checking]);
 
   async function api(path: string, method: string, body?: unknown) {
-    const res = await fetch(`${API}/api/client/tasks${path}`, {
+    const res = await fetch(`${API}/api/client/task-board${path}`, {
       method,
       credentials: 'include',
       headers: body ? { 'Content-Type': 'application/json' } : undefined,

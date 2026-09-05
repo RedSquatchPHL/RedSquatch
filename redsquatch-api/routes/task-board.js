@@ -10,7 +10,7 @@ const DEFAULT_COLUMNS = [
 ];
 
 const SCHEMA_STATEMENTS = [
-  `CREATE TABLE IF NOT EXISTS task_columns (
+  `CREATE TABLE IF NOT EXISTS board_columns (
     id         SERIAL PRIMARY KEY,
     client_id  INTEGER NOT NULL REFERENCES client_users(id) ON DELETE CASCADE,
     title      VARCHAR(100) NOT NULL,
@@ -19,20 +19,20 @@ const SCHEMA_STATEMENTS = [
     is_done    BOOLEAN NOT NULL DEFAULT false,
     created_at TIMESTAMP NOT NULL DEFAULT NOW()
   )`,
-  `CREATE INDEX IF NOT EXISTS idx_task_columns_client ON task_columns(client_id)`,
-  `CREATE TABLE IF NOT EXISTS task_swimlanes (
+  `CREATE INDEX IF NOT EXISTS idx_board_columns_client ON board_columns(client_id)`,
+  `CREATE TABLE IF NOT EXISTS board_swimlanes (
     id         SERIAL PRIMARY KEY,
     client_id  INTEGER NOT NULL REFERENCES client_users(id) ON DELETE CASCADE,
     title      VARCHAR(100) NOT NULL,
     position   INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMP NOT NULL DEFAULT NOW()
   )`,
-  `CREATE INDEX IF NOT EXISTS idx_task_swimlanes_client ON task_swimlanes(client_id)`,
-  `CREATE TABLE IF NOT EXISTS tasks (
+  `CREATE INDEX IF NOT EXISTS idx_board_swimlanes_client ON board_swimlanes(client_id)`,
+  `CREATE TABLE IF NOT EXISTS board_tasks (
     id           SERIAL PRIMARY KEY,
     client_id    INTEGER NOT NULL REFERENCES client_users(id) ON DELETE CASCADE,
-    column_id    INTEGER NOT NULL REFERENCES task_columns(id) ON DELETE CASCADE,
-    swimlane_id  INTEGER REFERENCES task_swimlanes(id) ON DELETE SET NULL,
+    column_id    INTEGER NOT NULL REFERENCES board_columns(id) ON DELETE CASCADE,
+    swimlane_id  INTEGER REFERENCES board_swimlanes(id) ON DELETE SET NULL,
     title        VARCHAR(255) NOT NULL,
     description  TEXT,
     priority     VARCHAR(20) NOT NULL DEFAULT 'medium',
@@ -43,8 +43,8 @@ const SCHEMA_STATEMENTS = [
     completed_at TIMESTAMP,
     updated_at   TIMESTAMP NOT NULL DEFAULT NOW()
   )`,
-  `CREATE INDEX IF NOT EXISTS idx_tasks_client ON tasks(client_id)`,
-  `CREATE INDEX IF NOT EXISTS idx_tasks_column ON tasks(column_id)`,
+  `CREATE INDEX IF NOT EXISTS idx_board_tasks_client ON board_tasks(client_id)`,
+  `CREATE INDEX IF NOT EXISTS idx_board_tasks_column ON board_tasks(column_id)`,
 ];
 
 async function runMigrations(db) {
@@ -67,12 +67,12 @@ async function getClientId(db, req) {
 // swimlanes are opt-in, an empty board reads better as a plain 3-column
 // kanban than as one lonely "General" row.
 async function seedForClient(db, clientId) {
-  const existing = await db.query('SELECT id FROM task_columns WHERE client_id = $1 LIMIT 1', [clientId]);
+  const existing = await db.query('SELECT id FROM board_columns WHERE client_id = $1 LIMIT 1', [clientId]);
   if (existing.rows.length > 0) return;
   for (let i = 0; i < DEFAULT_COLUMNS.length; i++) {
     const col = DEFAULT_COLUMNS[i];
     await db.query(
-      `INSERT INTO task_columns (client_id, title, position, is_done) VALUES ($1, $2, $3, $4)`,
+      `INSERT INTO board_columns (client_id, title, position, is_done) VALUES ($1, $2, $3, $4)`,
       [clientId, col.title, i, col.key === 'done']
     );
   }
@@ -92,9 +92,9 @@ function makeRouter(db) {
       const clientId = await getClientId(db, req);
       await seedForClient(db, clientId);
       const [columns, swimlanes, tasks] = await Promise.all([
-        db.query('SELECT * FROM task_columns WHERE client_id = $1 ORDER BY position, id', [clientId]),
-        db.query('SELECT * FROM task_swimlanes WHERE client_id = $1 ORDER BY position, id', [clientId]),
-        db.query('SELECT * FROM tasks WHERE client_id = $1 ORDER BY position, id', [clientId]),
+        db.query('SELECT * FROM board_columns WHERE client_id = $1 ORDER BY position, id', [clientId]),
+        db.query('SELECT * FROM board_swimlanes WHERE client_id = $1 ORDER BY position, id', [clientId]),
+        db.query('SELECT * FROM board_tasks WHERE client_id = $1 ORDER BY position, id', [clientId]),
       ]);
       res.json({ columns: columns.rows, swimlanes: swimlanes.rows, tasks: tasks.rows, contexts: CONTEXTS, priorities: PRIORITIES });
     } catch (err) {
@@ -109,9 +109,9 @@ function makeRouter(db) {
       const clientId = await getClientId(db, req);
       const title = (req.body.title || '').trim();
       if (!title) return res.status(400).json({ error: 'Title required' });
-      const { rows } = await db.query('SELECT COALESCE(MAX(position), -1) AS max FROM task_columns WHERE client_id = $1', [clientId]);
+      const { rows } = await db.query('SELECT COALESCE(MAX(position), -1) AS max FROM board_columns WHERE client_id = $1', [clientId]);
       const result = await db.query(
-        `INSERT INTO task_columns (client_id, title, position) VALUES ($1, $2, $3) RETURNING *`,
+        `INSERT INTO board_columns (client_id, title, position) VALUES ($1, $2, $3) RETURNING *`,
         [clientId, title, rows[0].max + 1]
       );
       res.status(201).json(result.rows[0]);
@@ -126,7 +126,7 @@ function makeRouter(db) {
       const clientId = await getClientId(db, req);
       const { title, position, width_px, is_done } = req.body;
       const result = await db.query(
-        `UPDATE task_columns SET
+        `UPDATE board_columns SET
            title = COALESCE($1, title),
            position = COALESCE($2, position),
            width_px = COALESCE($3, width_px),
@@ -150,14 +150,14 @@ function makeRouter(db) {
     try {
       const clientId = await getClientId(db, req);
       const fallback = await db.query(
-        `SELECT id FROM task_columns WHERE client_id = $1 AND id != $2 ORDER BY position, id LIMIT 1`,
+        `SELECT id FROM board_columns WHERE client_id = $1 AND id != $2 ORDER BY position, id LIMIT 1`,
         [clientId, req.params.id]
       );
       if (!fallback.rows.length) {
         return res.status(400).json({ error: 'Cannot delete the last remaining column' });
       }
-      await db.query('UPDATE tasks SET column_id = $1 WHERE column_id = $2 AND client_id = $3', [fallback.rows[0].id, req.params.id, clientId]);
-      await db.query('DELETE FROM task_columns WHERE id = $1 AND client_id = $2', [req.params.id, clientId]);
+      await db.query('UPDATE board_tasks SET column_id = $1 WHERE column_id = $2 AND client_id = $3', [fallback.rows[0].id, req.params.id, clientId]);
+      await db.query('DELETE FROM board_columns WHERE id = $1 AND client_id = $2', [req.params.id, clientId]);
       res.status(204).send();
     } catch (err) {
       console.error('DELETE /tasks/columns/:id error:', err.message);
@@ -171,9 +171,9 @@ function makeRouter(db) {
       const clientId = await getClientId(db, req);
       const title = (req.body.title || '').trim();
       if (!title) return res.status(400).json({ error: 'Title required' });
-      const { rows } = await db.query('SELECT COALESCE(MAX(position), -1) AS max FROM task_swimlanes WHERE client_id = $1', [clientId]);
+      const { rows } = await db.query('SELECT COALESCE(MAX(position), -1) AS max FROM board_swimlanes WHERE client_id = $1', [clientId]);
       const result = await db.query(
-        `INSERT INTO task_swimlanes (client_id, title, position) VALUES ($1, $2, $3) RETURNING *`,
+        `INSERT INTO board_swimlanes (client_id, title, position) VALUES ($1, $2, $3) RETURNING *`,
         [clientId, title, rows[0].max + 1]
       );
       res.status(201).json(result.rows[0]);
@@ -188,7 +188,7 @@ function makeRouter(db) {
       const clientId = await getClientId(db, req);
       const { title, position } = req.body;
       const result = await db.query(
-        `UPDATE task_swimlanes SET title = COALESCE($1, title), position = COALESCE($2, position)
+        `UPDATE board_swimlanes SET title = COALESCE($1, title), position = COALESCE($2, position)
          WHERE id = $3 AND client_id = $4 RETURNING *`,
         [title ?? null, position ?? null, req.params.id, clientId]
       );
@@ -205,7 +205,7 @@ function makeRouter(db) {
   router.delete('/swimlanes/:id', auth, async (req, res) => {
     try {
       const clientId = await getClientId(db, req);
-      await db.query('DELETE FROM task_swimlanes WHERE id = $1 AND client_id = $2', [req.params.id, clientId]);
+      await db.query('DELETE FROM board_swimlanes WHERE id = $1 AND client_id = $2', [req.params.id, clientId]);
       res.status(204).send();
     } catch (err) {
       console.error('DELETE /tasks/swimlanes/:id error:', err.message);
@@ -221,9 +221,9 @@ function makeRouter(db) {
       if (!title || !title.trim()) return res.status(400).json({ error: 'Title required' });
       if (!column_id) return res.status(400).json({ error: 'column_id required' });
 
-      const { rows } = await db.query('SELECT COALESCE(MAX(position), -1) AS max FROM tasks WHERE column_id = $1', [column_id]);
+      const { rows } = await db.query('SELECT COALESCE(MAX(position), -1) AS max FROM board_tasks WHERE column_id = $1', [column_id]);
       const result = await db.query(
-        `INSERT INTO tasks (client_id, column_id, swimlane_id, title, description, priority, context, due_date, position)
+        `INSERT INTO board_tasks (client_id, column_id, swimlane_id, title, description, priority, context, due_date, position)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
          RETURNING *`,
         [clientId, column_id, swimlane_id || null, title.trim(), description || null, priority || 'medium', context || null, due_date || null, rows[0].max + 1]
@@ -246,13 +246,13 @@ function makeRouter(db) {
       let completedAtClause = 'completed_at';
       const values = [];
       if (column_id !== undefined) {
-        const colCheck = await db.query('SELECT is_done FROM task_columns WHERE id = $1 AND client_id = $2', [column_id, clientId]);
+        const colCheck = await db.query('SELECT is_done FROM board_columns WHERE id = $1 AND client_id = $2', [column_id, clientId]);
         if (!colCheck.rows.length) return res.status(400).json({ error: 'Invalid column' });
         completedAtClause = colCheck.rows[0].is_done ? 'NOW()' : 'NULL';
       }
 
       const result = await db.query(
-        `UPDATE tasks SET
+        `UPDATE board_tasks SET
            title = COALESCE($1, title),
            description = COALESCE($2, description),
            priority = COALESCE($3, priority),
@@ -285,7 +285,7 @@ function makeRouter(db) {
   router.delete('/:id', auth, async (req, res) => {
     try {
       const clientId = await getClientId(db, req);
-      await db.query('DELETE FROM tasks WHERE id = $1 AND client_id = $2', [req.params.id, clientId]);
+      await db.query('DELETE FROM board_tasks WHERE id = $1 AND client_id = $2', [req.params.id, clientId]);
       res.status(204).send();
     } catch (err) {
       console.error('DELETE /tasks/:id error:', err.message);
