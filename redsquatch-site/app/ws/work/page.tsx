@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { API } from '@/lib/api';
 import KanbanBoard, { Task, TaskColumn, TaskSwimlane } from '@/components/tasks/KanbanBoard';
+import PapelPicadoBanner from '@/components/tasks/PapelPicadoBanner';
 import styles from '@/styles/tasks.module.css';
 
 interface BoardData {
@@ -127,6 +128,7 @@ export default function TasksPage() {
   return (
     <div className={styles.page}>
       <header className={styles.header}>
+        <PapelPicadoBanner className={styles.picadoBanner} />
         <div>
           <h1 className={styles.title}>Work</h1>
           <p className={styles.subheader}>{board.tasks.length} task{board.tasks.length === 1 ? '' : 's'} on the board</p>
