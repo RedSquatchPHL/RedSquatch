@@ -269,6 +269,7 @@
   border-bottom: 1px dashed transparent;
   color: var(--tk-copper-dark);
   flex: 1;
+  font-family: 'Mexicala', 'Stardom', serif;
   font-size: 1.05rem;
   min-width: 0;
   padding: 0.1rem 0.2rem;
@@ -621,15 +622,6 @@
 
 .photoCredit a {
   color: inherit;
-}
-
-/* Form controls don't inherit font-family by default in most browsers —
-   without this they'd fall back to the OS default even with .page set. */
-.page :global(input),
-.page :global(select),
-.page :global(button),
-.page :global(textarea) {
-  font-family: inherit;
 }
 
 /* ── Accessibility ─────────────────────────────────────────────── */
