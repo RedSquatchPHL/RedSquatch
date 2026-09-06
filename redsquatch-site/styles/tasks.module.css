@@ -624,6 +624,19 @@
   color: inherit;
 }
 
+/* cenote-elements.css applies uppercase + letter-spacing to every <button>
+   site-wide (a convention other pages want). This page's buttons already
+   override background/border/padding per-class — those have matching
+   specificity so they win — but none of them declared text-transform or
+   letter-spacing, so the site-wide rule had nothing to contest and applied
+   unchallenged regardless of font-family. `.page button` outranks a bare
+   `button` selector, so this settles it for every button in this module at
+   once instead of repeating the override per class. */
+.page :global(button) {
+  text-transform: none;
+  letter-spacing: normal;
+}
+
 /* ── Accessibility ─────────────────────────────────────────────── */
 
 .page :global(button):focus-visible,
