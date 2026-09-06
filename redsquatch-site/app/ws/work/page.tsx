@@ -71,6 +71,11 @@ export default function TasksPage() {
     await api(`/${taskId}`, 'DELETE');
   }
 
+  async function handleUpdateDescription(taskId: number, description: string) {
+    setBoard(b => b && { ...b, tasks: b.tasks.map(t => t.id === taskId ? { ...t, description } : t) });
+    await api(`/${taskId}`, 'PUT', { description });
+  }
+
   async function handleAddColumn() {
     const title = window.prompt('Column name?');
     if (!title?.trim()) return;
@@ -143,6 +148,7 @@ export default function TasksPage() {
         onCreateTask={handleCreateTask}
         onMoveTask={handleMoveTask}
         onDeleteTask={handleDeleteTask}
+        onUpdateDescription={handleUpdateDescription}
         onAddColumn={handleAddColumn}
         onRenameColumn={handleRenameColumn}
         onResizeColumn={handleResizeColumn}

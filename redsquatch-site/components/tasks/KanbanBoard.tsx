@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import styles from '@/styles/tasks.module.css';
 
 export interface TaskColumn {
@@ -38,6 +38,7 @@ interface Props {
   onCreateTask: (columnId: number, swimlaneId: number | null, data: { title: string; priority: string; context: string | null }) => void;
   onMoveTask: (taskId: number, columnId: number, swimlaneId: number | null, position: number) => void;
   onDeleteTask: (taskId: number) => void;
+  onUpdateDescription: (taskId: number, description: string) => void;
   onAddColumn: () => void;
   onRenameColumn: (id: number, title: string) => void;
   onResizeColumn: (id: number, widthPx: number) => void;
@@ -77,14 +78,14 @@ type LaneKey = number | null;
 
 export default function KanbanBoard({
   columns = [], swimlanes = [], tasks = [], contexts = [],
-  onCreateTask, onMoveTask, onDeleteTask,
+  onCreateTask, onMoveTask, onDeleteTask, onUpdateDescription,
   onAddColumn, onRenameColumn, onResizeColumn, onDeleteColumn,
   onAddSwimlane, onRenameSwimlane, onDeleteSwimlane,
 }: Props) {
   const [draggingId, setDraggingId] = useState<number | null>(null);
   const [dragOverCell, setDragOverCell] = useState<string | null>(null);
   const [addingIn, setAddingIn] = useState<string | null>(null);
-  const resizeState = useRef<{ id: number; startX: number; startWidth: number } | null>(null);
+  const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set());
 
   const lanes: LaneKey[] = swimlanes.length > 0 ? [...swimlanes.map(l => l.id), null] : [null];
 
@@ -106,22 +107,33 @@ export default function KanbanBoard({
     setDragOverCell(null);
   }
 
+  function toggleExpanded(taskId: number) {
+    setExpandedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(taskId)) next.delete(taskId);
+      else next.add(taskId);
+      return next;
+    });
+  }
+
+  // Resizing lives on the hoisted header cell, but every lane's column-body
+  // cell for the same column must track it live too — they all carry
+  // data-col-id so one drag updates every matching cell at once, not just
+  // the header.
   function startResize(e: React.MouseEvent, col: TaskColumn) {
-    resizeState.current = { id: col.id, startX: e.clientX, startWidth: col.width_px };
+    const startX = e.clientX;
+    const startWidth = col.width_px;
+    const cells = Array.from(document.querySelectorAll<HTMLElement>(`[data-col-id="${col.id}"]`));
+
     const onMove = (ev: MouseEvent) => {
-      if (!resizeState.current) return;
-      const delta = ev.clientX - resizeState.current.startX;
-      const next = Math.max(180, resizeState.current.startWidth + delta);
-      const el = document.getElementById(`tk-col-${resizeState.current.id}`);
-      if (el) el.style.width = `${next}px`;
+      const delta = ev.clientX - startX;
+      const next = Math.max(180, startWidth + delta);
+      cells.forEach(cell => { cell.style.width = `${next}px`; });
     };
     const onUp = (ev: MouseEvent) => {
-      if (resizeState.current) {
-        const delta = ev.clientX - resizeState.current.startX;
-        const next = Math.max(180, resizeState.current.startWidth + delta);
-        onResizeColumn(resizeState.current.id, next);
-      }
-      resizeState.current = null;
+      const delta = ev.clientX - startX;
+      const next = Math.max(180, startWidth + delta);
+      onResizeColumn(col.id, next);
       window.removeEventListener('mousemove', onMove);
       window.removeEventListener('mouseup', onUp);
     };
@@ -131,10 +143,36 @@ export default function KanbanBoard({
 
   return (
     <div className={styles.board}>
+      {/* Column headers live once at the top of the board, not per swimlane —
+          rename/resize/delete apply to the column across every lane. */}
+      <div className={styles.columnHeaderRow}>
+        {columns.map(col => (
+          <div
+            key={col.id}
+            className={styles.columnHeaderCell}
+            data-col-id={col.id}
+            style={{ width: col.width_px }}
+          >
+            <div className={styles.columnFrieze} aria-hidden="true" />
+            <div className={styles.columnHeader}>
+              <input
+                className={styles.columnTitleInput}
+                defaultValue={col.title}
+                onBlur={(e) => e.target.value.trim() && e.target.value !== col.title && onRenameColumn(col.id, e.target.value.trim())}
+              />
+              <span className={styles.columnCount}>{tasks.filter(t => t.column_id === col.id).length}</span>
+              <button className={styles.columnDeleteBtn} onClick={() => onDeleteColumn(col.id)} title="Remove column">×</button>
+            </div>
+            <div className={styles.resizeHandle} onMouseDown={(e) => startResize(e, col)} />
+          </div>
+        ))}
+        <button className={styles.addColumnBtn} onClick={onAddColumn}>+ Column</button>
+      </div>
+
       {lanes.map(laneId => {
         const lane = swimlanes.find(l => l.id === laneId) ?? null;
         return (
-          <div key={laneId ?? 'unlaned'} className={styles.lane} style={{ flexDirection: 'column' }}>
+          <div key={laneId ?? 'unlaned'} className={styles.lane}>
             {lane && (
               <div className={styles.laneHeader}>
                 <span className={styles.laneGlyph} aria-hidden="true">≈</span>
@@ -154,27 +192,16 @@ export default function KanbanBoard({
                 return (
                   <div
                     key={col.id}
-                    id={`tk-col-${col.id}`}
-                    className={`${styles.column} ${isOver ? styles.columnDragOver : ''}`}
+                    data-col-id={col.id}
+                    className={`${styles.columnBody} ${isOver ? styles.columnDragOver : ''}`}
                     style={{ width: col.width_px }}
                     onDragOver={(e) => { e.preventDefault(); setDragOverCell(key); }}
                     onDragLeave={() => setDragOverCell(prev => (prev === key ? null : prev))}
                     onDrop={(e) => { e.preventDefault(); handleDrop(col.id, laneId); }}
                   >
-                    <div className={styles.columnFrieze} aria-hidden="true" />
-                    {!lane && (
-                      <div className={styles.columnHeader}>
-                        <input
-                          className={styles.columnTitleInput}
-                          defaultValue={col.title}
-                          onBlur={(e) => e.target.value.trim() && e.target.value !== col.title && onRenameColumn(col.id, e.target.value.trim())}
-                        />
-                        <span className={styles.columnCount}>{cellTasks.length}</span>
-                        <button className={styles.columnDeleteBtn} onClick={() => onDeleteColumn(col.id)} title="Remove column">×</button>
-                      </div>
-                    )}
-                    <div className={styles.columnBody}>
-                      {cellTasks.map(task => (
+                    {cellTasks.map(task => {
+                      const expanded = expandedIds.has(task.id);
+                      return (
                         <div
                           key={task.id}
                           draggable
@@ -182,7 +209,17 @@ export default function KanbanBoard({
                           onDragEnd={() => { setDraggingId(null); setDragOverCell(null); }}
                           className={`${styles.card} ${draggingId === task.id ? styles.cardDragging : ''} ${task.completed_at ? styles.cardDone : ''}`}
                         >
-                          <p className={`${styles.cardTitle} ${task.completed_at ? styles.cardDoneTitle : ''}`}>{task.title}</p>
+                          <div className={styles.cardTitleRow}>
+                            <button
+                              className={styles.cardExpandBtn}
+                              onClick={() => toggleExpanded(task.id)}
+                              title={expanded ? 'Collapse' : 'Add/view notes'}
+                              aria-expanded={expanded}
+                            >
+                              {expanded ? '▾' : '▸'}
+                            </button>
+                            <p className={`${styles.cardTitle} ${task.completed_at ? styles.cardDoneTitle : ''}`}>{task.title}</p>
+                          </div>
                           <div className={styles.cardMeta}>
                             {task.context && (
                               <span
@@ -202,26 +239,30 @@ export default function KanbanBoard({
                             {task.due_date && <span className={styles.dueDate}>{new Date(task.due_date).toLocaleDateString()}</span>}
                             <button className={styles.cardDeleteBtn} onClick={() => onDeleteTask(task.id)}>✕</button>
                           </div>
+                          {expanded && (
+                            <textarea
+                              className={styles.cardNotes}
+                              defaultValue={task.description ?? ''}
+                              placeholder="Notes..."
+                              onBlur={(e) => e.target.value !== (task.description ?? '') && onUpdateDescription(task.id, e.target.value)}
+                            />
+                          )}
                         </div>
-                      ))}
+                      );
+                    })}
 
-                      {addingIn === key ? (
-                        <QuickAddForm
-                          contexts={contexts}
-                          onCancel={() => setAddingIn(null)}
-                          onSave={(data) => { onCreateTask(col.id, laneId, data); setAddingIn(null); }}
-                        />
-                      ) : (
-                        <button className={styles.addTaskBtn} onClick={() => setAddingIn(key)}>+ Add task</button>
-                      )}
-                    </div>
-                    <div className={styles.resizeHandle} onMouseDown={(e) => startResize(e, col)} />
+                    {addingIn === key ? (
+                      <QuickAddForm
+                        contexts={contexts}
+                        onCancel={() => setAddingIn(null)}
+                        onSave={(data) => { onCreateTask(col.id, laneId, data); setAddingIn(null); }}
+                      />
+                    ) : (
+                      <button className={styles.addTaskBtn} onClick={() => setAddingIn(key)}>+ Add task</button>
+                    )}
                   </div>
                 );
               })}
-              {!lane && (
-                <button className={styles.addColumnBtn} onClick={onAddColumn}>+ Column</button>
-              )}
             </div>
           </div>
         );
