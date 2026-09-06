@@ -7,15 +7,6 @@ import KanbanBoard, { Task, TaskColumn, TaskSwimlane } from '@/components/tasks/
 import PapelPicadoBanner from '@/components/tasks/PapelPicadoBanner';
 import styles from '@/styles/tasks.module.css';
 
-// This page has no server-visible data dependency (the board loads client-side
-// after mount), so Next.js otherwise treats it as static and caches the
-// rendered HTML shell — with that deploy's JS/CSS bundle references baked in
-// — for up to a year at the edge (s-maxage). That serves stale UI after every
-// future deploy of this page until something forces a revalidation. Force
-// dynamic rendering so every request is fresh and each deploy shows up
-// immediately, matching the rest of the /ws pages.
-export const dynamic = 'force-dynamic';
-
 interface BoardData {
   columns: TaskColumn[];
   swimlanes: TaskSwimlane[];
