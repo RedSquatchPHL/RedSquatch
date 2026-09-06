@@ -7,7 +7,21 @@
    on light stone) — the board reads as a row of shrines, one per stage of
    work. Swimlanes are drawn as canals (a nod to the site's cenote branding)
    rather than plain table rows. Priority is tally marks, not color-only —
-   severity is legible by count as well as hue. */
+   severity is legible by count as well as hue.
+
+   Mexicala (self-hosted below) is Alit Design's freeware/non-commercial
+   license — fine for this personal, non-commercial page, not for reuse
+   anywhere that isn't. License text: /fonts/license/mexicala-license.txt.
+   Used only for the page title, restrained to one place so the display
+   face stays a signature rather than wallpaper — column headers keep the
+   site's usual Stardom. */
+@font-face {
+  font-family: 'Mexicala';
+  src: url('/fonts/Mexicala-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
 
 .page {
   --tk-parchment: #f6ecd8;
@@ -122,10 +136,11 @@
 }
 
 .title {
-  font-family: 'Stardom', serif;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  font-size: 2.1rem;
+  font-family: 'Mexicala', 'Stardom', serif;
+  text-transform: none;
+  letter-spacing: 0.01em;
+  font-size: 2.75rem;
+  line-height: 1;
   margin: 0;
   color: var(--tk-copper-dark);
 }
