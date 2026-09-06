@@ -423,18 +423,21 @@
 }
 
 .cardTitle {
-  color: var(--tk-ink);
-  font-size: 0.85rem;
+  color: #1f1208;
+  font-size: 0.92rem;
   font-weight: 600;
   margin: 0;
   word-break: break-word;
+  /* Mexicala's strokes are thin at this size — a hairline stroke reads as
+     more weight without distorting the letterforms the way faux-bold can. */
+  -webkit-text-stroke: 0.3px #1f1208;
 }
 
 .cardNotes {
   background: #fff;
   border: 1px solid var(--tk-border);
   border-radius: 3px;
-  color: var(--tk-ink);
+  color: #1f1208;
   font-size: 0.85rem;
   margin-top: 0.5rem;
   min-height: 3.5rem;
@@ -481,10 +484,10 @@
 }
 
 .tallyMedium { color: var(--tk-copper-dark); }
-.tallyLow { color: var(--tk-ink-soft); }
+.tallyLow { color: #6b5233; }
 
 .dueDate {
-  color: var(--tk-ink-soft);
+  color: #5c4529;
   font-size: 0.78rem;
   margin-left: auto;
 }
