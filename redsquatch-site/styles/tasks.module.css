@@ -12,9 +12,11 @@
    Mexicala (self-hosted below) is Alit Design's freeware/non-commercial
    license — fine for this personal, non-commercial page, not for reuse
    anywhere that isn't. License text: /fonts/license/mexicala-license.txt.
-   Applied page-wide as the base face; a couple of the smallest utility
-   sizes (tallies, dates) are bumped up slightly since a hand-lettered
-   face needs more room than JetBrains Mono did at the same size. */
+   Its lowercase forms read as caps-height at a glance, which reads as
+   shouting on small functional text — so it's used for content labels
+   (page/column/swimlane/card titles) via inheritance from .page, while
+   buttons, form controls, and utility/meta text explicitly opt back into
+   --tk-ui-font (Inter) for normal-case legibility. */
 @font-face {
   font-family: 'Mexicala';
   src: url('/fonts/Mexicala-Regular.ttf') format('truetype');
@@ -38,6 +40,8 @@
   --tk-lincoln: #5b6b8c;
   --tk-redsquatch: #b87333;
   --tk-personal: #6b8f5a;
+  --tk-picado-accent: #e94f8a;
+  --tk-ui-font: 'Inter', sans-serif;
 
   position: relative;
   min-height: 100vh;
@@ -148,6 +152,7 @@
 
 .subheader {
   color: var(--tk-ink-soft);
+  font-family: var(--tk-ui-font);
   font-size: 0.75rem;
   letter-spacing: 0.02em;
   margin: 0.3rem 0 0;
@@ -278,6 +283,7 @@
 
 .columnCount {
   color: var(--tk-ink-soft);
+  font-family: var(--tk-ui-font);
   font-size: 0.78rem;
   flex-shrink: 0;
 }
@@ -338,6 +344,7 @@
   color: var(--tk-ink-soft);
   cursor: pointer;
   flex-shrink: 0;
+  font-family: var(--tk-ui-font);
   font-size: 0.85rem;
   padding: 0.6rem 1rem;
   align-self: stretch;
@@ -357,6 +364,7 @@
   border-radius: 6px;
   color: var(--tk-jade);
   cursor: pointer;
+  font-family: var(--tk-ui-font);
   font-size: 0.85rem;
   padding: 0.5rem 1rem;
   transition: border-color 0.15s ease, background 0.15s ease;
@@ -371,9 +379,11 @@
 
 .card {
   background: var(--tk-card-bg);
-  background-image: repeating-linear-gradient(170deg, rgba(142, 90, 38, 0.025) 0 1px, transparent 1px 5px);
+  background-image:
+    repeating-linear-gradient(170deg, rgba(142, 90, 38, 0.025) 0 1px, transparent 1px 5px),
+    linear-gradient(115deg, rgba(233, 79, 138, 0.07), transparent 40%);
   border: 1px solid var(--tk-border);
-  border-left: 3px solid var(--tk-copper);
+  border-left: 3px solid var(--tk-picado-accent);
   border-radius: 4px;
   cursor: grab;
   padding: 0.65rem 0.7rem;
@@ -424,20 +434,23 @@
 
 .cardTitle {
   color: #1f1208;
-  font-size: 0.92rem;
-  font-weight: 600;
+  /* Only the Regular weight is self-hosted, so font-weight:600 here would
+     just trigger faux-bold — sized up instead of bolded for solid, clean
+     contrast against the card. */
+  font-size: 1.05rem;
+  font-weight: 400;
   margin: 0;
   word-break: break-word;
-  /* Mexicala's strokes are thin at this size — a hairline stroke reads as
-     more weight without distorting the letterforms the way faux-bold can. */
-  -webkit-text-stroke: 0.3px #1f1208;
 }
 
+/* Free-text notes: legibility while reading/writing matters more here than
+   matching the branded display face. */
 .cardNotes {
   background: #fff;
   border: 1px solid var(--tk-border);
   border-radius: 3px;
   color: #1f1208;
+  font-family: var(--tk-ui-font);
   font-size: 0.85rem;
   margin-top: 0.5rem;
   min-height: 3.5rem;
@@ -479,6 +492,7 @@
 /* Priority as tally marks — severity legible by count, not just by color. */
 .tally {
   color: var(--tk-terracotta);
+  font-family: var(--tk-ui-font);
   font-size: 0.85rem;
   letter-spacing: 0.03em;
 }
@@ -488,6 +502,7 @@
 
 .dueDate {
   color: #5c4529;
+  font-family: var(--tk-ui-font);
   font-size: 0.78rem;
   margin-left: auto;
 }
@@ -512,6 +527,7 @@
   border: none;
   color: var(--tk-ink-soft);
   cursor: pointer;
+  font-family: var(--tk-ui-font);
   font-size: 0.85rem;
   padding: 0.3rem 0.2rem;
   text-align: left;
@@ -536,6 +552,7 @@
   border: 1px solid var(--tk-border);
   border-radius: 3px;
   color: var(--tk-ink);
+  font-family: var(--tk-ui-font);
   font-size: 0.8rem;
   padding: 0.3rem 0.45rem;
 }
@@ -555,6 +572,7 @@
   border: 1px solid var(--tk-border);
   border-radius: 3px;
   color: var(--tk-ink);
+  font-family: var(--tk-ui-font);
   font-size: 0.78rem;
   padding: 0.2rem;
 }
@@ -571,6 +589,7 @@
   border-radius: 3px;
   color: #fff;
   cursor: pointer;
+  font-family: var(--tk-ui-font);
   font-size: 0.8rem;
   padding: 0.25rem 0.6rem;
   transition: background 0.15s ease;
@@ -585,11 +604,13 @@
   border: none;
   color: var(--tk-ink-soft);
   cursor: pointer;
+  font-family: var(--tk-ui-font);
   font-size: 0.8rem;
 }
 
 .photoCredit {
   color: var(--tk-ink-soft);
+  font-family: var(--tk-ui-font);
   font-size: 0.72rem;
   margin-top: 2rem;
   opacity: 0.65;
