@@ -151,9 +151,9 @@
 }
 
 .subheader {
-  color: var(--tk-ink-soft);
+  color: #241407;
   font-family: var(--tk-ui-font);
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   letter-spacing: 0.02em;
   margin: 0.3rem 0 0;
 }
@@ -434,11 +434,13 @@
 
 .cardTitle {
   color: #1f1208;
-  /* Only the Regular weight is self-hosted, so font-weight:600 here would
-     just trigger faux-bold — sized up instead of bolded for solid, clean
-     contrast against the card. */
-  font-size: 1.05rem;
-  font-weight: 400;
+  /* Mexicala's thin strokes still read as washed-out here even at solid
+     dark color — a script face isn't the right tool at card-title size no
+     matter the weight, so this is the one content label that opts into
+     the UI font instead, bolded for real (not faux) weight. */
+  font-family: var(--tk-ui-font);
+  font-size: 0.95rem;
+  font-weight: 700;
   margin: 0;
   word-break: break-word;
 }
