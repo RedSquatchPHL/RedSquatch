@@ -132,6 +132,7 @@ export default function TasksPage() {
 
   return (
     <div className={styles.page}>
+      <div className={styles.paperSky} aria-hidden="true" />
       <header className={styles.header}>
         <PapelPicadoBanner className={styles.picadoBanner} />
         <div>

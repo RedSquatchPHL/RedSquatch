@@ -56,12 +56,14 @@
    stay legible on top — a personal touch behind the board, not a hero image.
    Photo: Tomascastelazo, Wikimedia Commons, CC BY-SA 4.0 (credited in the
    page footer). Muted via filter (not just opacity) so it reads as sun-
-   bleached stone rather than a washed-out photo. */
+   bleached stone rather than a washed-out photo. Sits beneath the papel
+   picado sky (.paperSky, a real DOM node — two backgrounds needed here,
+   and pseudo-elements only give us one each). */
 .page::before {
   content: '';
   position: fixed;
   inset: 0;
-  z-index: -2;
+  z-index: -3;
   pointer-events: none;
   background-image: url('/images/jalisco-agave.jpg');
   background-size: cover;
@@ -70,8 +72,33 @@
   opacity: 0.5;
 }
 
-/* Parchment tint + fiber grain over the photo — the same amate-paper texture
-   as before, now doubling as the layer that mutes the image underneath. */
+/* Real papel picado, strung across an actual sky — the photo this page's
+   drawn bunting (PapelPicadoBanner) was always gesturing at. Kept far more
+   vivid than the agave field below (a much gentler filter, higher opacity)
+   since that's the whole point of using it; a soft mask fades it down into
+   the agave layer at its own bottom edge, echoing the photo's own content —
+   bunting hangs in the sky, above the ground. */
+.paperSky {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 46vh;
+  z-index: -2;
+  pointer-events: none;
+  background-image: url('/images/papel-picado-sky.jpg');
+  background-size: cover;
+  background-position: top center;
+  filter: saturate(0.9) brightness(1.03) contrast(1.02);
+  opacity: 0.8;
+  -webkit-mask-image: linear-gradient(to bottom, black 0%, black 45%, transparent 92%);
+  mask-image: linear-gradient(to bottom, black 0%, black 45%, transparent 92%);
+}
+
+/* Parchment tint + fiber grain over both photos — the same amate-paper
+   texture as before, now doubling as the layer that mutes the images
+   underneath. Lighter than before (was 0.8) so the papel picado sky can
+   actually read as vivid rather than getting washed out along with it. */
 .page::after {
   content: '';
   position: fixed;
@@ -81,7 +108,7 @@
   background-image:
     repeating-linear-gradient(115deg, rgba(142, 90, 38, 0.035) 0 1px, transparent 1px 3px),
     repeating-linear-gradient(25deg, rgba(142, 90, 38, 0.025) 0 1px, transparent 1px 4px),
-    linear-gradient(rgba(246, 236, 216, 0.8), rgba(246, 236, 216, 0.8));
+    linear-gradient(rgba(246, 236, 216, 0.5), rgba(246, 236, 216, 0.5));
 }
 
 .header {
