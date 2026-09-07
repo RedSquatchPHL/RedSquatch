@@ -155,6 +155,8 @@ export default function TasksPage() {
   return (
     <div className={styles.page}>
       <div className={styles.bgPhoto} ref={bgPhotoRef} aria-hidden="true" />
+      <div className={`${styles.edgeBorder} ${styles.edgeBorderLeft}`} aria-hidden="true" />
+      <div className={`${styles.edgeBorder} ${styles.edgeBorderRight}`} aria-hidden="true" />
       <header className={styles.header}>
         <div>
           <h1 className={styles.title}>Work</h1>
