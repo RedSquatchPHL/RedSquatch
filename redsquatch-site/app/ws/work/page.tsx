@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { API } from '@/lib/api';
 import KanbanBoard, { Task, TaskColumn, TaskSwimlane } from '@/components/tasks/KanbanBoard';
@@ -17,6 +17,7 @@ export default function TasksPage() {
   const [checking, setChecking] = useState(true);
   const [board, setBoard] = useState<BoardData | null>(null);
   const router = useRouter();
+  const bgPhotoRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetch(`${API}/api/client/session`, { credentials: 'include' })
@@ -27,6 +28,28 @@ export default function TasksPage() {
       })
       .catch(() => router.push('/'));
   }, [router]);
+
+  // Subtle parallax: the photo drifts at a fraction of scroll speed rather
+  // than staying perfectly static (position: fixed alone) or scrolling at
+  // full speed with the content — rAF-throttled and respects reduced-motion.
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    let raf = 0;
+    const onScroll = () => {
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        if (bgPhotoRef.current) {
+          bgPhotoRef.current.style.transform = `translateY(${window.scrollY * 0.08}px)`;
+        }
+        raf = 0;
+      });
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, []);
 
   async function loadBoard() {
     const res = await fetch(`${API}/api/client/task-board`, { credentials: 'include' });
@@ -131,6 +154,7 @@ export default function TasksPage() {
 
   return (
     <div className={styles.page}>
+      <div className={styles.bgPhoto} ref={bgPhotoRef} aria-hidden="true" />
       <header className={styles.header}>
         <div>
           <h1 className={styles.title}>Work</h1>

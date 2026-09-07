@@ -54,21 +54,31 @@
 
 /* A personal photo (self-composed, replacing the earlier two-layer
    agave+picado stitch) — papel picado strung above actual agave fields in
-   Jalisco, already at the right relative scale in a single frame, so no
-   separate layers/masking needed. Muted via filter (not just opacity) so
-   the board stays legible on top; brightness/saturation kept gentle rather
-   than aggressive so the bunting overhead still reads with real color. */
-.page::before {
-  content: '';
+   Jalisco, already at the right relative scale in a single frame. Muted
+   via filter (not just opacity) so the board stays legible on top.
+
+   A real element rather than ::before — JS drives a subtle parallax
+   translateY on it as the page scrolls, which a pseudo-element can't be
+   ref'd for. Sized taller than the viewport (top/bottom insets past 0) so
+   that translation never reveals an edge. `contain` (not `cover`) shows
+   the whole photo rather than cropping it to fill the viewport — the
+   fixed .page background color shows through in any letterboxed margin,
+   reading like the photo is matted on parchment. */
+.bgPhoto {
   position: fixed;
-  inset: 0;
+  top: -10vh;
+  bottom: -10vh;
+  left: 0;
+  right: 0;
   z-index: -2;
   pointer-events: none;
   background-image: url('/images/colorful-cacti.jpg');
-  background-size: cover;
+  background-size: contain;
   background-position: top center;
+  background-repeat: no-repeat;
   filter: saturate(0.95) brightness(1.02) contrast(0.98);
   opacity: 0.75;
+  will-change: transform;
 }
 
 /* Parchment tint + fiber grain over the photo — the same amate-paper
