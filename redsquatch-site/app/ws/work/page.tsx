@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { API } from '@/lib/api';
 import KanbanBoard, { Task, TaskColumn, TaskSwimlane } from '@/components/tasks/KanbanBoard';
-import PapelPicadoBanner from '@/components/tasks/PapelPicadoBanner';
 import styles from '@/styles/tasks.module.css';
 
 interface BoardData {
@@ -132,9 +131,7 @@ export default function TasksPage() {
 
   return (
     <div className={styles.page}>
-      <div className={styles.paperSky} aria-hidden="true" />
       <header className={styles.header}>
-        <PapelPicadoBanner className={styles.picadoBanner} />
         <div>
           <h1 className={styles.title}>Work</h1>
           <p className={styles.subheader}>{board.tasks.length} task{board.tasks.length === 1 ? '' : 's'} on the board</p>
@@ -158,10 +155,6 @@ export default function TasksPage() {
         onRenameSwimlane={handleRenameSwimlane}
         onDeleteSwimlane={handleDeleteSwimlane}
       />
-
-      <p className={styles.photoCredit}>
-        Background: agave fields, Jalisco — <a href="https://commons.wikimedia.org/wiki/File:Agave_field_in_Jalisco,_Mexico.jpg" target="_blank" rel="noopener noreferrer">Tomascastelazo</a>, CC BY-SA 4.0
-      </p>
     </div>
   );
 }
