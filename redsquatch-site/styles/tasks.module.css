@@ -83,7 +83,7 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 46vh;
+  height: 22vh;
   z-index: -2;
   pointer-events: none;
   background-image: url('/images/papel-picado-sky.jpg');
@@ -91,8 +91,8 @@
   background-position: top center;
   filter: saturate(0.9) brightness(1.03) contrast(1.02);
   opacity: 0.8;
-  -webkit-mask-image: linear-gradient(to bottom, black 0%, black 45%, transparent 92%);
-  mask-image: linear-gradient(to bottom, black 0%, black 45%, transparent 92%);
+  -webkit-mask-image: linear-gradient(to bottom, black 0%, black 35%, transparent 90%);
+  mask-image: linear-gradient(to bottom, black 0%, black 35%, transparent 90%);
 }
 
 /* Parchment tint + fiber grain over both photos — the same amate-paper
