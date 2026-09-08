@@ -39,6 +39,7 @@
   z-index: 1;
   pointer-events: none;
   background:
+    linear-gradient(rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.15)),
     radial-gradient(ellipse 60% 38% at 50% 90%, rgba(40, 26, 16, 0.3), transparent 72%),
     linear-gradient(180deg, rgba(40, 28, 18, 0.14) 0%, transparent 22%, transparent 74%, rgba(30, 20, 12, 0.28) 100%);
 }
