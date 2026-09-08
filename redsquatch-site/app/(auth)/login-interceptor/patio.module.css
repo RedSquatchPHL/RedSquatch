@@ -1,8 +1,9 @@
 /* ═══════════════════════════════════════════════════════════════════════════
    Patio — the post-login courtyard. One decision, two archways:
    Casa (left → /hs) or Oficina (right → /ws). The signs are carved into the
-   photo, so the only controls are two transparent hotspots sitting exactly
-   over the archways, lit by a warm bloom on hover/focus.
+   photo, so the only controls are two small transparent hotspots sitting
+   over the carved "Casa" / "Oficina" wall plaques, lit by a warm bloom on
+   hover/focus.
 
    The photo lives in `.frame`, an element with the image's exact aspect ratio
    that is letterboxed inside the viewport. Every overlay is a child of
@@ -81,41 +82,40 @@
   50%      { opacity: 0.8; transform: translate(-50%, -50%) scale(1.03); }
 }
 
-/* ═══ The two archway hotspots ════════════════════════════════════════════ */
+/* ═══ The two hotspots — over the carved SIGNS, not the doorframes ═════════ */
 .arch {
   position: absolute;
   z-index: 5;
-  top: 52%;
-  width: 9%;
-  height: 30%;
+  width: 7%;
+  height: 11%;
   transform: translate(-50%, -50%);
   padding: 0;
   border: none;
   background: transparent;
   cursor: pointer;
-  border-radius: 46% 46% 6px 6px;   /* arched, echoes the openings */
+  border-radius: 10px 10px 7px 7px;   /* the wall placard */
   -webkit-tap-highlight-color: transparent;
 }
-/* Centred on the arched door openings in the courtyard photo (1586×672) */
-.archCasa    { left: 15%; }
-.archOficina { left: 83.5%; }
+/* Centred on the "Casa" / "Oficina" plaques in the courtyard photo (1586×672) */
+.archCasa    { left: 22%;   top: 21%; }
+.archOficina { left: 80.5%; top: 23%; }
 
-/* warm light gathering in the archway */
+/* warm light pooling on the plaque */
 .arch::before {
   content: "";
   position: absolute;
-  inset: -5% -9% -2%;
+  inset: -22% -28%;
   border-radius: inherit;
   mix-blend-mode: screen;
-  opacity: 0.14;
+  opacity: 0.16;
   transition: opacity 0.4s ease, transform 0.4s ease;
   pointer-events: none;
 }
 .archCasa::before {
-  background: radial-gradient(ellipse at 50% 62%, rgba(255, 168, 104, 0.55), transparent 66%);
+  background: radial-gradient(ellipse at center, rgba(255, 168, 104, 0.6), transparent 68%);
 }
 .archOficina::before {
-  background: radial-gradient(ellipse at 50% 62%, rgba(255, 206, 150, 0.55), transparent 66%);
+  background: radial-gradient(ellipse at center, rgba(255, 206, 150, 0.6), transparent 68%);
 }
 .arch:hover::before,
 .arch:focus-visible::before { opacity: 0.85; transform: scale(1.06); }
