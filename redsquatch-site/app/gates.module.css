@@ -1,0 +1,308 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Gates — the login threshold. A sun-warmed adobe compound; arrive to the
+   scene, and the "RS" carved into the doors is the way in — click it and the
+   login panel rises over the scene.
+   Scoped module so none of this leaks into the global obsidian/copper theme.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.gates {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  isolation: isolate;
+  /* warm cream fallback while the photo loads */
+  background-color: #e8ddc7;
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+/* ---- Backdrop: the compound photo, full-bleed ------------------------------ */
+.backdrop {
+  position: absolute;
+  inset: 0;
+  background-image: url("/images/gates-compound.jpg");
+  background-size: cover;
+  background-position: center 42%;
+  z-index: 0;
+  /* a breath of Ken-Burns drift — imperceptible but keeps the scene alive */
+  animation: driftScene 60s ease-in-out infinite alternate;
+  transform-origin: center 40%;
+}
+
+@keyframes driftScene {
+  from { transform: scale(1.04) translateY(0); }
+  to   { transform: scale(1.09) translateY(-1.2%); }
+}
+
+/* ---- Warmth wash: legibility + push the dusk sky toward golden hour ------- */
+.warmth {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 70% 55% at 50% 60%, rgba(255, 214, 150, 0.16), transparent 70%),
+    linear-gradient(180deg, rgba(74, 55, 40, 0.28) 0%, transparent 30%, transparent 62%, rgba(40, 28, 18, 0.55) 100%),
+    linear-gradient(90deg, rgba(200, 90, 58, 0.10), transparent 25%, transparent 75%, rgba(200, 90, 58, 0.10));
+}
+
+/* ---- Lantern glow: the two wrought-iron lanterns on the wall -------------- */
+.lantern {
+  position: absolute;
+  z-index: 2;
+  width: 132px;
+  height: 132px;
+  margin: -66px 0 0 -66px;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(
+    circle,
+    rgba(255, 190, 120, 0.5) 0%,
+    rgba(214, 163, 115, 0.24) 30%,
+    rgba(153, 101, 21, 0.1) 48%,
+    transparent 66%
+  );
+  mix-blend-mode: screen;
+  animation: flicker 3.2s ease-in-out infinite;
+}
+/* Centred on the lit flame-window of each lantern in the photo */
+.lanternL { top: 52%; left: 30%; }
+.lanternR { top: 52%; left: 70%; animation-delay: -1.4s; animation-duration: 3.9s; }
+
+/* ┌─────────────────────────────────────────────────────────────────────────┐
+   │  TUNE ME — torch/lantern flicker.                                        │
+   │  This is the one "living" gesture on the Gates. Default below is a       │
+   │  slow, shallow breathing flame (opacity 0.72–1.0, tiny scale wobble).   │
+   │  If you want it jumpier/gustier, tighten the timing on .lantern* above   │
+   │  and widen the opacity swing / add more keyframe stops here.             │
+   └─────────────────────────────────────────────────────────────────────────┘ */
+@keyframes flicker {
+  0%   { opacity: 0.78; transform: scale(0.97); }
+  25%  { opacity: 1.00; transform: scale(1.03); }
+  40%  { opacity: 0.86; transform: scale(1.00); }
+  55%  { opacity: 0.97; transform: scale(1.02); }
+  70%  { opacity: 0.74; transform: scale(0.96); }
+  85%  { opacity: 0.95; transform: scale(1.01); }
+  100% { opacity: 0.80; transform: scale(0.98); }
+}
+
+/* ---- The RS crest: the way in ----------------------------------------------
+ * The carved shield is now part of the photograph itself. So the control is
+ * just a transparent hotspot sitting exactly over it — no letters of our own.
+ * All we add is light: a warm bloom that lives in the bronze at rest and
+ * swells when you point at it, so the crest reads as the thing to touch.
+ * `top`/`left`/`width`/`height` frame the emblem in the photo — tune to taste.
+ */
+.mark {
+  position: absolute;
+  z-index: 4;
+  top: 62%;
+  left: 50%;
+  width: clamp(58px, 7vw, 96px);
+  height: clamp(74px, 9vw, 122px);
+  transform: translate(-50%, -50%);
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Warm light caught in the carved crest. Screen-blended so it reads as glow
+   on the bronze, not a shape laid over it. */
+.mark::before {
+  content: "";
+  position: absolute;
+  inset: -8% -10%;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(255, 186, 110, 0.4) 0%,
+    rgba(214, 143, 74, 0.2) 40%,
+    transparent 64%
+  );
+  mix-blend-mode: screen;
+  opacity: 0.3;
+  transition: opacity 0.45s ease, transform 0.45s ease;
+  animation: crestGlow 6.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.mark:hover::before,
+.mark:focus-visible::before {
+  opacity: 0.82;
+  transform: scale(1.05);
+}
+.mark:active { transform: translate(-50%, -50%) scale(0.985); }
+
+/* Slow warmth breathing in the crest — the lantern light shifting on it.
+   Ties the emblem to the torch flicker without making it blink like a button. */
+@keyframes crestGlow {
+  0%, 100% { filter: none; }
+  50%      { filter: brightness(1.15); }
+}
+
+/* Focus ring as a faint scribed rectangle framing the crest, not a browser outline */
+.mark:focus-visible { outline: none; }
+.mark:focus-visible::after {
+  content: "";
+  position: absolute;
+  inset: -10px -14px;
+  border: 1px solid rgba(255, 228, 182, 0.6);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.4);
+  border-radius: 3px;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+
+/* ---- Login panel: slides up over the scene ------------------------------- */
+.panelWrap {
+  position: absolute;
+  z-index: 5;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: rgba(30, 20, 12, 0.32);
+  backdrop-filter: blur(2px);
+  animation: fadeIn 0.35s ease both;
+}
+
+.panel {
+  position: relative;
+  width: 100%;
+  max-width: 22rem;
+  padding: 2.25rem 2rem 2rem;
+  border-radius: 14px;
+  color: #4a3728;
+  background:
+    repeating-linear-gradient(178deg, rgba(255,255,255,0.35) 0 1px, transparent 1px 6px),
+    linear-gradient(165deg, #f7f2e7 0%, #efe6d3 100%);
+  border: 1px solid rgba(200, 90, 58, 0.35);
+  box-shadow:
+    0 24px 60px rgba(30, 18, 10, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  animation: slideUp 0.42s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(26px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.brand {
+  text-align: center;
+  margin-bottom: 1.4rem;
+}
+.brandName {
+  font-size: 1.9rem;
+  font-weight: 700;
+  color: #c85a3a;
+  letter-spacing: 0.01em;
+}
+.brandSub {
+  font-size: 0.68rem;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: rgba(74, 55, 40, 0.6);
+  margin-top: 0.15rem;
+}
+
+.rule {
+  height: 1px;
+  border: 0;
+  margin: 0 0 1.3rem;
+  background: linear-gradient(90deg, transparent, rgba(200, 90, 58, 0.5) 50%, transparent);
+}
+
+.field { margin-bottom: 0.95rem; }
+.label {
+  display: block;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(200, 90, 58, 0.85);
+  margin-bottom: 0.4rem;
+  font-family: Inter, system-ui, sans-serif;
+}
+.input {
+  width: 100%;
+  padding: 0.6rem 0.85rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-family: Inter, system-ui, sans-serif;
+  color: #3a2b1f;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(74, 55, 40, 0.28);
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+.input::placeholder { color: rgba(74, 55, 40, 0.4); }
+.input:focus {
+  outline: none;
+  border-color: #c85a3a;
+  box-shadow: 0 0 0 3px rgba(200, 90, 58, 0.15);
+}
+.inputOtp { text-align: center; letter-spacing: 0.5em; }
+
+.error {
+  font-size: 0.75rem;
+  color: #a3341f;
+  margin: 0.1rem 0 0.6rem;
+  font-family: Inter, system-ui, sans-serif;
+}
+
+.submit {
+  width: 100%;
+  margin-top: 0.35rem;
+  padding: 0.7rem;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  font-family: Inter, system-ui, sans-serif;
+  letter-spacing: 0.02em;
+  color: #fdf6ea;
+  cursor: pointer;
+  background: linear-gradient(135deg, #c85a3a 0%, #a8432a 100%);
+  box-shadow: 0 6px 16px rgba(168, 67, 42, 0.35);
+  transition: filter 0.18s ease, transform 0.12s ease;
+}
+.submit:hover:not(:disabled) { filter: brightness(1.06); }
+.submit:active:not(:disabled) { transform: translateY(1px); }
+.submit:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.back {
+  display: block;
+  margin: 1rem auto 0;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-family: Inter, system-ui, sans-serif;
+  color: rgba(74, 55, 40, 0.6);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+.back:hover { color: #c85a3a; }
+
+/* ---- Mobile ------------------------------------------------------------- */
+@media (max-width: 640px) {
+  .backdrop { background-position: center 40%; }
+  .mark { top: 60%; }
+  .lantern { width: 150px; height: 150px; margin: -75px 0 0 -75px; }
+}
+
+/* ---- Respect reduced-motion ------------------------------------------------ */
+@media (prefers-reduced-motion: reduce) {
+  .backdrop,
+  .lantern,
+  .panel,
+  .panelWrap { animation: none; }
+  .mark::before { animation: none; transition: none; }
+}

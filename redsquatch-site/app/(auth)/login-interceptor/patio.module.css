@@ -1,0 +1,211 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Patio — the post-login courtyard. One decision: Casa (left → /hs) or
+   Oficina (right → /ws). The "Casa" / "Oficina" signs are carved into the photo
+   itself, so on a wide screen the controls are just transparent hotspots over
+   the two archways, lit by a warm bloom on hover. Narrow screens can't hold
+   the whole panorama, so they fall back to two stacked labelled doors.
+   Scoped module; nothing here touches the global theme.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.patio {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  isolation: isolate;
+  background-color: #b5895f;   /* warm adobe fills any letterbox around the pano */
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.backdrop {
+  position: absolute;
+  inset: 0;
+  background-image: url("/images/patio-courtyard.jpg");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;       /* mobile: fill screen (sides crop) */
+  z-index: 0;
+}
+@media (min-width: 900px) {
+  /* desktop: show the whole panorama so both archways stay in frame */
+  .backdrop { background-size: contain; }
+}
+
+/* Warmth + legibility wash — light touch; the courtyard photo is already bright */
+.warmth {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 65% 40% at 50% 88%, rgba(40, 26, 16, 0.32), transparent 72%),
+    linear-gradient(180deg, rgba(40, 28, 18, 0.16) 0%, transparent 20%, transparent 70%, rgba(30, 20, 12, 0.34) 100%);
+}
+
+/* Dappled light drifting through the pergola */
+.dapple {
+  position: absolute;
+  inset: -20%;
+  z-index: 2;
+  pointer-events: none;
+  mix-blend-mode: soft-light;
+  background:
+    radial-gradient(circle at 20% 12%, rgba(255, 226, 160, 0.45) 0 3%, transparent 8%),
+    radial-gradient(circle at 42% 7%,  rgba(255, 226, 160, 0.35) 0 2%, transparent 7%),
+    radial-gradient(circle at 63% 15%, rgba(255, 226, 160, 0.4) 0 3%, transparent 8%),
+    radial-gradient(circle at 80% 9%,  rgba(255, 226, 160, 0.35) 0 2%, transparent 6%);
+  animation: dappleDrift 26s ease-in-out infinite alternate;
+}
+@keyframes dappleDrift {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(2.2%, 1.3%, 0); }
+}
+
+/* Fountain shimmer — over the round basin, lower-centre of frame */
+.fountain {
+  position: absolute;
+  z-index: 3;
+  top: 80%;
+  left: 50%;
+  width: 200px;
+  height: 100px;
+  margin: -50px 0 0 -100px;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, rgba(185, 212, 220, 0.3), transparent 66%);
+  mix-blend-mode: screen;
+  animation: shimmer 5s ease-in-out infinite;
+}
+@keyframes shimmer {
+  0%, 100% { opacity: 0.45; transform: scale(0.98); }
+  50%      { opacity: 0.85; transform: scale(1.03); }
+}
+
+/* ═══ Desktop: transparent hotspots over the two archways ══════════════════ */
+.arches { display: none; }
+
+@media (min-width: 900px) {
+  .arches { display: block; }
+
+  .arch {
+    position: absolute;
+    z-index: 5;
+    top: 51%;
+    width: 11%;
+    height: 36%;
+    transform: translate(-50%, -50%);
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    border-radius: 50% 50% 6px 6px;   /* arched, matches the openings */
+    -webkit-tap-highlight-color: transparent;
+  }
+  /* Centred on the arched doors in Court2.jpg (2.36:1 pano, shown via contain) */
+  .archCasa   { left: 14.5%; }
+  .archOficina { left: 83.2%; }
+
+  /* warm light gathering in the archway */
+  .arch::before {
+    content: "";
+    position: absolute;
+    inset: -8% -14% -4%;
+    border-radius: inherit;
+    mix-blend-mode: screen;
+    opacity: 0.16;
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    pointer-events: none;
+  }
+  .archCasa::before {
+    background: radial-gradient(ellipse at 50% 62%, rgba(255, 168, 104, 0.55), transparent 66%);
+  }
+  .archOficina::before {
+    background: radial-gradient(ellipse at 50% 62%, rgba(255, 206, 150, 0.55), transparent 66%);
+  }
+  .arch:hover::before,
+  .arch:focus-visible::before { opacity: 0.82; transform: scale(1.06); }
+  .arch:active { transform: translate(-50%, -50%) scale(0.99); }
+  .archChosen::before { opacity: 0.95 !important; transform: scale(1.1) !important; }
+
+  .arch:focus-visible { outline: none; }
+  .arch:focus-visible::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border: 1px solid rgba(255, 235, 205, 0.6);
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35);
+    border-radius: inherit;
+    mix-blend-mode: overlay;
+    pointer-events: none;
+  }
+
+  .doors { display: none; }
+}
+
+/* ═══ Mobile: two stacked labelled doors ══════════════════════════════════ */
+.doors {
+  position: absolute;
+  z-index: 5;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.4rem;
+  padding: 0 1.5rem;
+}
+
+.door {
+  position: relative;
+  width: min(78vw, 300px);
+  padding: 1.5rem 1.25rem 1.3rem;
+  cursor: pointer;
+  color: #f5f1e8;
+  background: linear-gradient(180deg, rgba(58, 40, 26, 0.5), rgba(30, 20, 12, 0.74));
+  border: 1px solid rgba(245, 241, 232, 0.24);
+  border-radius: 100px 100px 10px 10px;
+  backdrop-filter: blur(3px);
+  text-align: center;
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.3s ease;
+  animation: fadeUp 0.5s ease both;
+}
+.door:active { transform: scale(0.985); }
+.door:focus-visible { outline: 3px solid #f3e6cf; outline-offset: 4px; }
+
+.doorLabel { font-size: 1.5rem; font-weight: 700; letter-spacing: 0.04em; }
+.doorHint {
+  display: block;
+  margin-top: 0.3rem;
+  font-size: 0.6rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: rgba(245, 241, 232, 0.72);
+  font-family: Inter, system-ui, sans-serif;
+}
+
+.door::after {
+  content: "";
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  bottom: -16px;
+  height: 34px;
+  border-radius: 50%;
+  filter: blur(12px);
+  opacity: 0.7;
+  transition: opacity 0.3s ease;
+}
+.casa::after   { background: radial-gradient(ellipse, rgba(255, 168, 104, 0.8), transparent 70%); }
+.oficina::after { background: radial-gradient(ellipse, rgba(255, 206, 150, 0.8), transparent 70%); }
+
+.doorChosen { transform: scale(1.04); border-color: #f3e6cf; }
+.doorChosen::after { opacity: 1; }
+
+@keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ---- Reduced motion ----------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .dapple, .fountain, .door { animation: none; }
+  .arch::before, .door { transition: none; }
+}
