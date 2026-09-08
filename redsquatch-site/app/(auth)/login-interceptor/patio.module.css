@@ -28,7 +28,7 @@
   width: 100%;
   max-height: 100%;
   aspect-ratio: 1586 / 672;    /* the courtyard photo's true ratio */
-  background: url("/images/patio-courtyard.jpg") center / cover no-repeat;
+  background: url("/images/patio-courtyard-2.jpg") center / cover no-repeat;
 }
 
 /* Warmth + legibility wash — light touch; the photo is already bright */
@@ -85,9 +85,9 @@
 .arch {
   position: absolute;
   z-index: 5;
-  top: 49%;
-  width: 13%;
-  height: 42%;
+  top: 52%;
+  width: 9%;
+  height: 30%;
   transform: translate(-50%, -50%);
   padding: 0;
   border: none;
@@ -96,15 +96,15 @@
   border-radius: 46% 46% 6px 6px;   /* arched, echoes the openings */
   -webkit-tap-highlight-color: transparent;
 }
-/* Centred on the arched doors in Court2.jpg (1586×672) */
-.archCasa    { left: 15.5%; }
-.archOficina { left: 83%; }
+/* Centred on the arched door openings in the courtyard photo (1586×672) */
+.archCasa    { left: 15%; }
+.archOficina { left: 83.5%; }
 
 /* warm light gathering in the archway */
 .arch::before {
   content: "";
   position: absolute;
-  inset: -6% -12% -3%;
+  inset: -5% -9% -2%;
   border-radius: inherit;
   mix-blend-mode: screen;
   opacity: 0.14;
