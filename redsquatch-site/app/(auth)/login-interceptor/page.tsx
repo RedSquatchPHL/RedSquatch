@@ -5,10 +5,10 @@ import { useRouter } from 'next/navigation';
 import s from './patio.module.css';
 
 /* Patio — the post-login courtyard. One decision, two archways:
-   Casa (left)   → /hs/dashboard
+   Casa (left)    → /hs/dashboard
    Oficina (right) → /ws/dashboard
-   The signs are carved into the photo; wide screens get transparent hotspots
-   over the arches, narrow screens get two stacked labelled doors. */
+   The "Casa" / "Oficina" signs are carved into the photo; the controls are
+   transparent hotspots sitting exactly over the archways. */
 type Door = 'casa' | 'oficina';
 
 export default function PatioInterceptor() {
@@ -25,13 +25,11 @@ export default function PatioInterceptor() {
 
   return (
     <main className={s.patio}>
-      <div className={s.backdrop} />
-      <div className={s.warmth} />
-      <div className={s.dapple} aria-hidden />
-      <div className={s.fountain} aria-hidden />
+      <div className={s.frame}>
+        <div className={s.warmth} />
+        <div className={s.dapple} aria-hidden />
+        <div className={s.fountain} aria-hidden />
 
-      {/* wide screens: hotspots over the archways in the photo */}
-      <div className={s.arches}>
         <button
           className={`${s.arch} ${s.archCasa} ${chosen === 'casa' ? s.archChosen : ''}`}
           onClick={() => choose('casa')}
@@ -42,26 +40,6 @@ export default function PatioInterceptor() {
           onClick={() => choose('oficina')}
           aria-label="Oficina — enter WorkSquatch"
         />
-      </div>
-
-      {/* narrow screens: stacked labelled doors */}
-      <div className={s.doors}>
-        <button
-          className={`${s.door} ${s.casa} ${chosen === 'casa' ? s.doorChosen : ''}`}
-          onClick={() => choose('casa')}
-          aria-label="Casa — enter HomeSquatch"
-        >
-          <span className={s.doorLabel}>Casa</span>
-          <span className={s.doorHint}>{chosen === 'casa' ? 'Entrando…' : 'Personal'}</span>
-        </button>
-        <button
-          className={`${s.door} ${s.oficina} ${chosen === 'oficina' ? s.doorChosen : ''}`}
-          onClick={() => choose('oficina')}
-          aria-label="Oficina — enter WorkSquatch"
-        >
-          <span className={s.doorLabel}>Oficina</span>
-          <span className={s.doorHint}>{chosen === 'oficina' ? 'Entrando…' : 'Consulting'}</span>
-        </button>
       </div>
     </main>
   );
