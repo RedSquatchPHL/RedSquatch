@@ -3,17 +3,9 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Unbounded, JetBrains_Mono } from 'next/font/google';
-import { ChevronLeft, ChevronRight, Target } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Target, Activity, Wrench } from 'lucide-react';
 import { API } from '@/lib/api';
-import StoneTile from '@/components/cenote/StoneTile';
-import AztecHeader from '@/components/aztec/AztecHeader';
-import AztecPanel from '@/components/aztec/AztecPanel';
-import AztecMotion from '@/components/aztec/AztecMotion';
-import '@/styles/aztec-command.css';
-
-const unbounded = Unbounded({ subsets: ['latin'], weight: ['700', '800'], variable: '--font-unbounded' });
-const jbMono = JetBrains_Mono({ subsets: ['latin'], weight: ['400', '500'], variable: '--font-jbmono' });
+import s from './dashboard.module.css';
 
 interface Goal {
   id: number;
@@ -35,25 +27,15 @@ function isClosed(item: WorkItem) {
   return (item.status ?? '').toLowerCase().includes('closed');
 }
 
-function PagerControls({ page, pageCount, onPrev, onNext }: { page: number; pageCount: number; onPrev: () => void; onNext: () => void }) {
+function Pager({ page, pageCount, onPrev, onNext }: { page: number; pageCount: number; onPrev: () => void; onNext: () => void }) {
   if (pageCount <= 1) return null;
   return (
-    <div className="mt-3 flex items-center justify-between">
-      <button
-        onClick={onPrev}
-        disabled={page === 0}
-        className="flex items-center gap-1 text-[var(--ac-copper-light)] hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
-      >
+    <div className={s.pager}>
+      <button onClick={onPrev} disabled={page === 0} className={s.pagerBtn}>
         <ChevronLeft size={14} /> Prev
       </button>
-      <span className="text-[var(--ac-stone)] text-[11px]">
-        {page + 1} / {pageCount}
-      </span>
-      <button
-        onClick={onNext}
-        disabled={page === pageCount - 1}
-        className="flex items-center gap-1 text-[var(--ac-copper-light)] hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
-      >
+      <span className={s.pagerLabel}>{page + 1} / {pageCount}</span>
+      <button onClick={onNext} disabled={page === pageCount - 1} className={s.pagerBtn}>
         Next <ChevronRight size={14} />
       </button>
     </div>
@@ -94,8 +76,11 @@ export default function WSDashboardPage() {
 
   if (loading) {
     return (
-      <div className={`aztec-command ${unbounded.variable} ${jbMono.variable} flex items-center justify-center min-h-screen`}>
-        <div className="text-[var(--ac-copper-light)] text-lg">Loading...</div>
+      <div className={s.page}>
+        <div className={s.wallTexture} /><div className={s.wallColor} /><div className={s.wallGlow} />
+        <div className={s.content} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+          <div style={{ color: 'rgba(255,250,240,0.7)' }}>Loading…</div>
+        </div>
       </div>
     );
   }
@@ -116,85 +101,85 @@ export default function WSDashboardPage() {
   );
 
   return (
-    <div className={`aztec-command ${unbounded.variable} ${jbMono.variable} min-h-screen p-6`}>
-      <AztecMotion marqueeItems={['Goals', 'Work Items', 'Sports', 'Tools', 'RedSquatch']} />
+    <div className={s.page}>
+      <div className={s.wallTexture} /><div className={s.wallColor} /><div className={s.wallGlow} />
 
-      <div className="relative z-[1] mx-auto w-full max-w-[1200px] pb-12">
-        <AztecHeader label="OVERVIEW" />
-
-        <div className="ac-marquee-frame">
-          <div className="ac-greca-band dim" aria-hidden="true" />
-          <div className="ac-marquee-wrap" aria-hidden="true">
-            <div className="ac-marquee-track" id="ac-marquee" />
-          </div>
-          <div className="ac-greca-band dim" aria-hidden="true" />
+      <div className={s.content}>
+        <div className={s.header}>
+          <h1 className={s.wordmark}>WorkSquatch</h1>
+          <p className={s.subtitle}>OVERVIEW</p>
         </div>
 
-        <div className="ac-grid grid grid-cols-1 lg:grid-cols-[88px_1fr_1fr] gap-6 mt-6 text-[12px]">
-          {/* Quick nav rail — unchanged, still cenote-styled (StoneTile isn't part of this reskin) */}
-          <section className="flex lg:flex-col flex-row flex-wrap gap-4">
-            <StoneTile isActive icon="lucide:target" title="Goals" subtitle={`${goals.length} goals`} href="/ws/goals" />
-            <StoneTile isActive={false} icon="lucide:activity" title="Sports" subtitle="Team standings" href="/hs/sports" />
-            <StoneTile isActive={false} icon="lucide:wrench" title="Tools" subtitle="Scratchpad" href="/ws/tools" />
-          </section>
+        <div className={s.layout}>
+          {/* Zone 1: rolodex — a small fanned stack of nav cards, all visible/clickable */}
+          <div className={s.rolodex}>
+            <Link href="/ws/goals" className={s.rolodexCard}>
+              <Target size={20} className={s.rolodexIcon} />
+              <div className={s.rolodexTitle}>Goals</div>
+              <div className={s.rolodexSubtitle}>{goals.length} goals</div>
+            </Link>
+            <Link href="/hs/sports" className={s.rolodexCard}>
+              <Activity size={20} className={s.rolodexIcon} />
+              <div className={s.rolodexTitle}>Sports</div>
+              <div className={s.rolodexSubtitle}>Team standings</div>
+            </Link>
+            <Link href="/ws/tools" className={s.rolodexCard}>
+              <Wrench size={20} className={s.rolodexIcon} />
+              <div className={s.rolodexTitle}>Tools</div>
+              <div className={s.rolodexSubtitle}>Scratchpad</div>
+            </Link>
+          </div>
 
-          {/* Goals summary — ascending eagle glyph border */}
-          <AztecPanel family="eagle" title="Goals" subtitle={goals.length ? `${goals.length} total` : undefined}>
+          {/* Zone 2: pinned board — goal cards tacked on loosely */}
+          <div className={s.pinnedBoard}>
+            <h2 className={s.zoneHeading}>Goals{goals.length ? ` — ${goals.length} total` : ''}</h2>
             {goals.length === 0 ? (
-              <div className="py-2 text-[var(--ac-stone)]">No goals yet.</div>
+              <div className={s.emptyNote}>No goals yet.</div>
             ) : (
-              <div className="space-y-3">
-                {pagedGoals.map(goal => (
-                  <div key={goal.id} className="border-b border-[rgba(184,115,51,0.15)] pb-2 last:border-0">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-[var(--ac-copper-light)]">{goal.title}</span>
-                      <span className="text-[var(--ac-stone)] text-[11px] whitespace-nowrap">{goal.progress}%</span>
-                    </div>
-                    <div className="mt-1 h-1 w-full rounded-full bg-[rgba(255,255,255,0.06)] overflow-hidden">
-                      <div className="h-full bg-[var(--ac-copper)]" style={{ width: `${goal.progress}%` }} />
-                    </div>
+              pagedGoals.map(goal => (
+                <div key={goal.id} className={s.pinnedCard}>
+                  <div className={s.tack} aria-hidden="true" />
+                  <div className={s.pinnedTitle}>
+                    <span>{goal.title}</span>
+                    <span className={s.pinnedPct}>{goal.progress}%</span>
                   </div>
-                ))}
-              </div>
+                  <div className={s.pinnedTrack}>
+                    <div className={s.pinnedFill} style={{ width: `${goal.progress}%` }} />
+                  </div>
+                </div>
+              ))
             )}
-            <PagerControls
+            <Pager
               page={currentGoalsPage}
               pageCount={goalsPageCount}
               onPrev={() => setGoalsPage(p => Math.max(0, p - 1))}
               onNext={() => setGoalsPage(p => Math.min(goalsPageCount - 1, p + 1))}
             />
-            <Link href="/ws/goals" className="mt-3 inline-flex items-center gap-1 text-[var(--ac-copper-light)] hover:text-white">
-              <Target size={14} /> View all goals
-            </Link>
-          </AztecPanel>
+            <Link href="/ws/goals" className={s.viewAllLink}>View all goals →</Link>
+          </div>
 
-          {/* Work items summary — fire/energy glyph border */}
-          <AztecPanel family="fire" title="Work Items" subtitle={openWorkItems.length ? `${openWorkItems.length} open` : undefined}>
+          {/* Zone 3: ruled ledger — open ServiceNow work tickets */}
+          <div className={s.ledgerPanel}>
+            <h2 className={s.zoneHeading}>Work Items{openWorkItems.length ? ` — ${openWorkItems.length} open` : ''}</h2>
             {openWorkItems.length === 0 ? (
-              <div className="py-2 text-[var(--ac-stone)]">No open work items.</div>
+              <div className={s.emptyNote} style={{ color: 'var(--ink-muted)' }}>No open work items.</div>
             ) : (
-              <div className="space-y-2">
-                {pagedWorkItems.map(item => (
-                  <div key={item.id} className="flex items-center justify-between gap-3 border-b border-[rgba(184,115,51,0.15)] py-1.5 last:border-0">
-                    <div className="min-w-0">
-                      <span className="text-[var(--ac-stone)]">{item.ticket_number}</span>{' '}
-                      <span className="text-[var(--ac-copper-light)] truncate">{item.title}</span>
-                    </div>
-                    <span className="text-[var(--ac-stone-light)] text-[11px] whitespace-nowrap">{item.status}</span>
-                  </div>
-                ))}
-              </div>
+              pagedWorkItems.map(item => (
+                <div key={item.id} className={s.ledgerRow}>
+                  <span className={s.ledgerTicket}>{item.ticket_number}</span>
+                  <span className={s.ledgerTitle} title={item.title}>{item.title}</span>
+                  <span className={s.ledgerStatus}>{item.status}</span>
+                </div>
+              ))
             )}
-            <PagerControls
+            <Pager
               page={currentWorkItemsPage}
               pageCount={workItemsPageCount}
               onPrev={() => setWorkItemsPage(p => Math.max(0, p - 1))}
               onNext={() => setWorkItemsPage(p => Math.min(workItemsPageCount - 1, p + 1))}
             />
-            <Link href="/ws/work" className="mt-3 inline-block text-[var(--ac-copper-light)] hover:text-white">
-              View all work items
-            </Link>
-          </AztecPanel>
+            <Link href="/ws/work" className={s.viewAllLink} style={{ color: 'var(--ink-main)', borderBottomColor: 'var(--panel-border)' }}>View all work items →</Link>
+          </div>
         </div>
       </div>
     </div>
