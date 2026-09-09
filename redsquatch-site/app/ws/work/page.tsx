@@ -89,6 +89,7 @@ export default function TasksPage() {
   }
 
   async function handleDeleteTask(taskId: number) {
+    if (!window.confirm('Delete this task permanently? This cannot be undone.')) return;
     setBoard(b => b && { ...b, tasks: b.tasks.filter(t => t.id !== taskId) });
     await api(`/${taskId}`, 'DELETE');
   }

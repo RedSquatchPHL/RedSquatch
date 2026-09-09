@@ -214,6 +214,7 @@ export default function KanbanBoard({
                               className={styles.cardExpandBtn}
                               onClick={() => toggleExpanded(task.id)}
                               title={expanded ? 'Collapse' : 'Add/view notes'}
+                              aria-label={expanded ? 'Collapse notes and move controls' : 'Expand notes and move controls'}
                               aria-expanded={expanded}
                             >
                               {expanded ? '▾' : '▸'}
@@ -240,12 +241,50 @@ export default function KanbanBoard({
                             <button className={styles.cardDeleteBtn} onClick={() => onDeleteTask(task.id)}>✕</button>
                           </div>
                           {expanded && (
-                            <textarea
-                              className={styles.cardNotes}
-                              defaultValue={task.description ?? ''}
-                              placeholder="Notes..."
-                              onBlur={(e) => e.target.value !== (task.description ?? '') && onUpdateDescription(task.id, e.target.value)}
-                            />
+                            <>
+                              {/* Keyboard-operable equivalent to the drag-and-drop move above —
+                                  native selects need no custom listbox and reach every column/lane
+                                  a mouse drag can. */}
+                              <div className={styles.moveRow}>
+                                <label className={styles.moveLabel}>
+                                  Move to
+                                  <select
+                                    className={styles.moveSelect}
+                                    value={col.id}
+                                    onChange={(e) => {
+                                      const targetCol = Number(e.target.value);
+                                      const targetTasks = tasksFor(targetCol, laneId);
+                                      onMoveTask(task.id, targetCol, laneId, targetTasks.length);
+                                    }}
+                                  >
+                                    {columns.map(c => <option key={c.id} value={c.id}>{c.title}</option>)}
+                                  </select>
+                                </label>
+                                {swimlanes.length > 0 && (
+                                  <label className={styles.moveLabel}>
+                                    Swimlane
+                                    <select
+                                      className={styles.moveSelect}
+                                      value={laneId ?? ''}
+                                      onChange={(e) => {
+                                        const targetLane = e.target.value === '' ? null : Number(e.target.value);
+                                        const targetTasks = tasksFor(col.id, targetLane);
+                                        onMoveTask(task.id, col.id, targetLane, targetTasks.length);
+                                      }}
+                                    >
+                                      <option value="">Unlaned</option>
+                                      {swimlanes.map(l => <option key={l.id} value={l.id}>{l.title}</option>)}
+                                    </select>
+                                  </label>
+                                )}
+                              </div>
+                              <textarea
+                                className={styles.cardNotes}
+                                defaultValue={task.description ?? ''}
+                                placeholder="Notes..."
+                                onBlur={(e) => e.target.value !== (task.description ?? '') && onUpdateDescription(task.id, e.target.value)}
+                              />
+                            </>
                           )}
                         </div>
                       );

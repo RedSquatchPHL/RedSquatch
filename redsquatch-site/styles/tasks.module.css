@@ -35,7 +35,7 @@
   --tk-jade: #2f6f5e;
   --tk-terracotta: #c1573a;
   --tk-ink: #3d2a1a;
-  --tk-ink-soft: #8a7052;
+  --tk-ink-soft: #7a6142;
   --tk-border: rgba(142, 90, 38, 0.28);
   --tk-lincoln: #5b6b8c;
   --tk-redsquatch: #b87333;
@@ -250,6 +250,11 @@
   color: rgba(47, 111, 94, 0.4);
   cursor: pointer;
   font-size: 0.8rem;
+  min-width: 24px;
+  min-height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .laneDeleteBtn:hover {
@@ -333,6 +338,11 @@
   cursor: pointer;
   flex-shrink: 0;
   font-size: 0.85rem;
+  min-width: 24px;
+  min-height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .columnDeleteBtn:hover {
@@ -421,7 +431,6 @@
     repeating-linear-gradient(170deg, rgba(142, 90, 38, 0.025) 0 1px, transparent 1px 5px),
     linear-gradient(115deg, rgba(233, 79, 138, 0.07), transparent 40%);
   border: 1px solid var(--tk-border);
-  border-left: 3px solid var(--tk-picado-accent);
   border-radius: 4px;
   cursor: grab;
   padding: 0.65rem 0.7rem;
@@ -481,6 +490,43 @@
   font-weight: 700;
   margin: 0;
   word-break: break-word;
+}
+
+/* Keyboard-operable move controls — the accessible equivalent to the card's
+   drag-and-drop reordering, which has no native keyboard path of its own. */
+.moveRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+}
+
+.moveLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tk-ink-soft);
+  font-family: var(--tk-ui-font);
+}
+
+.moveSelect {
+  font-family: var(--tk-ui-font);
+  font-size: 0.78rem;
+  color: var(--tk-ink);
+  background: #fff;
+  border: 1px solid var(--tk-border);
+  border-radius: 3px;
+  padding: 0.3rem 0.4rem;
+  min-height: 28px;
+}
+
+.moveSelect:focus-visible {
+  outline: 2px solid var(--tk-jade);
+  outline-offset: 1px;
 }
 
 /* Free-text notes: legibility while reading/writing matters more here than
@@ -553,7 +599,12 @@
   color: rgba(61, 42, 26, 0.3);
   cursor: pointer;
   font-size: 0.75rem;
-  padding: 0 0.15rem;
+  min-width: 24px;
+  min-height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .cardDeleteBtn:hover {
@@ -669,6 +720,25 @@
 .page :global(textarea):focus-visible {
   outline: 2px solid var(--tk-jade);
   outline-offset: 1px;
+}
+
+/* Touch devices get more forgiving hit areas than the 24px mouse-oriented
+   minimum above — the resize handle in particular is unusably thin at 6px
+   for a finger, so it grows into an invisible wider strip rather than
+   changing its visible width. */
+@media (pointer: coarse) {
+  .columnDeleteBtn,
+  .cardDeleteBtn,
+  .laneDeleteBtn,
+  .cardExpandBtn {
+    min-width: 32px;
+    min-height: 32px;
+  }
+
+  .resizeHandle {
+    width: 20px;
+    right: -10px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
