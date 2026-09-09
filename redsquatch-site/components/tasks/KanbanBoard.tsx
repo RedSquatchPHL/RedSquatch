@@ -141,6 +141,19 @@ export default function KanbanBoard({
     window.addEventListener('mouseup', onUp);
   }
 
+  // Keyboard equivalent to the mouse drag above — same clamp, same
+  // onResizeColumn call, just stepped instead of continuous.
+  function resizeByKeyboard(e: React.KeyboardEvent, col: TaskColumn) {
+    const step = e.shiftKey ? 50 : 10;
+    if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      onResizeColumn(col.id, Math.max(180, col.width_px - step));
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      onResizeColumn(col.id, Math.max(180, col.width_px + step));
+    }
+  }
+
   return (
     <div className={styles.board}>
       {/* Column headers live once at the top of the board, not per swimlane —
@@ -163,7 +176,18 @@ export default function KanbanBoard({
               <span className={styles.columnCount}>{tasks.filter(t => t.column_id === col.id).length}</span>
               <button className={styles.columnDeleteBtn} onClick={() => onDeleteColumn(col.id)} title="Remove column">×</button>
             </div>
-            <div className={styles.resizeHandle} onMouseDown={(e) => startResize(e, col)} />
+            <div
+              className={styles.resizeHandle}
+              onMouseDown={(e) => startResize(e, col)}
+              onKeyDown={(e) => resizeByKeyboard(e, col)}
+              tabIndex={0}
+              role="slider"
+              aria-label={`Resize "${col.title}" column`}
+              aria-orientation="horizontal"
+              aria-valuenow={col.width_px}
+              aria-valuemin={180}
+              aria-valuetext={`${col.width_px} pixels wide`}
+            />
           </div>
         ))}
         <button className={styles.addColumnBtn} onClick={onAddColumn}>+ Column</button>

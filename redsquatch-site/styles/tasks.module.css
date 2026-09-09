@@ -202,6 +202,22 @@
   padding-bottom: 1rem;
 }
 
+/* Below tablet width, a kanban board still needs its columns side by side —
+   stacking them would lose the "stage of work" meaning the layout carries —
+   so the fix isn't a different layout, it's making the necessary horizontal
+   scroll feel intentional: one column snaps into place per swipe instead of
+   drifting to an arbitrary position. */
+@media (max-width: 640px) {
+  .board {
+    scroll-snap-type: x mandatory;
+  }
+
+  .columnHeaderCell,
+  .columnBody {
+    scroll-snap-align: start;
+  }
+}
+
 .lane {
   display: flex;
   flex-direction: column;
@@ -382,6 +398,12 @@
 }
 
 .resizeHandle:hover {
+  background: rgba(184, 115, 51, 0.35);
+}
+
+.resizeHandle:focus-visible {
+  outline: 2px solid var(--tk-jade);
+  outline-offset: 1px;
   background: rgba(184, 115, 51, 0.35);
 }
 
