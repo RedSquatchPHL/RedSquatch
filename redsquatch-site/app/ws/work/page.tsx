@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { API } from '@/lib/api';
 import KanbanBoard, { Task, TaskColumn, TaskSwimlane } from '@/components/tasks/KanbanBoard';
+import TaskListView from '@/components/tasks/TaskListView';
 import styles from '@/styles/tasks.module.css';
 
 interface BoardData {
@@ -16,8 +17,8 @@ interface BoardData {
 export default function TasksPage() {
   const [checking, setChecking] = useState(true);
   const [board, setBoard] = useState<BoardData | null>(null);
+  const [view, setView] = useState<'board' | 'list'>('board');
   const router = useRouter();
-  const bgPhotoRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetch(`${API}/api/client/session`, { credentials: 'include' })
@@ -28,28 +29,6 @@ export default function TasksPage() {
       })
       .catch(() => router.push('/'));
   }, [router]);
-
-  // Subtle parallax: the photo drifts at a fraction of scroll speed rather
-  // than staying perfectly static (position: fixed alone) or scrolling at
-  // full speed with the content — rAF-throttled and respects reduced-motion.
-  useEffect(() => {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    let raf = 0;
-    const onScroll = () => {
-      if (raf) return;
-      raf = requestAnimationFrame(() => {
-        if (bgPhotoRef.current) {
-          bgPhotoRef.current.style.transform = `translateY(${window.scrollY * 0.08}px)`;
-        }
-        raf = 0;
-      });
-    };
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => {
-      window.removeEventListener('scroll', onScroll);
-      if (raf) cancelAnimationFrame(raf);
-    };
-  }, []);
 
   async function loadBoard() {
     const res = await fetch(`${API}/api/client/task-board`, { credentials: 'include' });
@@ -147,41 +126,67 @@ export default function TasksPage() {
 
   if (checking || !board) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg" style={{ color: '#b87333' }}>Loading...</div>
+      <div className={styles.page}>
+        <div className={styles.bgPhoto} aria-hidden="true" />
+        <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+          <div style={{ color: 'rgba(255,250,240,0.85)' }}>Loading…</div>
+        </div>
       </div>
     );
   }
 
   return (
     <div className={styles.page}>
-      <div className={styles.bgPhoto} ref={bgPhotoRef} aria-hidden="true" />
-      <div className={`${styles.edgeBorder} ${styles.edgeBorderLeft}`} aria-hidden="true" />
-      <div className={`${styles.edgeBorder} ${styles.edgeBorderRight}`} aria-hidden="true" />
+      <div className={styles.bgPhoto} aria-hidden="true" />
       <header className={styles.header}>
         <div>
           <h1 className={styles.title}>Work</h1>
           <p className={styles.subheader}>{board.tasks.length} task{board.tasks.length === 1 ? '' : 's'} on the board</p>
         </div>
+        <div className={styles.viewToggle}>
+          <button
+            className={`${styles.viewBtn} ${view === 'board' ? styles.viewBtnActive : ''}`}
+            onClick={() => setView('board')}
+            aria-pressed={view === 'board'}
+          >
+            Board
+          </button>
+          <button
+            className={`${styles.viewBtn} ${view === 'list' ? styles.viewBtnActive : ''}`}
+            onClick={() => setView('list')}
+            aria-pressed={view === 'list'}
+          >
+            List
+          </button>
+        </div>
       </header>
 
-      <KanbanBoard
-        columns={board.columns}
-        swimlanes={board.swimlanes}
-        tasks={board.tasks}
-        contexts={board.contexts}
-        onCreateTask={handleCreateTask}
-        onMoveTask={handleMoveTask}
-        onDeleteTask={handleDeleteTask}
-        onUpdateDescription={handleUpdateDescription}
-        onAddColumn={handleAddColumn}
-        onRenameColumn={handleRenameColumn}
-        onResizeColumn={handleResizeColumn}
-        onDeleteColumn={handleDeleteColumn}
-        onAddSwimlane={handleAddSwimlane}
-        onRenameSwimlane={handleRenameSwimlane}
-        onDeleteSwimlane={handleDeleteSwimlane}
-      />
+      {view === 'board' ? (
+        <KanbanBoard
+          columns={board.columns}
+          swimlanes={board.swimlanes}
+          tasks={board.tasks}
+          contexts={board.contexts}
+          onCreateTask={handleCreateTask}
+          onMoveTask={handleMoveTask}
+          onDeleteTask={handleDeleteTask}
+          onUpdateDescription={handleUpdateDescription}
+          onAddColumn={handleAddColumn}
+          onRenameColumn={handleRenameColumn}
+          onResizeColumn={handleResizeColumn}
+          onDeleteColumn={handleDeleteColumn}
+          onAddSwimlane={handleAddSwimlane}
+          onRenameSwimlane={handleRenameSwimlane}
+          onDeleteSwimlane={handleDeleteSwimlane}
+        />
+      ) : (
+        <TaskListView
+          columns={board.columns}
+          swimlanes={board.swimlanes}
+          tasks={board.tasks}
+          onDeleteTask={handleDeleteTask}
+        />
+      )}
     </div>
   );
 }

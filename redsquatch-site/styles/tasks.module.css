@@ -1,22 +1,14 @@
-/* Light Aztec palette for /ws/work — carried as a stone-tablet/codex motif on
-   parchment instead of the dark obsidian aztec-command.css system (used by
-   /ws/dashboard). Scoped entirely to this module.
-
-   Signature element: each column header wears a stepped-pyramid frieze (the
-   temple silhouette from the site's sunstone motif, reworked in copper/gold
-   on light stone) — the board reads as a row of shrines, one per stage of
-   work. Swimlanes are drawn as canals (a nod to the site's cenote branding)
-   rather than plain table rows. Priority is tally marks, not color-only —
-   severity is legible by count as well as hue.
-
-   Mexicala (self-hosted below) is Alit Design's freeware/non-commercial
-   license — fine for this personal, non-commercial page, not for reuse
-   anywhere that isn't. License text: /fonts/license/mexicala-license.txt.
-   Its lowercase forms read as caps-height at a glance, which reads as
-   shouting on small functional text — so it's used for content labels
-   (page/column/swimlane/card titles) via inheritance from .page, while
-   buttons, form controls, and utility/meta text explicitly opt back into
-   --tk-ui-font (Inter) for normal-case legibility. */
+/* WorkSquatch hacienda system for /ws/work — same tokens/texture recipe as
+   Tools/Dashboard/Goals/BA Tools. Replaces the earlier "Light Aztec"
+   parchment iteration: that version repeated decorative motifs per column
+   (a stepped-pyramid frieze), per swimlane (jade canal styling), and down
+   both viewport edges (a serape stripe) — inconsistent with the hacienda
+   principle used everywhere else on /ws: the room/chrome carries the
+   cultural identity, the data stays legible and modern. Tally marks and
+   context seals are kept — they're informational (severity-by-count,
+   context-by-color), not decoration. Mexicala is reserved for the page
+   wordmark only, matching every other /ws page; column/swimlane/card
+   titles and buttons use Inter. */
 @font-face {
   font-family: 'Mexicala';
   src: url('/fonts/Mexicala-Regular.ttf') format('truetype');
@@ -26,107 +18,65 @@
 }
 
 .page {
-  --tk-parchment: #f6ecd8;
-  --tk-parchment-deep: #ecdec0;
+  --tk-wall: #7d4d3d;
+  --tk-wall-deep: #5c3529;
+  --tk-parchment: #f9f7f2;
+  --tk-parchment-deep: #f0ece2;
   --tk-card-bg: #fffdf8;
-  --tk-copper: #b87333;
-  --tk-copper-dark: #8e5a26;
-  --tk-gold: #d9a441;
-  --tk-jade: #2f6f5e;
-  --tk-terracotta: #c1573a;
-  --tk-ink: #3d2a1a;
-  --tk-ink-soft: #7a6142;
-  --tk-border: rgba(142, 90, 38, 0.28);
+  --tk-copper: #a67c52;
+  --tk-copper-text: #8f6540;
+  --tk-wood: #5d4037;
+  --tk-ink: #2c2420;
+  --tk-ink-soft: #6b635f;
+  --tk-border: #e8e2d6;
   --tk-lincoln: #5b6b8c;
-  --tk-redsquatch: #b87333;
-  --tk-personal: #6b8f5a;
-  --tk-picado-accent: #e94f8a;
+  --tk-redsquatch: #a67c52;
+  --tk-personal: #3f5a35;
+  --tk-terracotta: #a8482e;
   --tk-ui-font: 'Inter', sans-serif;
 
   position: relative;
   min-height: 100vh;
-  background: var(--tk-parchment);
+  background-color: var(--tk-wall-deep);
   color: var(--tk-ink);
-  font-family: 'Mexicala', 'Stardom', serif;
+  font-family: var(--tk-ui-font);
   padding: 2rem;
   isolation: isolate;
+  overflow-x: hidden;
 }
 
-/* A personal photo (self-composed, replacing the earlier two-layer
-   agave+picado stitch) — papel picado strung above actual agave fields in
-   Jalisco, already at the right relative scale in a single frame. Muted
-   via filter (not just opacity) so the board stays legible on top.
+/* Matte-plaster wall texture — grayscale noise hue-mapped via
+   mix-blend-mode:color (not multiply/overlay, which reads flat/glossy),
+   plus a separate soft-light warmth glow. Same recipe as every other /ws
+   page's wall. */
+.page::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -3;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.7;
+  filter: contrast(115%) brightness(95%);
+}
 
-   A real element rather than ::before — JS drives a subtle parallax
-   translateY on it as the page scrolls, which a pseudo-element can't be
-   ref'd for. Sized taller than the viewport (top/bottom insets past 0) so
-   that translation never reveals an edge. `contain` (not `cover`) shows
-   the whole photo rather than cropping it to fill the viewport — the
-   fixed .page background color shows through in any letterboxed margin,
-   reading like the photo is matted on parchment. */
 .bgPhoto {
   position: fixed;
-  top: -10vh;
-  bottom: -10vh;
-  left: 0;
-  right: 0;
+  inset: 0;
   z-index: -2;
   pointer-events: none;
-  background-image: url('/images/colorful-cacti.jpg');
-  background-size: contain;
-  background-position: top center;
-  background-repeat: no-repeat;
-  filter: saturate(0.95) brightness(1.02) contrast(0.98);
-  opacity: 0.75;
-  will-change: transform;
+  background-color: var(--tk-wall);
+  mix-blend-mode: color;
 }
 
-/* Parchment tint + fiber grain over the photo — the same amate-paper
-   texture as before, now doubling as the layer that mutes the image
-   underneath. */
 .page::after {
   content: '';
   position: fixed;
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background-image:
-    repeating-linear-gradient(115deg, rgba(142, 90, 38, 0.035) 0 1px, transparent 1px 3px),
-    repeating-linear-gradient(25deg, rgba(142, 90, 38, 0.025) 0 1px, transparent 1px 4px),
-    linear-gradient(rgba(246, 236, 216, 0.35), rgba(246, 236, 216, 0.35));
-}
-
-/* Woven serape-stripe border along both edges — the "contain"-sized photo
-   can leave open parchment margins on wide screens, and a plain gap read
-   as unfinished. Reuses colors already established elsewhere on the page
-   (picado pink, gold frieze, jade swimlanes, terracotta/copper accents)
-   rather than introducing a new palette, so it reads as a frame tying the
-   page together instead of a new decoration. Fixed to the true viewport
-   edge, outside .page's own padding. */
-.edgeBorder {
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  width: 12px;
-  z-index: 5;
-  pointer-events: none;
-  background: repeating-linear-gradient(
-    to bottom,
-    var(--tk-picado-accent) 0 22px,
-    var(--tk-gold) 22px 44px,
-    var(--tk-jade) 44px 66px,
-    var(--tk-terracotta) 66px 88px,
-    var(--tk-copper) 88px 110px
-  );
-  box-shadow: 0 0 6px rgba(61, 42, 26, 0.25);
-}
-
-.edgeBorderLeft {
-  left: 0;
-}
-
-.edgeBorderRight {
-  right: 0;
+  background: radial-gradient(ellipse 60% 50% at 15% 10%, rgba(255, 210, 150, 0.18), transparent 65%);
+  mix-blend-mode: soft-light;
 }
 
 .header {
@@ -139,60 +89,50 @@
   margin-bottom: 1.75rem;
   padding-bottom: 1.1rem;
   padding-left: 0.25rem;
-}
-
-/* Tally-marked rule instead of a plain line — small carved ticks, denser near
-   the title, thinning out — rather than a uniform hairline. */
-.header::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 2px;
-  background-image: repeating-linear-gradient(
-    to right,
-    var(--tk-copper) 0 6px,
-    transparent 6px 14px
-  );
-  opacity: 0.55;
-}
-
-/* Sundial watermark behind the title — quiet concentric rays, not a hero
-   graphic; it should read as texture on the stone, not as a logo. */
-.header::before {
-  content: '';
-  position: absolute;
-  left: -40px;
-  top: -60px;
-  width: 220px;
-  height: 220px;
-  z-index: -1;
-  background: conic-gradient(
-    from 0deg,
-    rgba(184, 115, 51, 0.09) 0deg 8deg,
-    transparent 8deg 24deg
-  );
-  border-radius: 50%;
-  mask-image: radial-gradient(circle, black 55%, transparent 78%);
+  border-bottom: 1px solid rgba(255, 250, 240, 0.2);
 }
 
 .title {
-  font-family: 'Mexicala', 'Stardom', serif;
-  text-transform: none;
+  font-family: 'Mexicala', serif;
   letter-spacing: 0.01em;
-  font-size: 2.75rem;
+  font-size: 2.5rem;
   line-height: 1;
   margin: 0;
-  color: var(--tk-copper-dark);
+  color: rgba(255, 250, 240, 0.92);
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.35);
 }
 
 .subheader {
-  color: #241407;
+  color: rgba(255, 250, 240, 0.85);
   font-family: var(--tk-ui-font);
   font-size: 0.8rem;
   letter-spacing: 0.02em;
   margin: 0.3rem 0 0;
+}
+
+/* ── View toggle (Board / List) ───────────────────────────────────── */
+.viewToggle {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.viewBtn {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.4rem 0.8rem;
+  min-height: 30px;
+  background: var(--tk-parchment);
+  border: 1px solid var(--tk-border);
+  color: var(--tk-ink-soft);
+  cursor: pointer;
+}
+
+.viewBtnActive {
+  border-color: var(--tk-copper);
+  color: var(--tk-ink);
+  background: rgba(166, 124, 82, 0.15);
 }
 
 /* ── Board scaffolding ─────────────────────────────────────────── */
@@ -202,11 +142,6 @@
   padding-bottom: 1rem;
 }
 
-/* Below tablet width, a kanban board still needs its columns side by side —
-   stacking them would lose the "stage of work" meaning the layout carries —
-   so the fix isn't a different layout, it's making the necessary horizontal
-   scroll feel intentional: one column snaps into place per swipe instead of
-   drifting to an arbitrary position. */
 @media (max-width: 640px) {
   .board {
     scroll-snap-type: x mandatory;
@@ -224,31 +159,29 @@
   margin-bottom: 1.75rem;
 }
 
-/* Swimlane header reads as a canal marker: a jade waterline with a ripple
-   glyph, not a generic section label — the site already uses water/cenote
-   imagery elsewhere, this is the same idea in miniature. */
 .laneHeader {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   margin: 0 0 0.6rem;
   padding-bottom: 0.35rem;
-  color: var(--tk-jade);
+  color: var(--tk-copper-text);
   font-size: 0.85rem;
+  font-weight: 700;
   letter-spacing: 0.02em;
-  border-bottom: 2px dashed rgba(47, 111, 94, 0.35);
+  border-bottom: 1px solid var(--tk-border);
 }
 
 .laneGlyph {
-  font-size: 0.9rem;
-  opacity: 0.8;
+  font-size: 0.75rem;
+  opacity: 0.7;
 }
 
 .laneTitleInput {
   background: transparent;
   border: none;
   border-bottom: 1px dashed transparent;
-  color: var(--tk-jade);
+  color: var(--tk-copper-text);
   font: inherit;
   letter-spacing: 0.02em;
   padding: 0.1rem 0.2rem;
@@ -256,14 +189,14 @@
 
 .laneTitleInput:hover,
 .laneTitleInput:focus {
-  border-bottom-color: var(--tk-jade);
+  border-bottom-color: var(--tk-copper);
   outline: none;
 }
 
 .laneDeleteBtn {
   background: none;
   border: none;
-  color: rgba(47, 111, 94, 0.4);
+  color: var(--tk-ink-soft);
   cursor: pointer;
   font-size: 0.8rem;
   min-width: 24px;
@@ -277,9 +210,6 @@
   color: var(--tk-terracotta);
 }
 
-/* Column headers are hoisted to one row at the top of the whole board —
-   rename/count/resize/delete apply per column across every swimlane, so
-   they only need to exist once, right under the header's tally rule. */
 .columnHeaderRow {
   display: flex;
   gap: 1.1rem;
@@ -290,29 +220,16 @@
 .columnHeaderCell {
   background: var(--tk-parchment-deep);
   border: 1px solid var(--tk-border);
-  border-radius: 6px 6px 0 0;
   flex-shrink: 0;
   position: relative;
-  box-shadow: 0 6px 14px -10px rgba(61, 42, 26, 0.35);
-}
-
-/* The signature element: a stepped-pyramid frieze standing on top of every
-   column, like a shrine facade. Built with a clipped gradient strip, no
-   image asset. */
-.columnFrieze {
-  height: 14px;
-  background: linear-gradient(135deg, var(--tk-gold), var(--tk-copper) 60%, var(--tk-copper-dark));
-  clip-path: polygon(
-    0% 100%, 0% 60%, 10% 60%, 10% 30%, 25% 30%, 25% 0%,
-    75% 0%, 75% 30%, 90% 30%, 90% 60%, 100% 60%, 100% 100%
-  );
+  box-shadow: 0 6px 14px -10px rgba(0, 0, 0, 0.3);
 }
 
 .columnHeader {
   align-items: center;
   display: flex;
   gap: 0.4rem;
-  padding: 0.55rem 0.75rem 0.6rem;
+  padding: 0.6rem 0.75rem;
 }
 
 .columnsRow {
@@ -325,13 +242,13 @@
   background: transparent;
   border: none;
   border-bottom: 1px dashed transparent;
-  color: var(--tk-copper-dark);
+  color: var(--tk-ink);
   flex: 1;
-  font-family: 'Mexicala', 'Stardom', serif;
-  font-size: 1.05rem;
+  font-family: var(--tk-ui-font);
+  font-weight: 700;
+  font-size: 0.9rem;
   min-width: 0;
   padding: 0.1rem 0.2rem;
-  letter-spacing: 0.01em;
 }
 
 .columnTitleInput:hover,
@@ -350,7 +267,7 @@
 .columnDeleteBtn {
   background: none;
   border: none;
-  color: rgba(61, 42, 26, 0.35);
+  color: var(--tk-ink-soft);
   cursor: pointer;
   flex-shrink: 0;
   font-size: 0.85rem;
@@ -365,14 +282,11 @@
   color: var(--tk-terracotta);
 }
 
-/* Per-lane column cell — the header row above carries the title/count/
-   resize/delete, this is just the body: a box of cards for one column ×
-   swimlane pairing. */
 .columnBody {
   background: var(--tk-parchment-deep);
   border: 1px solid var(--tk-border);
-  border-radius: 0 0 6px 6px;
-  box-shadow: 0 10px 22px -14px rgba(61, 42, 26, 0.35);
+  border-top: none;
+  box-shadow: 0 10px 22px -14px rgba(0, 0, 0, 0.3);
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
@@ -383,8 +297,8 @@
 }
 
 .columnDragOver {
-  background: rgba(47, 111, 94, 0.14);
-  box-shadow: 0 0 0 2px var(--tk-jade), 0 12px 26px -12px rgba(47, 111, 94, 0.5);
+  background: rgba(166, 124, 82, 0.16);
+  box-shadow: 0 0 0 2px var(--tk-copper), 0 12px 26px -12px rgba(0, 0, 0, 0.4);
 }
 
 .resizeHandle {
@@ -398,23 +312,22 @@
 }
 
 .resizeHandle:hover {
-  background: rgba(184, 115, 51, 0.35);
+  background: rgba(166, 124, 82, 0.4);
 }
 
 .resizeHandle:focus-visible {
-  outline: 2px solid var(--tk-jade);
+  outline: 2px solid var(--tk-copper);
   outline-offset: 1px;
-  background: rgba(184, 115, 51, 0.35);
+  background: rgba(166, 124, 82, 0.4);
 }
 
 .addColumnBtn {
   background: transparent;
   border: 1px dashed var(--tk-border);
-  border-radius: 6px;
   color: var(--tk-ink-soft);
   cursor: pointer;
   flex-shrink: 0;
-  font-family: 'Mexicala', 'Stardom', serif;
+  font-family: var(--tk-ui-font);
   font-size: 0.85rem;
   padding: 0.6rem 1rem;
   align-self: stretch;
@@ -424,45 +337,40 @@
 
 .addColumnBtn:hover {
   border-color: var(--tk-copper);
-  color: var(--tk-copper-dark);
-  background: rgba(184, 115, 51, 0.08);
+  color: var(--tk-ink);
+  background: rgba(166, 124, 82, 0.08);
 }
 
 .addLaneBtn {
   background: transparent;
-  border: 1px dashed rgba(47, 111, 94, 0.35);
-  border-radius: 6px;
-  color: var(--tk-jade);
+  border: 1px dashed var(--tk-border);
+  color: var(--tk-copper-text);
   cursor: pointer;
-  font-family: 'Mexicala', 'Stardom', serif;
+  font-family: var(--tk-ui-font);
   font-size: 0.85rem;
   padding: 0.5rem 1rem;
   transition: border-color 0.15s ease, background 0.15s ease;
 }
 
 .addLaneBtn:hover {
-  border-color: var(--tk-jade);
-  background: rgba(47, 111, 94, 0.08);
+  border-color: var(--tk-copper);
+  background: rgba(166, 124, 82, 0.08);
 }
 
 /* ── Cards ─────────────────────────────────────────────────────── */
 
 .card {
   background: var(--tk-card-bg);
-  background-image:
-    repeating-linear-gradient(170deg, rgba(142, 90, 38, 0.025) 0 1px, transparent 1px 5px),
-    linear-gradient(115deg, rgba(233, 79, 138, 0.07), transparent 40%);
   border: 1px solid var(--tk-border);
-  border-radius: 4px;
   cursor: grab;
   padding: 0.65rem 0.7rem;
-  box-shadow: 0 1px 2px rgba(61, 42, 26, 0.1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
   transition: transform 0.14s ease, box-shadow 0.14s ease;
 }
 
 .card:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 14px -8px rgba(61, 42, 26, 0.35);
+  box-shadow: 0 6px 14px -8px rgba(0, 0, 0, 0.3);
 }
 
 .card:active {
@@ -498,15 +406,11 @@
 }
 
 .cardExpandBtn:hover {
-  color: var(--tk-copper-dark);
+  color: var(--tk-ink);
 }
 
 .cardTitle {
-  color: #1f1208;
-  /* Mexicala's thin strokes still read as washed-out here even at solid
-     dark color — a script face isn't the right tool at card-title size no
-     matter the weight, so this is the one content label that opts into
-     the UI font instead, bolded for real (not faux) weight. */
+  color: var(--tk-ink);
   font-family: var(--tk-ui-font);
   font-size: 0.95rem;
   font-weight: 700;
@@ -514,8 +418,6 @@
   word-break: break-word;
 }
 
-/* Keyboard-operable move controls — the accessible equivalent to the card's
-   drag-and-drop reordering, which has no native keyboard path of its own. */
 .moveRow {
   display: flex;
   flex-wrap: wrap;
@@ -541,23 +443,19 @@
   color: var(--tk-ink);
   background: #fff;
   border: 1px solid var(--tk-border);
-  border-radius: 3px;
   padding: 0.3rem 0.4rem;
   min-height: 28px;
 }
 
 .moveSelect:focus-visible {
-  outline: 2px solid var(--tk-jade);
+  outline: 2px solid var(--tk-copper);
   outline-offset: 1px;
 }
 
-/* Free-text notes: legibility while reading/writing matters more here than
-   matching the branded display face. */
 .cardNotes {
   background: #fff;
   border: 1px solid var(--tk-border);
-  border-radius: 3px;
-  color: #1f1208;
+  color: var(--tk-ink);
   font-family: var(--tk-ui-font);
   font-size: 0.85rem;
   margin-top: 0.5rem;
@@ -583,8 +481,9 @@
   gap: 0.4rem;
 }
 
-/* Context "seal" — a small stamped glyph chip rather than a flat color word.
-   Border-color carries the context identity; the glyph carries its meaning. */
+/* Context "seal" — informational (border color carries context identity),
+   kept from the prior iteration since it's a compact, real signal rather
+   than decoration. */
 .seal {
   align-items: center;
   border-radius: 50%;
@@ -605,11 +504,11 @@
   letter-spacing: 0.03em;
 }
 
-.tallyMedium { color: var(--tk-copper-dark); }
-.tallyLow { color: #6b5233; }
+.tallyMedium { color: var(--tk-copper-text); }
+.tallyLow { color: var(--tk-ink-soft); }
 
 .dueDate {
-  color: #5c4529;
+  color: var(--tk-ink-soft);
   font-family: var(--tk-ui-font);
   font-size: 0.78rem;
   margin-left: auto;
@@ -618,7 +517,7 @@
 .cardDeleteBtn {
   background: none;
   border: none;
-  color: rgba(61, 42, 26, 0.3);
+  color: var(--tk-ink-soft);
   cursor: pointer;
   font-size: 0.75rem;
   min-width: 24px;
@@ -640,20 +539,19 @@
   border: none;
   color: var(--tk-ink-soft);
   cursor: pointer;
-  font-family: 'Mexicala', 'Stardom', serif;
+  font-family: var(--tk-ui-font);
   font-size: 0.85rem;
   padding: 0.3rem 0.2rem;
   text-align: left;
 }
 
 .addTaskBtn:hover {
-  color: var(--tk-copper-dark);
+  color: var(--tk-ink);
 }
 
 .addTaskForm {
   background: var(--tk-card-bg);
   border: 1px solid var(--tk-border);
-  border-radius: 4px;
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
@@ -663,7 +561,6 @@
 .addTaskInput {
   background: #fff;
   border: 1px solid var(--tk-border);
-  border-radius: 3px;
   color: var(--tk-ink);
   font-family: var(--tk-ui-font);
   font-size: 0.8rem;
@@ -683,7 +580,6 @@
 .addTaskSelect {
   background: #fff;
   border: 1px solid var(--tk-border);
-  border-radius: 3px;
   color: var(--tk-ink);
   font-family: var(--tk-ui-font);
   font-size: 0.78rem;
@@ -699,17 +595,17 @@
 .addTaskSave {
   background: var(--tk-copper);
   border: none;
-  border-radius: 3px;
   color: #fff;
   cursor: pointer;
-  font-family: 'Mexicala', 'Stardom', serif;
+  font-family: var(--tk-ui-font);
+  font-weight: 700;
   font-size: 0.8rem;
   padding: 0.25rem 0.6rem;
   transition: background 0.15s ease;
 }
 
 .addTaskSave:hover {
-  background: var(--tk-copper-dark);
+  background: var(--tk-wood);
 }
 
 .addTaskCancel {
@@ -717,18 +613,77 @@
   border: none;
   color: var(--tk-ink-soft);
   cursor: pointer;
-  font-family: 'Mexicala', 'Stardom', serif;
+  font-family: var(--tk-ui-font);
   font-size: 0.8rem;
 }
 
+/* ── List view ─────────────────────────────────────────────────── */
+
+.listTable {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--tk-parchment);
+  border: 1px solid var(--tk-border);
+}
+
+.listTable th {
+  text-align: left;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tk-ink-soft);
+  padding: 0.65rem 0.75rem;
+  border-bottom: 1px solid var(--tk-border);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.listTable th:hover { color: var(--tk-ink); }
+
+.listSortArrow {
+  margin-left: 0.3rem;
+  color: var(--tk-copper-text);
+}
+
+.listTable td {
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid var(--tk-border);
+  font-size: 0.85rem;
+  vertical-align: middle;
+}
+
+.listTable tr:last-child td { border-bottom: none; }
+.listTable tr:hover td { background: rgba(166, 124, 82, 0.06); }
+
+.listTitle {
+  font-weight: 600;
+  color: var(--tk-ink);
+}
+.listTitleDone {
+  text-decoration: line-through;
+  color: var(--tk-ink-soft);
+}
+
+.listBadge {
+  font-family: var(--tk-ui-font);
+  font-size: 0.72rem;
+  color: var(--tk-ink-soft);
+}
+
+.listEmpty {
+  padding: 2rem;
+  text-align: center;
+  color: var(--tk-ink-soft);
+  font-size: 0.85rem;
+}
+
 /* cenote-elements.css applies uppercase + letter-spacing to every <button>
-   site-wide (a convention other pages want). This page's buttons already
-   override background/border/padding per-class — those have matching
-   specificity so they win — but none of them declared text-transform or
-   letter-spacing, so the site-wide rule had nothing to contest and applied
-   unchallenged regardless of font-family. `.page button` outranks a bare
-   `button` selector, so this settles it for every button in this module at
-   once instead of repeating the override per class. */
+   site-wide — this page's buttons already override background/border/
+   padding per-class with matching specificity, but none declared
+   text-transform/letter-spacing, so this settles it for the whole module
+   at once instead of repeating the override per class. */
 .page :global(button) {
   text-transform: none;
   letter-spacing: normal;
@@ -740,14 +695,10 @@
 .page :global(input):focus-visible,
 .page :global(select):focus-visible,
 .page :global(textarea):focus-visible {
-  outline: 2px solid var(--tk-jade);
+  outline: 2px solid var(--tk-copper);
   outline-offset: 1px;
 }
 
-/* Touch devices get more forgiving hit areas than the 24px mouse-oriented
-   minimum above — the resize handle in particular is unusably thin at 6px
-   for a finger, so it grows into an invisible wider strip rather than
-   changing its visible width. */
 @media (pointer: coarse) {
   .columnDeleteBtn,
   .cardDeleteBtn,
