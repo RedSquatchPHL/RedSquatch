@@ -81,27 +81,27 @@ export default function MoscowGame() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between flex-wrap gap-2">
-        <span className="text-xs" style={{ color: 'rgba(255,255,255,0.55)' }}>
+        <span className="text-xs" style={{ color: '#6b635f' }}>
           Classify every item, then submit — the round only scores as correct if all four match.
         </span>
         {progress && (
-          <div className="flex items-center gap-4 text-xs" style={{ color: '#d4a373' }}>
+          <div className="flex items-center gap-4 text-xs" style={{ color: '#8f6540' }}>
             <span className="flex items-center gap-1"><Trophy size={13} /> {progress.score} pts</span>
             <span className="flex items-center gap-1"><Flame size={13} /> streak {progress.current_streak}</span>
-            <span style={{ color: 'rgba(255,255,255,0.4)' }}>best {progress.best_streak}</span>
+            <span style={{ color: '#756558' }}>best {progress.best_streak}</span>
           </div>
         )}
       </div>
 
       {error && (
-        <div className="text-xs px-3 py-2 rounded" style={{ background: 'rgba(200,60,60,0.12)', color: '#e08787' }}>
+        <div className="text-xs px-3 py-2" style={{ background: 'rgba(200,60,60,0.12)', color: '#b53f3f' }}>
           {error}
         </div>
       )}
 
       <div
-        className="text-sm rounded-lg p-3"
-        style={{ background: 'rgba(184,115,51,0.08)', border: '1px solid rgba(184,115,51,0.25)', color: '#d4a373' }}
+        className="text-sm p-3"
+        style={{ background: 'rgba(184,115,51,0.08)', border: '1px solid rgba(184,115,51,0.25)', color: '#8f6540' }}
       >
         {round.context}
       </div>
@@ -115,19 +115,19 @@ export default function MoscowGame() {
           return (
             <div
               key={item.id}
-              className="rounded-lg p-3"
+              className="p-3"
               style={{
                 border: '1px solid ' + (isCorrect ? 'rgba(76,175,80,0.5)' : isWrong ? 'rgba(220,80,80,0.5)' : 'rgba(184,115,51,0.25)'),
-                background: isCorrect ? 'rgba(76,175,80,0.1)' : isWrong ? 'rgba(220,80,80,0.1)' : 'rgba(255,255,255,0.03)',
+                background: isCorrect ? 'rgba(76,175,80,0.1)' : isWrong ? 'rgba(220,80,80,0.1)' : 'rgba(44,36,32,0.04)',
               }}
             >
               <div className="flex items-start gap-2">
                 {submitted && (isCorrect
-                  ? <CheckCircle2 size={16} className="flex-shrink-0 mt-0.5" style={{ color: '#4caf50' }} />
+                  ? <CheckCircle2 size={16} className="flex-shrink-0 mt-0.5" style={{ color: '#3f7327' }} />
                   : isWrong
-                    ? <XCircle size={16} className="flex-shrink-0 mt-0.5" style={{ color: '#dc5050' }} />
+                    ? <XCircle size={16} className="flex-shrink-0 mt-0.5" style={{ color: '#b53f3f' }} />
                     : <span className="w-4" />)}
-                <span className="text-sm" style={{ color: 'rgba(255,255,255,0.85)' }}>{item.text}</span>
+                <span className="text-sm" style={{ color: '#2c2420' }}>{item.text}</span>
               </div>
 
               <div className="flex flex-wrap gap-1.5 mt-2 pl-6">
@@ -139,11 +139,11 @@ export default function MoscowGame() {
                       key={cat}
                       onClick={() => choose(item.id, cat)}
                       disabled={submitted}
-                      className="text-xs px-2.5 py-1 rounded-full transition-colors disabled:cursor-default"
+                      className="text-xs px-2.5 py-1 transition-colors disabled:cursor-default"
                       style={{
-                        border: '1px solid ' + (isTheAnswer ? 'rgba(76,175,80,0.6)' : isSelected ? 'rgba(184,115,51,0.6)' : 'rgba(255,255,255,0.15)'),
+                        border: '1px solid ' + (isTheAnswer ? 'rgba(76,175,80,0.6)' : isSelected ? 'rgba(184,115,51,0.6)' : 'rgba(44,36,32,0.15)'),
                         background: isTheAnswer ? 'rgba(76,175,80,0.15)' : isSelected ? 'rgba(184,115,51,0.18)' : 'transparent',
-                        color: isTheAnswer ? '#8fce8f' : isSelected ? '#d4a373' : 'rgba(255,255,255,0.55)',
+                        color: isTheAnswer ? '#3f7327' : isSelected ? '#8f6540' : '#6b635f',
                       }}
                     >
                       {MOSCOW_CATEGORY_LABELS[cat]}
@@ -153,7 +153,7 @@ export default function MoscowGame() {
               </div>
 
               {submitted && (
-                <div className="mt-2 pl-6 text-xs" style={{ color: isCorrect ? '#8fce8f' : '#e08787' }}>
+                <div className="mt-2 pl-6 text-xs" style={{ color: isCorrect ? '#3f7327' : '#b53f3f' }}>
                   {!isCorrect && <span className="font-semibold">{MOSCOW_CATEGORY_LABELS[item.category]}: </span>}
                   {item.rationale}
                 </div>
@@ -166,22 +166,22 @@ export default function MoscowGame() {
       <div className="flex items-center justify-between">
         {submitted ? (
           <>
-            <span className="text-xs" style={{ color: allCorrect ? '#8fce8f' : '#e08787' }}>
+            <span className="text-xs" style={{ color: allCorrect ? '#3f7327' : '#b53f3f' }}>
               {allCorrect ? 'All four correct!' : 'Some of these landed in the wrong bucket — see the notes above.'}
             </span>
-            <button onClick={nextRound} className="glass-btn px-4 py-1.5 rounded text-xs font-semibold">
+            <button onClick={nextRound} className="px-4 py-1.5 text-xs font-semibold" style={{ background: '#a67c52', color: '#fff', border: 'none', cursor: 'pointer' }}>
               Next round
             </button>
           </>
         ) : (
           <>
-            <span className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
+            <span className="text-xs" style={{ color: '#756558' }}>
               {allPicked ? 'Ready to submit.' : `${round.items.filter(i => picks[i.id]).length}/${round.items.length} classified`}
             </span>
             <button
               onClick={submit}
               disabled={!allPicked}
-              className="glass-btn px-4 py-1.5 rounded text-xs font-semibold disabled:opacity-40 disabled:cursor-default"
+              className="px-4 py-1.5 text-xs font-semibold disabled:opacity-40 disabled:cursor-default" style={{ background: '#a67c52', color: '#fff', border: 'none' }}
             >
               Submit
             </button>

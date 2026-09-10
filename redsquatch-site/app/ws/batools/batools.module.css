@@ -1,0 +1,151 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   WorkSquatch — BA Tools. Same hacienda system as the rest of /ws. Structure
+   departs from the old grid-of-tiles-that-open-a-modal pattern (a "same-size
+   cards of icon+heading+text" default craft-floor.md explicitly flags) —
+   instead, all six tools stack as an accordion on one page, expanding inline
+   rather than covering the screen.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.page {
+  --hacienda-wall: #7d4d3d;
+  --hacienda-wall-deep: #5c3529;
+  --panel-bg: #f9f7f2;
+  --panel-border: #e8e2d6;
+  --wood-frame: #5d4037;
+  --copper-accent: #a67c52;
+  --ink-main: #2c2420;
+  --ink-muted: #6b635f;
+
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  background-color: var(--hacienda-wall-deep);
+  overflow-x: hidden;
+  font-family: 'Inter', system-ui, sans-serif;
+  color: var(--ink-main);
+}
+
+@font-face {
+  font-family: 'Mexicala';
+  src: url('/fonts/Mexicala-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+.wallTexture {
+  position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.7;
+  filter: contrast(115%) brightness(95%);
+}
+.wallColor {
+  position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background-color: var(--hacienda-wall);
+  mix-blend-mode: color;
+}
+.wallGlow {
+  position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background: radial-gradient(ellipse 60% 50% at 15% 10%, rgba(255, 210, 150, 0.18), transparent 65%);
+  mix-blend-mode: soft-light;
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 3rem 1.5rem 4rem;
+}
+
+.header { margin-bottom: 2rem; }
+.wordmark {
+  font-family: 'Mexicala', serif;
+  font-size: 2.5rem;
+  margin: 0 0 0.25rem;
+  color: rgba(255, 250, 240, 0.92);
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.35);
+}
+.subtitle {
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  color: rgba(255, 250, 240, 0.55);
+}
+
+.groupLabel {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 250, 240, 0.85);
+  margin: 1.75rem 0 0.75rem;
+}
+.groupLabel:first-of-type { margin-top: 0; }
+
+.accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.section {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+.sectionHeader {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.9rem 1.1rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.iconWrap {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(166, 124, 82, 0.12);
+  color: var(--copper-accent);
+}
+
+.sectionTitleBlock { flex: 1; min-width: 0; }
+
+.sectionTitle {
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.sectionDesc {
+  font-size: 0.76rem;
+  color: var(--ink-muted);
+  margin-top: 0.1rem;
+}
+
+.chevron {
+  flex-shrink: 0;
+  font-size: 0.85rem;
+  color: var(--ink-muted);
+  min-width: 28px;
+  min-height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sectionBody {
+  border-top: 1px solid var(--panel-border);
+  padding: 1.25rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page * { transition: none !important; }
+}

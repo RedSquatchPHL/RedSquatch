@@ -68,27 +68,27 @@ export default function AcceptanceCriteriaGame() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between flex-wrap gap-2">
-        <span className="text-xs" style={{ color: 'rgba(255,255,255,0.55)' }}>
+        <span className="text-xs" style={{ color: '#6b635f' }}>
           Pick the acceptance criteria set that actually verifies the story below.
         </span>
         {progress && (
-          <div className="flex items-center gap-4 text-xs" style={{ color: '#d4a373' }}>
+          <div className="flex items-center gap-4 text-xs" style={{ color: '#8f6540' }}>
             <span className="flex items-center gap-1"><Trophy size={13} /> {progress.score} pts</span>
             <span className="flex items-center gap-1"><Flame size={13} /> streak {progress.current_streak}</span>
-            <span style={{ color: 'rgba(255,255,255,0.4)' }}>best {progress.best_streak}</span>
+            <span style={{ color: '#756558' }}>best {progress.best_streak}</span>
           </div>
         )}
       </div>
 
       {error && (
-        <div className="text-xs px-3 py-2 rounded" style={{ background: 'rgba(200,60,60,0.12)', color: '#e08787' }}>
+        <div className="text-xs px-3 py-2" style={{ background: 'rgba(200,60,60,0.12)', color: '#b53f3f' }}>
           {error}
         </div>
       )}
 
       <div
-        className="text-sm rounded-lg p-3"
-        style={{ background: 'rgba(184,115,51,0.08)', border: '1px solid rgba(184,115,51,0.25)', color: '#d4a373' }}
+        className="text-sm p-3"
+        style={{ background: 'rgba(184,115,51,0.08)', border: '1px solid rgba(184,115,51,0.25)', color: '#8f6540' }}
       >
         {round.story}
       </div>
@@ -105,24 +105,24 @@ export default function AcceptanceCriteriaGame() {
               key={option.id}
               onClick={() => pick(option)}
               disabled={revealed}
-              className="text-left rounded-lg p-3 transition-colors disabled:cursor-default"
+              className="text-left p-3 transition-colors disabled:cursor-default"
               style={{
                 border: '1px solid ' + (showAsCorrect ? 'rgba(76,175,80,0.5)' : showAsWrong ? 'rgba(220,80,80,0.5)' : 'rgba(184,115,51,0.25)'),
-                background: showAsCorrect ? 'rgba(76,175,80,0.1)' : showAsWrong ? 'rgba(220,80,80,0.1)' : 'rgba(255,255,255,0.03)',
+                background: showAsCorrect ? 'rgba(76,175,80,0.1)' : showAsWrong ? 'rgba(220,80,80,0.1)' : 'rgba(44,36,32,0.04)',
               }}
             >
               <div className="flex items-start gap-2">
                 {revealed && (option.correct
-                  ? <CheckCircle2 size={16} className="flex-shrink-0 mt-0.5" style={{ color: '#4caf50' }} />
+                  ? <CheckCircle2 size={16} className="flex-shrink-0 mt-0.5" style={{ color: '#3f7327' }} />
                   : isPicked
-                    ? <XCircle size={16} className="flex-shrink-0 mt-0.5" style={{ color: '#dc5050' }} />
+                    ? <XCircle size={16} className="flex-shrink-0 mt-0.5" style={{ color: '#b53f3f' }} />
                     : <span className="w-4" />)}
-                <ul className="text-sm space-y-1" style={{ color: 'rgba(255,255,255,0.85)' }}>
+                <ul className="text-sm space-y-1" style={{ color: '#2c2420' }}>
                   {option.criteria.map((line, i) => <li key={i}>{line}</li>)}
                 </ul>
               </div>
               {revealed && (isPicked || option.correct) && (
-                <div className="mt-2 pl-6 text-xs" style={{ color: option.correct ? '#8fce8f' : '#e08787' }}>
+                <div className="mt-2 pl-6 text-xs" style={{ color: option.correct ? '#3f7327' : '#b53f3f' }}>
                   {option.flaw && <span className="font-semibold">{option.flaw}: </span>}
                   {option.explanation}
                 </div>
@@ -134,12 +134,12 @@ export default function AcceptanceCriteriaGame() {
 
       {pickedId && (
         <div className="flex items-center justify-between">
-          <span className="text-xs" style={{ color: picked?.correct ? '#8fce8f' : '#e08787' }}>
+          <span className="text-xs" style={{ color: picked?.correct ? '#3f7327' : '#b53f3f' }}>
             {picked?.correct ? 'Correct!' : 'Not quite — check the highlighted set above.'}
           </span>
           <button
             onClick={nextRound}
-            className="glass-btn px-4 py-1.5 rounded text-xs font-semibold"
+            className="px-4 py-1.5 text-xs font-semibold" style={{ background: '#a67c52', color: '#fff', border: 'none', cursor: 'pointer' }}
           >
             Next round
           </button>
