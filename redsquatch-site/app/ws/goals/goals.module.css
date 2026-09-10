@@ -1,0 +1,124 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   WorkSquatch — Goals. Same hacienda system as Gates/Patio/Tools/Dashboard.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.page {
+  --hacienda-wall: #7d4d3d;
+  --hacienda-wall-deep: #5c3529;
+  --panel-bg: #f9f7f2;
+  --panel-border: #e8e2d6;
+  --wood-frame: #5d4037;
+  --copper-accent: #a67c52;
+  --ink-main: #2c2420;
+  --ink-muted: #6b635f;
+
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  background-color: var(--hacienda-wall-deep);
+  overflow-x: hidden;
+  font-family: 'Inter', system-ui, sans-serif;
+  color: var(--ink-main);
+}
+
+@font-face {
+  font-family: 'Mexicala';
+  src: url('/fonts/Mexicala-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+.wallTexture {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.7;
+  filter: contrast(115%) brightness(95%);
+}
+
+.wallColor {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-color: var(--hacienda-wall);
+  mix-blend-mode: color;
+}
+
+.wallGlow {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse 60% 50% at 15% 10%, rgba(255, 210, 150, 0.18), transparent 65%);
+  mix-blend-mode: soft-light;
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 3rem 1.5rem 4rem;
+}
+
+.header {
+  margin-bottom: 2rem;
+}
+
+.wordmark {
+  font-family: 'Mexicala', serif;
+  font-size: 2.5rem;
+  margin: 0 0 0.25rem;
+  color: rgba(255, 250, 240, 0.92);
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.35);
+}
+
+.subtitle {
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  color: rgba(255, 250, 240, 0.55);
+}
+
+.timelinePanel {
+  background: rgba(249, 247, 242, 0.06);
+  border: 1px solid rgba(232, 226, 214, 0.25);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+/* Task Board / Career Trajectory frame. Deliberately a lighter touch than
+   the rest of this page: TasksBoard/CareerTrajectoryBoard are components
+   shared with /hs/goals, which stays on its own untouched theme while its
+   next direction is undecided — editing their internals isn't safe to do
+   here, so only this wrapping frame is hacienda-styled; the board's own
+   dark-glass rendering inside it is a known gap, not a finished reskin. */
+.boardFrame {
+  background: var(--wood-frame);
+  border: 1px solid var(--panel-border);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+  padding: 1.25rem;
+}
+
+.boardHeading {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(255, 250, 240, 0.75);
+  margin: 0 0 0.35rem;
+}
+
+.boardNote {
+  font-size: 0.7rem;
+  color: rgba(255, 250, 240, 0.7);
+  margin: 0 0 1rem;
+}
+
+.boardInner {
+  background: var(--panel-bg);
+  padding: 1rem;
+}

@@ -1,0 +1,384 @@
+/* Timeline-first goals surface for /ws/goals — a fork of GoalsPanel's CRUD
+   logic, not a shared component, specifically because GoalsPanel is also
+   used by /hs/goals, which stays untouched while its own next direction is
+   undecided. Structure: chronological by target_date (the data model only
+   has dates on goals, not individual milestones, so the timeline groups at
+   goal granularity), not goal-list-with-nested-milestones. */
+
+.wrap {
+  --hacienda-wall: #7d4d3d;
+  --panel-bg: #f9f7f2;
+  --panel-border: #e8e2d6;
+  --wood-frame: #5d4037;
+  --copper-accent: #a67c52;
+  --ink-main: #2c2420;
+  --ink-muted: #6b635f;
+  /* Darker than the usual status hues specifically because these render as
+     small text (status tags), not just dots/borders — the standard shades
+     measured 3.88/2.17/4.24:1 on --panel-bg, all under WCAG AA's 4.5:1
+     floor; these clear 5.3/5.25/5.23:1. */
+  --status-green: #3f7327;
+  --status-yellow: #8a5f1c;
+  --status-red: #b53f3f;
+  color: var(--ink-main);
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.topBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+
+/* Small local context switcher — reimplemented rather than reusing the
+   shared ContextSwitcher, which is also used by /hs/goals and relies on
+   emoji-as-icon (banned by craft-floor.md) plus rounded/glass styling. */
+.ctxSwitch {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.ctxBtn {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.4rem 0.75rem;
+  min-height: 28px;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  color: var(--ink-muted);
+  cursor: pointer;
+}
+
+.ctxBtnActive {
+  border-color: var(--copper-accent);
+  color: var(--ink-main);
+  background: rgba(166, 124, 82, 0.12);
+}
+
+.addBtn {
+  background: var(--wood-frame);
+  color: #f9f7f2;
+  border: none;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.5rem 0.9rem;
+  min-height: 32px;
+  cursor: pointer;
+}
+
+.addBtn:hover { background: #4a332a; }
+
+/* ---- Create/edit form ---- */
+.form {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  box-shadow: 0 10px 24px rgba(0,0,0,0.12);
+  padding: 1rem;
+  margin-bottom: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.formTitle {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  margin: 0;
+}
+
+.input,
+.textarea,
+.select {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.85rem;
+  color: var(--ink-main);
+  background: #fff;
+  border: 1px solid var(--panel-border);
+  padding: 0.5rem 0.65rem;
+  width: 100%;
+}
+
+.input:focus-visible,
+.textarea:focus-visible,
+.select:focus-visible {
+  outline: 2px solid var(--copper-accent);
+  outline-offset: 1px;
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+}
+
+.fieldLabel {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.formActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.primaryBtn {
+  background: var(--copper-accent);
+  color: #fff;
+  border: none;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.5rem 0.9rem;
+  min-height: 32px;
+  cursor: pointer;
+}
+
+.primaryBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.secondaryBtn {
+  background: transparent;
+  color: var(--ink-muted);
+  border: 1px solid var(--panel-border);
+  font-size: 0.78rem;
+  padding: 0.5rem 0.9rem;
+  min-height: 32px;
+  cursor: pointer;
+}
+
+/* ---- Timeline ---- */
+.timeline {
+  position: relative;
+  padding-left: 1.4rem;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 6px;
+  bottom: 6px;
+  width: 1px;
+  background: var(--panel-border);
+}
+
+.sectionLabel {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 250, 240, 0.85);
+  margin: 1.5rem 0 0.75rem;
+}
+.sectionLabel:first-child { margin-top: 0; }
+
+.entry {
+  position: relative;
+  margin-bottom: 0.9rem;
+}
+
+.entryDot {
+  position: absolute;
+  left: -1.4rem;
+  top: 0.4rem;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--copper-accent);
+  border: 2px solid var(--hacienda-wall);
+}
+
+.entryCard {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+  padding: 0.75rem 0.9rem;
+}
+
+.entryHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.entryDate {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.68rem;
+  /* Darker than --copper-accent because this renders as text, not an
+     icon/border tint — #a67c52 measures 3.49:1 on --panel-bg, under
+     WCAG AA; this clears 4.78:1. Same fix as Dashboard's ledger badge. */
+  color: #8f6540;
+  text-transform: uppercase;
+  margin-bottom: 0.15rem;
+}
+
+.entryTitleRow {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.entryTitle {
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.categoryTag {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  border: 1px solid var(--panel-border);
+  padding: 0.05rem 0.35rem;
+}
+
+.statusTag {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.05rem 0.35rem;
+  border: 1px solid;
+}
+
+.entryRight {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-shrink: 0;
+}
+
+.pct {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.78rem;
+  color: var(--ink-muted);
+}
+
+.chevron {
+  font-size: 0.7rem;
+  color: var(--ink-muted);
+  min-width: 20px;
+  min-height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.track {
+  height: 3px;
+  background: var(--panel-border);
+  margin-top: 0.5rem;
+}
+.fill {
+  height: 100%;
+  background: var(--copper-accent);
+}
+
+.detail {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--panel-border);
+}
+
+.description {
+  font-size: 0.82rem;
+  color: var(--ink-muted);
+  margin: 0 0 0.75rem;
+}
+
+.milestoneRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0;
+}
+
+.checkbox {
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  border: 1px solid var(--panel-border);
+  background: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: var(--panel-bg);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.checkboxDone {
+  background: var(--copper-accent);
+  border-color: var(--copper-accent);
+}
+
+.milestoneTitle {
+  flex: 1;
+  font-size: 0.85rem;
+}
+.milestoneTitleDone {
+  text-decoration: line-through;
+  color: var(--ink-muted);
+}
+
+.msDeleteBtn {
+  min-width: 24px;
+  min-height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--ink-muted);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.milestoneRow:hover .msDeleteBtn,
+.msDeleteBtn:focus-visible { opacity: 1; outline: none; }
+
+.addMsRow {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.4rem;
+}
+
+.msInput {
+  flex: 1;
+  font-size: 0.8rem;
+  padding: 0.35rem 0.5rem;
+  min-height: 28px;
+  border: 1px solid var(--panel-border);
+  background: #fff;
+  color: var(--ink-main);
+}
+
+.entryFooter {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.emptyNote {
+  color: rgba(255, 250, 240, 0.85);
+  font-size: 0.85rem;
+  padding: 0.5rem 0 1rem;
+}
