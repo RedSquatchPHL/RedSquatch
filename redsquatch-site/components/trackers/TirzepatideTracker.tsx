@@ -5,11 +5,13 @@ import { Plus, ExternalLink, Pencil, Trash2, ArrowUpDown } from 'lucide-react';
 import { API } from '@/lib/api';
 
 type Status = 'researching' | 'contacted' | 'ordered' | 'rejected';
+type SourceType = 'compounded' | 'manufacturer_direct' | null;
 
 interface Compounder {
   id: number;
   name: string;
   website_url: string | null;
+  source_type: SourceType;
   vial_size_mg: string | number | null;
   price_usd: string | number | null;
   subscription_price_usd: string | number | null;
@@ -53,6 +55,14 @@ const STATUS_STYLE: Record<Status, { bg: string; color: string; label: string }>
   rejected:    { bg: 'rgba(200,80,80,0.18)',                 color: '#c85050',           label: 'REJECTED' },
 };
 
+// Compounded (503A/503B pharmacy) vs. manufacturer-direct (brand Zepbound/Mounjaro
+// via insurance, Medicare, or LillyDirect) are different purchasing paths with
+// different fields that matter — this badge is just the "which world is this" flag.
+const SOURCE_TYPE_STYLE: Record<'compounded' | 'manufacturer_direct', { bg: string; color: string; label: string }> = {
+  compounded:          { bg: 'rgba(184,115,51,0.18)', color: '#d4a373', label: 'Compounded' },
+  manufacturer_direct: { bg: 'rgba(90,130,200,0.18)', color: '#8fb0e8', label: 'Manufacturer' },
+};
+
 const money = (v: string | number | null) => {
   const n = toNum(v);
   return n === null ? '—' : `$${n.toFixed(2)}`;
@@ -61,6 +71,7 @@ const money = (v: string | number | null) => {
 const emptyForm = {
   name: '',
   website_url: '',
+  source_type: '' as '' | 'compounded' | 'manufacturer_direct',
   vial_size_mg: '',
   price_usd: '',
   subscription_price_usd: '',
@@ -80,6 +91,7 @@ function toFormState(c: Compounder): FormState {
   return {
     name: c.name,
     website_url: c.website_url ?? '',
+    source_type: c.source_type ?? '',
     vial_size_mg: c.vial_size_mg?.toString() ?? '',
     price_usd: c.price_usd?.toString() ?? '',
     subscription_price_usd: c.subscription_price_usd?.toString() ?? '',
@@ -103,6 +115,7 @@ function formToPayload(f: FormState): Record<string, unknown> {
   const payload: Record<string, unknown> = {
     name: f.name.trim(),
     website_url: f.website_url.trim() || null,
+    source_type: f.source_type || null,
     subscription_interval: f.subscription_interval.trim() || null,
     telehealth_required: f.telehealth_required,
     labs_required: f.labs_required,
@@ -268,6 +281,7 @@ export default function TirzepatideTracker() {
             <thead>
               <tr style={{ borderBottom: '2px solid rgba(var(--copper-bold-rgb),0.2)' }}>
                 <th className="text-left px-3 py-2">Name</th>
+                <th className="text-left px-3 py-2">Source</th>
                 <th className="text-left px-3 py-2">Vial</th>
                 <th className="text-left px-3 py-2">Price</th>
                 <th className="text-left px-3 py-2">
@@ -302,6 +316,18 @@ export default function TirzepatideTracker() {
                           </a>
                         )}
                       </div>
+                    </td>
+                    <td className="px-3 py-2">
+                      {c.source_type ? (
+                        <span
+                          className="inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold whitespace-nowrap"
+                          style={{ background: SOURCE_TYPE_STYLE[c.source_type].bg, color: SOURCE_TYPE_STYLE[c.source_type].color }}
+                        >
+                          {SOURCE_TYPE_STYLE[c.source_type].label}
+                        </span>
+                      ) : (
+                        <span style={{ color: 'rgba(var(--copper-tan-rgb),0.4)' }}>—</span>
+                      )}
                     </td>
                     <td className="px-3 py-2">{toNum(c.vial_size_mg) !== null ? `${toNum(c.vial_size_mg)} mg` : '—'}</td>
                     <td className="px-3 py-2">{money(c.price_usd)}</td>
@@ -361,6 +387,17 @@ export default function TirzepatideTracker() {
           <div>
             <label className="block text-xs mb-1" style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }}>Website URL</label>
             <input value={form.website_url} onChange={e => setForm(f => ({ ...f, website_url: e.target.value }))} placeholder="https://..." className="w-full border px-2 py-1.5 text-sm rounded" style={inputStyle} />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs mb-1" style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }}>Source Type</label>
+              <select value={form.source_type} onChange={e => setForm(f => ({ ...f, source_type: e.target.value as typeof f.source_type }))} className="w-full border px-2 py-1.5 text-sm rounded" style={inputStyle}>
+                <option value="" style={{ color: '#000' }}>Not specified</option>
+                <option value="compounded" style={{ color: '#000' }}>Compounded (503A/503B pharmacy)</option>
+                <option value="manufacturer_direct" style={{ color: '#000' }}>Manufacturer-direct (brand Rx)</option>
+              </select>
+            </div>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
