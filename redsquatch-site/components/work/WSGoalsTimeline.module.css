@@ -7,19 +7,40 @@
 
 .wrap {
   --hacienda-wall: #7d4d3d;
-  --panel-bg: #f9f7f2;
-  --panel-border: #e8e2d6;
   --wood-frame: #5d4037;
-  --copper-accent: #a67c52;
-  --ink-main: #2c2420;
-  --ink-muted: #6b635f;
-  /* Darker than the usual status hues specifically because these render as
-     small text (status tags), not just dots/borders — the standard shades
-     measured 3.88/2.17/4.24:1 on --panel-bg, all under WCAG AA's 4.5:1
-     floor; these clear 5.3/5.25/5.23:1. */
-  --status-green: #3f7327;
-  --status-yellow: #8a5f1c;
-  --status-red: #b53f3f;
+
+  /* Option B tile language, same values as /ws/work's tasks.module.css:
+     glazed terracotta frame (.entryCard) holding a dark modern data inset
+     (.entryInset) — frame carries the room, inset stays legible. */
+  --glaze: #b8683f;
+  --glaze-deep: #8f4a2e;
+  --glaze-border: #6e3a24;
+  --inset: #14100d;
+  --inset-border: rgba(184, 115, 51, 0.22);
+  --copper-accent: #b87333;
+  --copper-light: #d4a373;
+
+  /* on-inset (dark grounds): copper tint works — huge lightness gap. .75
+     alpha measured 5.16:1 on --inset (.65 measured 4.16:1, under AA). */
+  --ink-main: rgba(255, 250, 240, 0.92);
+  --ink-muted: rgba(212, 163, 115, 0.75);
+  --panel-border: var(--inset-border);
+
+  /* on-wall (topBar/form float over the barely-tinted timelinePanel, which
+     still shows real wall texture through it): tint from cream, not copper —
+     same reasoning as tasks.module.css. .85 alpha measures 5.07:1 on the
+     wall's base hex. */
+  --onwall: rgba(255, 250, 240, 0.95);
+  --onwall-soft: rgba(255, 241, 222, 0.85);
+
+  /* Status colors, retuned for --inset (previously tuned for the flat-cream
+     --panel-bg: #f9f7f2, which no longer exists: those measured
+     3.88/2.17/4.24:1 there, all under AA). These measure 7.75/8.47/5.51:1
+     on --inset. */
+  --status-green: #6bb851;
+  --status-yellow: #d9a53f;
+  --status-red: #d9695a;
+
   color: var(--ink-main);
   font-family: 'Inter', system-ui, sans-serif;
 }
@@ -48,16 +69,19 @@
   text-transform: uppercase;
   padding: 0.4rem 0.75rem;
   min-height: 28px;
-  background: var(--panel-bg);
-  border: 1px solid var(--panel-border);
-  color: var(--ink-muted);
+  background: rgba(13, 10, 8, 0.5);
+  border: 1px solid var(--inset-border);
+  color: var(--onwall-soft);
   cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
 }
+
+.ctxBtn:hover { border-color: var(--copper-accent); color: var(--onwall); }
 
 .ctxBtnActive {
   border-color: var(--copper-accent);
-  color: var(--ink-main);
-  background: rgba(166, 124, 82, 0.12);
+  color: var(--onwall);
+  background: rgba(184, 115, 51, 0.22);
 }
 
 .addBtn {
@@ -77,9 +101,9 @@
 
 /* ---- Create/edit form ---- */
 .form {
-  background: var(--panel-bg);
-  border: 1px solid var(--panel-border);
-  box-shadow: 0 10px 24px rgba(0,0,0,0.12);
+  background: var(--inset);
+  border: 1px solid var(--inset-border);
+  box-shadow: 0 10px 24px rgba(0,0,0,0.35);
   padding: 1rem;
   margin-bottom: 1.25rem;
   display: flex;
@@ -102,7 +126,7 @@
   font-family: 'Inter', system-ui, sans-serif;
   font-size: 0.85rem;
   color: var(--ink-main);
-  background: #fff;
+  background: rgba(255, 255, 255, 0.06);
   border: 1px solid var(--panel-border);
   padding: 0.5rem 0.65rem;
   width: 100%;
@@ -172,7 +196,7 @@
   top: 6px;
   bottom: 6px;
   width: 1px;
-  background: var(--panel-border);
+  background: rgba(184, 115, 51, 0.4);
 }
 
 .sectionLabel {
@@ -201,11 +225,27 @@
   border: 2px solid var(--hacienda-wall);
 }
 
+/* Option B tile: glazed terracotta frame holding a dark modern data inset —
+   same split as /ws/work's kanban cards, same reasoning (room material on
+   the frame, legible modern surface for the actual goal data). */
 .entryCard {
-  background: var(--panel-bg);
-  border: 1px solid var(--panel-border);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.15);
-  padding: 0.75rem 0.9rem;
+  background: linear-gradient(155deg, var(--glaze) 0%, var(--glaze-deep) 100%);
+  border: 1px solid var(--glaze-border);
+  box-shadow: 0 10px 24px -8px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.16);
+  padding: 0.4rem;
+  transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.entryCard:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 18px 36px -10px rgba(0, 0, 0, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  border-color: #8a5230;
+}
+
+.entryInset {
+  background: var(--inset);
+  border: 1px solid var(--inset-border);
+  padding: 0.55rem 0.7rem;
 }
 
 .entryHead {
@@ -219,10 +259,7 @@
 .entryDate {
   font-family: 'JetBrains Mono', ui-monospace, monospace;
   font-size: 0.68rem;
-  /* Darker than --copper-accent because this renders as text, not an
-     icon/border tint — #a67c52 measures 3.49:1 on --panel-bg, under
-     WCAG AA; this clears 4.78:1. Same fix as Dashboard's ledger badge. */
-  color: #8f6540;
+  color: var(--copper-light);
   text-transform: uppercase;
   margin-bottom: 0.15rem;
 }
@@ -283,7 +320,7 @@
 
 .track {
   height: 3px;
-  background: var(--panel-border);
+  background: rgba(255, 255, 255, 0.1);
   margin-top: 0.5rem;
 }
 .fill {
@@ -291,10 +328,18 @@
   background: var(--copper-accent);
 }
 
+/* Brief reveal on mount — the one motion moment this timeline gets, since
+   there's no drag-and-drop here to author around, just expand/collapse. */
 .detail {
   margin-top: 0.75rem;
   padding-top: 0.75rem;
   border-top: 1px solid var(--panel-border);
+  animation: detailReveal 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes detailReveal {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .description {
@@ -315,12 +360,12 @@
   height: 20px;
   min-width: 20px;
   border: 1px solid var(--panel-border);
-  background: #fff;
+  background: rgba(255, 255, 255, 0.06);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   font-size: 11px;
-  color: var(--panel-bg);
+  color: var(--ink-main);
   cursor: pointer;
   flex-shrink: 0;
 }
@@ -367,7 +412,7 @@
   padding: 0.35rem 0.5rem;
   min-height: 28px;
   border: 1px solid var(--panel-border);
-  background: #fff;
+  background: rgba(255, 255, 255, 0.06);
   color: var(--ink-main);
 }
 
@@ -381,4 +426,17 @@
   color: rgba(255, 250, 240, 0.85);
   font-size: 0.85rem;
   padding: 0.5rem 0 1rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .entryCard,
+  .ctxBtn {
+    transition: none;
+  }
+  .entryCard:hover {
+    transform: none;
+  }
+  .detail {
+    animation: none;
+  }
 }

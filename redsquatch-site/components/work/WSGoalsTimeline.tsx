@@ -165,64 +165,66 @@ export function WSGoalsTimeline() {
       <div key={goal.id} className={s.entry}>
         <div className={s.entryDot} aria-hidden="true" />
         <div className={s.entryCard}>
-          {goal.target_date && <div className={s.entryDate}>{formatDate(goal.target_date)}</div>}
-          <div
-            className={s.entryHead}
-            onClick={() => setExpandedId(expanded ? null : goal.id)}
-            role="button"
-            tabIndex={0}
-            aria-expanded={expanded}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setExpandedId(expanded ? null : goal.id); } }}
-          >
-            <div className={s.entryTitleRow}>
-              <span className={s.entryTitle}>{goal.title}</span>
-              {goal.category_name && <span className={s.categoryTag}>{goal.category_name}</span>}
-              <span className={s.statusTag} style={{ color: STATUS_COLOR[goal.status] ?? 'var(--ink-muted)', borderColor: STATUS_COLOR[goal.status] ?? 'var(--panel-border)' }}>
-                {STATUS_LABEL[goal.status] ?? goal.status}
-              </span>
+          <div className={s.entryInset}>
+            {goal.target_date && <div className={s.entryDate}>{formatDate(goal.target_date)}</div>}
+            <div
+              className={s.entryHead}
+              onClick={() => setExpandedId(expanded ? null : goal.id)}
+              role="button"
+              tabIndex={0}
+              aria-expanded={expanded}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setExpandedId(expanded ? null : goal.id); } }}
+            >
+              <div className={s.entryTitleRow}>
+                <span className={s.entryTitle}>{goal.title}</span>
+                {goal.category_name && <span className={s.categoryTag}>{goal.category_name}</span>}
+                <span className={s.statusTag} style={{ color: STATUS_COLOR[goal.status] ?? 'var(--ink-muted)', borderColor: STATUS_COLOR[goal.status] ?? 'var(--panel-border)' }}>
+                  {STATUS_LABEL[goal.status] ?? goal.status}
+                </span>
+              </div>
+              <div className={s.entryRight}>
+                <span className={s.pct}>{goal.progress}%</span>
+                <span className={s.chevron}>{expanded ? '▾' : '▸'}</span>
+              </div>
             </div>
-            <div className={s.entryRight}>
-              <span className={s.pct}>{goal.progress}%</span>
-              <span className={s.chevron}>{expanded ? '▾' : '▸'}</span>
-            </div>
-          </div>
-          <div className={s.track}><div className={s.fill} style={{ width: `${goal.progress}%` }} /></div>
+            <div className={s.track}><div className={s.fill} style={{ width: `${goal.progress}%` }} /></div>
 
-          {expanded && (
-            <div className={s.detail}>
-              {goal.description && <p className={s.description}>{goal.description}</p>}
+            {expanded && (
+              <div className={s.detail}>
+                {goal.description && <p className={s.description}>{goal.description}</p>}
 
-              {goal.milestones.length === 0 && <p className={s.description}>No milestones yet.</p>}
-              {goal.milestones.map(ms => (
-                <div key={ms.id} className={s.milestoneRow}>
-                  <button
-                    className={`${s.checkbox} ${ms.is_completed ? s.checkboxDone : ''}`}
-                    onClick={() => toggleMilestone(ms)}
-                    aria-label={ms.is_completed ? `Mark "${ms.title}" incomplete` : `Mark "${ms.title}" complete`}
-                  >
-                    {ms.is_completed && '✓'}
-                  </button>
-                  <span className={`${s.milestoneTitle} ${ms.is_completed ? s.milestoneTitleDone : ''}`}>{ms.title}</span>
-                  <button className={s.msDeleteBtn} onClick={() => deleteMilestone(ms.id)} aria-label={`Delete milestone "${ms.title}"`}>✕</button>
+                {goal.milestones.length === 0 && <p className={s.description}>No milestones yet.</p>}
+                {goal.milestones.map(ms => (
+                  <div key={ms.id} className={s.milestoneRow}>
+                    <button
+                      className={`${s.checkbox} ${ms.is_completed ? s.checkboxDone : ''}`}
+                      onClick={() => toggleMilestone(ms)}
+                      aria-label={ms.is_completed ? `Mark "${ms.title}" incomplete` : `Mark "${ms.title}" complete`}
+                    >
+                      {ms.is_completed && '✓'}
+                    </button>
+                    <span className={`${s.milestoneTitle} ${ms.is_completed ? s.milestoneTitleDone : ''}`}>{ms.title}</span>
+                    <button className={s.msDeleteBtn} onClick={() => deleteMilestone(ms.id)} aria-label={`Delete milestone "${ms.title}"`}>✕</button>
+                  </div>
+                ))}
+                <div className={s.addMsRow}>
+                  <input
+                    className={s.msInput}
+                    placeholder="Add milestone…"
+                    value={newMilestone[goal.id] ?? ''}
+                    onChange={(e) => setNewMilestone(prev => ({ ...prev, [goal.id]: e.target.value }))}
+                    onKeyDown={(e) => { if (e.key === 'Enter') addMilestone(goal.id); }}
+                  />
+                  <button className={s.secondaryBtn} onClick={() => addMilestone(goal.id)}>Add</button>
                 </div>
-              ))}
-              <div className={s.addMsRow}>
-                <input
-                  className={s.msInput}
-                  placeholder="Add milestone…"
-                  value={newMilestone[goal.id] ?? ''}
-                  onChange={(e) => setNewMilestone(prev => ({ ...prev, [goal.id]: e.target.value }))}
-                  onKeyDown={(e) => { if (e.key === 'Enter') addMilestone(goal.id); }}
-                />
-                <button className={s.secondaryBtn} onClick={() => addMilestone(goal.id)}>Add</button>
-              </div>
 
-              <div className={s.entryFooter}>
-                <button className={s.secondaryBtn} onClick={() => startEdit(goal)}>Edit</button>
-                <button className={s.secondaryBtn} onClick={() => deleteGoal(goal.id)}>Delete</button>
+                <div className={s.entryFooter}>
+                  <button className={s.secondaryBtn} onClick={() => startEdit(goal)}>Edit</button>
+                  <button className={s.secondaryBtn} onClick={() => deleteGoal(goal.id)}>Delete</button>
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     );

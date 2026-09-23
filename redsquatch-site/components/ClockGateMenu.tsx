@@ -1,10 +1,11 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { Settings, Sunset, Briefcase, X, Link2, ArrowLeftRight, LogOut } from 'lucide-react';
+import { Settings, Sunset, Briefcase, X, ArrowLeftRight, LogOut } from 'lucide-react';
 import { useHomeSquatchGate } from './HomeSquatchGate';
 import { logout } from '@/lib/api';
 import { WS_NAV, HS_NAV, QUICK_LINKS_SUBMENU, type MenuLeaf } from '@/lib/menuConfig';
+import BranchedMenu, { type BranchedMenuSection } from './BranchedMenu';
 
 // 5-minute increments, matching the requested "wrap up between 4 and 6" window.
 const INCREMENTS = [5, 10, 15, 20, 25, 30];
@@ -21,12 +22,13 @@ function formatRemaining(ms: number): string {
 // with the per-page Settings buttons that already exist on /dashboard and
 // /hs/dashboard (those are unrelated and untouched). This is now the site's one
 // profile/nav menu, replacing both the old per-page WS BottomToolbar and the shared HS
-// HSToolbar: Clock In/Out, then whichever primary nav list (WS_NAV or HS_NAV, config in
-// lib/menuConfig.ts) matches the current route — never both at once, so same-named
-// items like "Tools" never collide — and Switch, then Quick Links (icon-only
-// external-service submenu), Settings and Log out. Reachable from every route via
-// GlobalEffects.tsx. A small dot on the badge signals a pending scheduled clock-out
-// even while the panel is closed.
+// HSToolbar: Clock In/Out, then a BranchedMenu (ported from ReactBits — see
+// BranchedMenu.tsx) with three sections — Navigate (whichever nav list matches
+// the current route, WS_NAV or HS_NAV, config in lib/menuConfig.ts), Quick Links
+// (was a hover-only flyout; branch items work on touch too), and Account
+// (Switch/Settings/Log out). Reachable from every route via GlobalEffects.tsx.
+// A small dot on the badge signals a pending scheduled clock-out even while
+// the panel is closed.
 export default function ClockGateMenu() {
   const { mode, clockoutTarget, clockOutNow, scheduleClockOut, cancelClockOut, clockInNow } = useHomeSquatchGate();
   const router = useRouter();
@@ -34,7 +36,6 @@ export default function ClockGateMenu() {
   const inHS = pathname?.startsWith('/hs') ?? false;
   const navItems = inHS ? HS_NAV : WS_NAV;
   const [open, setOpen] = useState(false);
-  const [toolsOpen, setToolsOpen] = useState(false);
   const [remaining, setRemaining] = useState('');
   const ref = useRef<HTMLDivElement>(null);
 
@@ -42,7 +43,6 @@ export default function ClockGateMenu() {
     function onOutsideClick(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) {
         setOpen(false);
-        setToolsOpen(false);
       }
     }
     document.addEventListener('mousedown', onOutsideClick);
@@ -59,7 +59,6 @@ export default function ClockGateMenu() {
 
   function closeAll() {
     setOpen(false);
-    setToolsOpen(false);
   }
 
   function openLeaf(item: MenuLeaf) {
@@ -92,6 +91,51 @@ export default function ClockGateMenu() {
     closeAll();
   }
 
+  // Three branches instead of a flat button list — Navigate mirrors whichever
+  // nav set the route is on, Quick Links replaces the old hover-only flyout
+  // (branch items work on touch, hover didn't), Account covers the remaining
+  // one-shot actions. Values double as the "current route" the marker/line
+  // draws to: nav items use their own path, Settings uses the literal
+  // '/settings' pathname, Switch/Log out/Quick Links never match a pathname
+  // so they never show as "current" — correct, they aren't places.
+  const activeNavItem = navItems.find(i => i.type === 'internal' && i.path === pathname);
+  const activeValue =
+    (activeNavItem?.type === 'internal' ? activeNavItem.path : undefined)
+    ?? (pathname === '/settings' ? '/settings' : '');
+
+  const branchSections: BranchedMenuSection[] = [
+    {
+      label: 'Navigate',
+      children: navItems.map(item => ({
+        value: item.type === 'internal' ? item.path : item.id,
+        label: item.label,
+        icon: item.icon,
+      })),
+    },
+    {
+      label: 'Quick Links',
+      children: QUICK_LINKS_SUBMENU.map(item => ({ value: item.id, label: item.label, icon: item.icon })),
+    },
+    {
+      label: 'Account',
+      children: [
+        { value: 'switch', label: 'Switch', icon: ArrowLeftRight },
+        { value: '/settings', label: 'Settings', icon: Settings },
+        { value: 'logout', label: 'Log out', icon: LogOut },
+      ],
+    },
+  ];
+
+  function handleBranchSelect(value: string) {
+    if (value === 'switch') { handleSwitch(); return; }
+    if (value === 'logout') { handleLogout(); return; }
+    if (value === '/settings') { router.push('/settings'); closeAll(); return; }
+    const navMatch = navItems.find(i => (i.type === 'internal' ? i.path : i.id) === value);
+    if (navMatch) { openLeaf(navMatch); return; }
+    const quickMatch = QUICK_LINKS_SUBMENU.find(i => i.id === value);
+    if (quickMatch) openLeaf(quickMatch);
+  }
+
   // Reads the same --copper-*/--border-copper tokens every other command-center
   // component uses (cenote-tokens.css, overridden per-phase by homesquatch-theme.css
   // and [data-theme="day"]), instead of the hardcoded hex this file used to have —
@@ -103,36 +147,6 @@ export default function ClockGateMenu() {
     border: 'var(--border-copper)',
     borderRadius: 10,
     boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05), 0 8px 32px rgba(0,0,0,0.45)',
-  };
-
-  const rowStyle = (active: boolean): React.CSSProperties => ({
-    display: 'flex',
-    alignItems: 'center',
-    gap: 6,
-    border: 'none',
-    borderRadius: 7,
-    padding: '6px 8px',
-    fontSize: 11,
-    fontWeight: 600,
-    color: active ? 'var(--copper-2)' : 'rgba(255,255,255,0.6)',
-    background: active ? 'rgba(var(--copper-glow-rgb), 0.14)' : 'transparent',
-    cursor: 'pointer',
-    width: '100%',
-    textAlign: 'left',
-  });
-
-  const iconButtonStyle: React.CSSProperties = {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: 30,
-    height: 30,
-    padding: 0,
-    border: '1px solid rgba(var(--copper-glow-rgb), 0.18)',
-    borderRadius: 7,
-    color: 'var(--copper-2)',
-    background: 'transparent',
-    cursor: 'pointer',
   };
 
   return (
@@ -149,7 +163,7 @@ export default function ClockGateMenu() {
             alignItems: 'stretch',
             gap: 4,
             padding: 8,
-            minWidth: 180,
+            minWidth: 226,
           }}
         >
           {mode === 'work' ? (
@@ -231,67 +245,17 @@ export default function ClockGateMenu() {
             </button>
           )}
 
-          <div style={{ height: 1, background: 'rgba(var(--copper-glow-rgb), 0.15)', margin: '4px 2px' }} />
+          <div style={{ height: 1, background: 'rgba(var(--copper-glow-rgb), 0.15)', margin: '4px 2px 6px' }} />
 
-          {navItems.map(item => (
-            <button
-              key={item.id}
-              onClick={() => openLeaf(item)}
-              style={rowStyle(item.type === 'internal' && pathname === item.path)}
-            >
-              <item.icon style={{ width: 12, height: 12 }} />
-              {item.label}
-            </button>
-          ))}
-
-          <button onClick={handleSwitch} style={rowStyle(false)}>
-            <ArrowLeftRight style={{ width: 12, height: 12 }} />
-            Switch
-          </button>
-
-          <div style={{ height: 1, background: 'rgba(var(--copper-glow-rgb), 0.15)', margin: '4px 2px' }} />
-
-          <div
-            style={{ position: 'relative' }}
-            onMouseEnter={() => setToolsOpen(true)}
-            onMouseLeave={() => setToolsOpen(false)}
-          >
-            <button onClick={() => setToolsOpen(o => !o)} style={rowStyle(toolsOpen)}>
-              <Link2 style={{ width: 12, height: 12 }} />
-              Quick Links
-            </button>
-
-            {toolsOpen && (
-              <div
-                style={{
-                  position: 'absolute',
-                  left: 'calc(100% + 6px)',
-                  top: 0,
-                  ...pillBase,
-                  display: 'flex',
-                  flexDirection: 'row',
-                  gap: 6,
-                  padding: 6,
-                }}
-              >
-                {QUICK_LINKS_SUBMENU.map(item => (
-                  <button key={item.id} title={item.label} onClick={() => openLeaf(item)} style={iconButtonStyle}>
-                    <item.icon style={{ width: 18, height: 18 }} />
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <button onClick={() => { router.push('/settings'); closeAll(); }} style={rowStyle(false)}>
-            <Settings style={{ width: 12, height: 12 }} />
-            Settings
-          </button>
-
-          <button onClick={handleLogout} style={rowStyle(false)}>
-            <LogOut style={{ width: 12, height: 12 }} />
-            Log out
-          </button>
+          <BranchedMenu
+            items={branchSections}
+            active={activeValue}
+            onSelect={handleBranchSelect}
+            width={200}
+            color="rgba(255,255,255,0.6)"
+            accentColor="var(--copper-2)"
+            lineColor="rgba(var(--copper-glow-rgb), 0.3)"
+          />
         </div>
       )}
 

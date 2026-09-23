@@ -20,20 +20,53 @@
 .page {
   --tk-wall: #7d4d3d;
   --tk-wall-deep: #5c3529;
-  --tk-parchment: #f9f7f2;
-  --tk-parchment-deep: #f0ece2;
-  --tk-card-bg: #fffdf8;
-  --tk-copper: #a67c52;
-  --tk-copper-text: #8f6540;
   --tk-wood: #5d4037;
-  --tk-ink: #2c2420;
-  --tk-ink-soft: #6b635f;
-  --tk-border: #e8e2d6;
-  --tk-lincoln: #5b6b8c;
-  --tk-redsquatch: #a67c52;
-  --tk-personal: #3f5a35;
-  --tk-terracotta: #a8482e;
   --tk-ui-font: 'Inter', sans-serif;
+
+  /* Shelf: the dark tray columns/lanes sit in — distinct from both the wall
+     and the terracotta tile cards so the tiles read as objects placed on it,
+     not a continuation of the wall. */
+  --tk-shelf: #1c1712;
+  --tk-shelf-border: rgba(184, 115, 51, 0.22);
+
+  /* Terracotta tile frame (Option B: the card's outer material) and the dark
+     modern inset it holds (the actual data surface — same obsidian family as
+     the rest of /ws, kept legible per the room/data split). */
+  --tk-glaze: #b8683f;
+  --tk-glaze-deep: #8f4a2e;
+  --tk-glaze-border: #6e3a24;
+  --tk-inset: #14100d;
+  --tk-inset-border: rgba(184, 115, 51, 0.22);
+  --tk-inset-border-hover: #b87333;
+
+  --tk-copper: #b87333;
+  --tk-copper-light: #d4a373;
+
+  /* on-inset / on-shelf (dark grounds): copper tint works — huge lightness
+     gap does the contrast work even at low opacity. */
+  --tk-ink: rgba(255, 250, 240, 0.92);
+  /* .65 measured 4.16:1 on --tk-inset — under the 4.5:1 floor for body-sized
+     text; .75 clears 5.16:1. */
+  --tk-ink-soft: rgba(212, 163, 115, 0.75);
+  --tk-copper-text: var(--tk-copper-light);
+  --tk-border: var(--tk-inset-border);
+
+  /* on-wall (the terracotta wall itself): tint from cream, never copper — a
+     copper tint on a copper-family wall nearly disappears regardless of
+     opacity. Same fix as the wall header text below. */
+  /* Measured against the wall's base hex (#7d4d3d) — the actual rendered
+     wall is close to this after the texture/glow layers, so these clear
+     4.5:1 with margin rather than landing right at the line. */
+  --tk-onwall: rgba(255, 250, 240, 0.95);
+  --tk-onwall-soft: rgba(255, 241, 222, 0.85);
+
+  /* Context/priority colors, brightened from the flat-cream era to clear
+     4.5:1 against the new dark inset (previous values were tuned for
+     --tk-card-bg: #fffdf8, which no longer exists). */
+  --tk-lincoln: #8fa8d6;
+  --tk-redsquatch: var(--tk-copper-light);
+  --tk-personal: #7fb56a;
+  --tk-terracotta: #d97a5c;
 
   position: relative;
   min-height: 100vh;
@@ -98,12 +131,12 @@
   font-size: 2.5rem;
   line-height: 1;
   margin: 0;
-  color: rgba(255, 250, 240, 0.92);
+  color: var(--tk-onwall);
   text-shadow: 0 2px 20px rgba(0, 0, 0, 0.35);
 }
 
 .subheader {
-  color: rgba(255, 250, 240, 0.85);
+  color: var(--tk-onwall-soft);
   font-family: var(--tk-ui-font);
   font-size: 0.8rem;
   letter-spacing: 0.02em;
@@ -123,16 +156,22 @@
   text-transform: uppercase;
   padding: 0.4rem 0.8rem;
   min-height: 30px;
-  background: var(--tk-parchment);
-  border: 1px solid var(--tk-border);
-  color: var(--tk-ink-soft);
+  background: rgba(13, 10, 8, 0.5);
+  border: 1px solid var(--tk-shelf-border);
+  color: var(--tk-onwall-soft);
   cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+
+.viewBtn:hover {
+  border-color: var(--tk-copper);
+  color: var(--tk-onwall);
 }
 
 .viewBtnActive {
   border-color: var(--tk-copper);
-  color: var(--tk-ink);
-  background: rgba(166, 124, 82, 0.15);
+  color: var(--tk-onwall);
+  background: rgba(184, 115, 51, 0.22);
 }
 
 /* ── Board scaffolding ─────────────────────────────────────────── */
@@ -165,11 +204,11 @@
   gap: 0.5rem;
   margin: 0 0 0.6rem;
   padding-bottom: 0.35rem;
-  color: var(--tk-copper-text);
+  color: var(--tk-onwall);
   font-size: 0.85rem;
   font-weight: 700;
   letter-spacing: 0.02em;
-  border-bottom: 1px solid var(--tk-border);
+  border-bottom: 1px solid var(--tk-shelf-border);
 }
 
 .laneGlyph {
@@ -181,7 +220,7 @@
   background: transparent;
   border: none;
   border-bottom: 1px dashed transparent;
-  color: var(--tk-copper-text);
+  color: var(--tk-onwall);
   font: inherit;
   letter-spacing: 0.02em;
   padding: 0.1rem 0.2rem;
@@ -196,7 +235,7 @@
 .laneDeleteBtn {
   background: none;
   border: none;
-  color: var(--tk-ink-soft);
+  color: var(--tk-onwall-soft);
   cursor: pointer;
   font-size: 0.8rem;
   min-width: 24px;
@@ -218,11 +257,11 @@
 }
 
 .columnHeaderCell {
-  background: var(--tk-parchment-deep);
-  border: 1px solid var(--tk-border);
+  background: var(--tk-shelf);
+  border: 1px solid var(--tk-shelf-border);
   flex-shrink: 0;
   position: relative;
-  box-shadow: 0 6px 14px -10px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 6px 14px -10px rgba(0, 0, 0, 0.45);
 }
 
 .columnHeader {
@@ -283,10 +322,10 @@
 }
 
 .columnBody {
-  background: var(--tk-parchment-deep);
-  border: 1px solid var(--tk-border);
+  background: var(--tk-shelf);
+  border: 1px solid var(--tk-shelf-border);
   border-top: none;
-  box-shadow: 0 10px 22px -14px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 10px 22px -14px rgba(0, 0, 0, 0.45);
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
@@ -297,8 +336,8 @@
 }
 
 .columnDragOver {
-  background: rgba(166, 124, 82, 0.16);
-  box-shadow: 0 0 0 2px var(--tk-copper), 0 12px 26px -12px rgba(0, 0, 0, 0.4);
+  background: rgba(184, 115, 51, 0.14);
+  box-shadow: 0 0 0 2px var(--tk-copper), 0 16px 34px -12px rgba(0, 0, 0, 0.55);
 }
 
 .resizeHandle {
@@ -322,9 +361,9 @@
 }
 
 .addColumnBtn {
-  background: transparent;
-  border: 1px dashed var(--tk-border);
-  color: var(--tk-ink-soft);
+  background: rgba(13, 10, 8, 0.35);
+  border: 1px dashed var(--tk-shelf-border);
+  color: var(--tk-onwall-soft);
   cursor: pointer;
   flex-shrink: 0;
   font-family: var(--tk-ui-font);
@@ -337,49 +376,76 @@
 
 .addColumnBtn:hover {
   border-color: var(--tk-copper);
-  color: var(--tk-ink);
-  background: rgba(166, 124, 82, 0.08);
+  color: var(--tk-onwall);
+  background: rgba(184, 115, 51, 0.14);
 }
 
 .addLaneBtn {
-  background: transparent;
-  border: 1px dashed var(--tk-border);
-  color: var(--tk-copper-text);
+  background: rgba(13, 10, 8, 0.35);
+  border: 1px dashed var(--tk-shelf-border);
+  color: var(--tk-onwall-soft);
   cursor: pointer;
   font-family: var(--tk-ui-font);
   font-size: 0.85rem;
   padding: 0.5rem 1rem;
-  transition: border-color 0.15s ease, background 0.15s ease;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
 }
 
 .addLaneBtn:hover {
   border-color: var(--tk-copper);
-  background: rgba(166, 124, 82, 0.08);
+  color: var(--tk-onwall);
+  background: rgba(184, 115, 51, 0.14);
 }
 
-/* ── Cards ─────────────────────────────────────────────────────── */
+/* ── Cards ─────────────────────────────────────────────────────────
+   Option B from the design-preview comparison: the card is a glazed
+   terracotta tile (frame) holding a small dark modern data screen
+   (.cardInset) — frame carries the room's material, inset stays legible
+   and modern. Motion is the focal moment this board never had: a real
+   pickup lift and a settle pulse on drop, confident ease-out throughout. */
 
 .card {
-  background: var(--tk-card-bg);
-  border: 1px solid var(--tk-border);
+  position: relative;
+  background: linear-gradient(155deg, var(--tk-glaze) 0%, var(--tk-glaze-deep) 100%);
+  border: 1px solid var(--tk-glaze-border);
   cursor: grab;
-  padding: 0.65rem 0.7rem;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
-  transition: transform 0.14s ease, box-shadow 0.14s ease;
+  padding: 0.4rem;
+  box-shadow: 0 10px 24px -8px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.16);
+  transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 220ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .card:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 14px -8px rgba(0, 0, 0, 0.3);
+  transform: translateY(-3px);
+  box-shadow: 0 18px 36px -10px rgba(0, 0, 0, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  border-color: #8a5230;
 }
 
 .card:active {
   cursor: grabbing;
 }
 
+.cardInset {
+  background: var(--tk-inset);
+  border: 1px solid var(--tk-inset-border);
+  padding: 0.55rem 0.65rem;
+}
+
 .cardDragging {
-  opacity: 0.45;
-  transform: rotate(-1.5deg) scale(0.98);
+  opacity: 0.5;
+  transform: rotate(-1.5deg) scale(0.97);
+  transition: transform 160ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 160ms cubic-bezier(0.16, 1, 0.3, 1), opacity 160ms ease;
+}
+
+/* Brief settle pulse when a card lands in its new column/lane after a drop —
+   the one moment this board's motion is actually authored around. Toggled
+   by KanbanBoard.tsx for ~400ms, then removed. */
+.cardSettle {
+  animation: cardSettlePulse 420ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes cardSettlePulse {
+  0% { transform: scale(1.05) translateY(-4px); box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.22); }
+  100% { transform: scale(1) translateY(0); box-shadow: 0 10px 24px -8px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.16); }
 }
 
 .cardDone {
@@ -441,7 +507,7 @@
   font-family: var(--tk-ui-font);
   font-size: 0.78rem;
   color: var(--tk-ink);
-  background: #fff;
+  background: rgba(255, 255, 255, 0.06);
   border: 1px solid var(--tk-border);
   padding: 0.3rem 0.4rem;
   min-height: 28px;
@@ -453,7 +519,7 @@
 }
 
 .cardNotes {
-  background: #fff;
+  background: rgba(255, 255, 255, 0.06);
   border: 1px solid var(--tk-border);
   color: var(--tk-ink);
   font-family: var(--tk-ui-font);
@@ -550,8 +616,8 @@
 }
 
 .addTaskForm {
-  background: var(--tk-card-bg);
-  border: 1px solid var(--tk-border);
+  background: var(--tk-inset);
+  border: 1px solid var(--tk-inset-border);
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
@@ -559,7 +625,7 @@
 }
 
 .addTaskInput {
-  background: #fff;
+  background: rgba(255, 255, 255, 0.06);
   border: 1px solid var(--tk-border);
   color: var(--tk-ink);
   font-family: var(--tk-ui-font);
@@ -578,7 +644,7 @@
 }
 
 .addTaskSelect {
-  background: #fff;
+  background: rgba(255, 255, 255, 0.06);
   border: 1px solid var(--tk-border);
   color: var(--tk-ink);
   font-family: var(--tk-ui-font);
@@ -622,8 +688,8 @@
 .listTable {
   width: 100%;
   border-collapse: collapse;
-  background: var(--tk-parchment);
-  border: 1px solid var(--tk-border);
+  background: var(--tk-shelf);
+  border: 1px solid var(--tk-shelf-border);
 }
 
 .listTable th {
@@ -655,7 +721,7 @@
 }
 
 .listTable tr:last-child td { border-bottom: none; }
-.listTable tr:hover td { background: rgba(166, 124, 82, 0.06); }
+.listTable tr:hover td { background: rgba(184, 115, 51, 0.1); }
 
 .listTitle {
   font-weight: 600;
@@ -719,7 +785,8 @@
   .columnBody,
   .addColumnBtn,
   .addLaneBtn,
-  .addTaskSave {
+  .addTaskSave,
+  .viewBtn {
     transition: none;
   }
 
@@ -729,5 +796,9 @@
 
   .cardDragging {
     transform: none;
+  }
+
+  .cardSettle {
+    animation: none;
   }
 }

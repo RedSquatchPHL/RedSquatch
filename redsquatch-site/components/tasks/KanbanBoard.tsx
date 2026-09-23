@@ -86,6 +86,10 @@ export default function KanbanBoard({
   const [dragOverCell, setDragOverCell] = useState<string | null>(null);
   const [addingIn, setAddingIn] = useState<string | null>(null);
   const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set());
+  // Settle-pulse target: the card that just landed after a drop, briefly
+  // flagged so its tile can play the one authored motion moment this board
+  // is built around, then cleared once the CSS animation finishes.
+  const [settledId, setSettledId] = useState<number | null>(null);
 
   const lanes: LaneKey[] = swimlanes.length > 0 ? [...swimlanes.map(l => l.id), null] : [null];
 
@@ -102,9 +106,12 @@ export default function KanbanBoard({
   function handleDrop(columnId: number, laneId: LaneKey) {
     if (draggingId == null) return;
     const cellTasks = tasksFor(columnId, laneId);
-    onMoveTask(draggingId, columnId, laneId, cellTasks.length);
+    const droppedId = draggingId;
+    onMoveTask(droppedId, columnId, laneId, cellTasks.length);
     setDraggingId(null);
     setDragOverCell(null);
+    setSettledId(droppedId);
+    setTimeout(() => setSettledId(id => (id === droppedId ? null : id)), 420);
   }
 
   function toggleExpanded(taskId: number) {
@@ -231,85 +238,87 @@ export default function KanbanBoard({
                           draggable
                           onDragStart={() => setDraggingId(task.id)}
                           onDragEnd={() => { setDraggingId(null); setDragOverCell(null); }}
-                          className={`${styles.card} ${draggingId === task.id ? styles.cardDragging : ''} ${task.completed_at ? styles.cardDone : ''}`}
+                          className={`${styles.card} ${draggingId === task.id ? styles.cardDragging : ''} ${settledId === task.id ? styles.cardSettle : ''} ${task.completed_at ? styles.cardDone : ''}`}
                         >
-                          <div className={styles.cardTitleRow}>
-                            <button
-                              className={styles.cardExpandBtn}
-                              onClick={() => toggleExpanded(task.id)}
-                              title={expanded ? 'Collapse' : 'Add/view notes'}
-                              aria-label={expanded ? 'Collapse notes and move controls' : 'Expand notes and move controls'}
-                              aria-expanded={expanded}
-                            >
-                              {expanded ? '▾' : '▸'}
-                            </button>
-                            <p className={`${styles.cardTitle} ${task.completed_at ? styles.cardDoneTitle : ''}`}>{task.title}</p>
-                          </div>
-                          <div className={styles.cardMeta}>
-                            {task.context && (
-                              <span
-                                className={styles.seal}
-                                style={{ color: CONTEXT_COLORS[task.context] ?? 'var(--tk-ink-soft)' }}
-                                title={task.context}
+                          <div className={styles.cardInset}>
+                            <div className={styles.cardTitleRow}>
+                              <button
+                                className={styles.cardExpandBtn}
+                                onClick={() => toggleExpanded(task.id)}
+                                title={expanded ? 'Collapse' : 'Add/view notes'}
+                                aria-label={expanded ? 'Collapse notes and move controls' : 'Expand notes and move controls'}
+                                aria-expanded={expanded}
                               >
-                                {CONTEXT_GLYPHS[task.context] ?? '●'}
+                                {expanded ? '▾' : '▸'}
+                              </button>
+                              <p className={`${styles.cardTitle} ${task.completed_at ? styles.cardDoneTitle : ''}`}>{task.title}</p>
+                            </div>
+                            <div className={styles.cardMeta}>
+                              {task.context && (
+                                <span
+                                  className={styles.seal}
+                                  style={{ color: CONTEXT_COLORS[task.context] ?? 'var(--tk-ink-soft)' }}
+                                  title={task.context}
+                                >
+                                  {CONTEXT_GLYPHS[task.context] ?? '●'}
+                                </span>
+                              )}
+                              <span
+                                className={`${styles.tally} ${styles[PRIORITY_TALLIES[task.priority]?.className] ?? ''}`}
+                                title={`${task.priority} priority`}
+                              >
+                                {PRIORITY_TALLIES[task.priority]?.marks ?? '▲'}
                               </span>
-                            )}
-                            <span
-                              className={`${styles.tally} ${styles[PRIORITY_TALLIES[task.priority]?.className] ?? ''}`}
-                              title={`${task.priority} priority`}
-                            >
-                              {PRIORITY_TALLIES[task.priority]?.marks ?? '▲'}
-                            </span>
-                            {task.due_date && <span className={styles.dueDate}>{new Date(task.due_date).toLocaleDateString()}</span>}
-                            <button className={styles.cardDeleteBtn} onClick={() => onDeleteTask(task.id)}>✕</button>
-                          </div>
-                          {expanded && (
-                            <>
-                              {/* Keyboard-operable equivalent to the drag-and-drop move above —
-                                  native selects need no custom listbox and reach every column/lane
-                                  a mouse drag can. */}
-                              <div className={styles.moveRow}>
-                                <label className={styles.moveLabel}>
-                                  Move to
-                                  <select
-                                    className={styles.moveSelect}
-                                    value={col.id}
-                                    onChange={(e) => {
-                                      const targetCol = Number(e.target.value);
-                                      const targetTasks = tasksFor(targetCol, laneId);
-                                      onMoveTask(task.id, targetCol, laneId, targetTasks.length);
-                                    }}
-                                  >
-                                    {columns.map(c => <option key={c.id} value={c.id}>{c.title}</option>)}
-                                  </select>
-                                </label>
-                                {swimlanes.length > 0 && (
+                              {task.due_date && <span className={styles.dueDate}>{new Date(task.due_date).toLocaleDateString()}</span>}
+                              <button className={styles.cardDeleteBtn} onClick={() => onDeleteTask(task.id)}>✕</button>
+                            </div>
+                            {expanded && (
+                              <>
+                                {/* Keyboard-operable equivalent to the drag-and-drop move above —
+                                    native selects need no custom listbox and reach every column/lane
+                                    a mouse drag can. */}
+                                <div className={styles.moveRow}>
                                   <label className={styles.moveLabel}>
-                                    Swimlane
+                                    Move to
                                     <select
                                       className={styles.moveSelect}
-                                      value={laneId ?? ''}
+                                      value={col.id}
                                       onChange={(e) => {
-                                        const targetLane = e.target.value === '' ? null : Number(e.target.value);
-                                        const targetTasks = tasksFor(col.id, targetLane);
-                                        onMoveTask(task.id, col.id, targetLane, targetTasks.length);
+                                        const targetCol = Number(e.target.value);
+                                        const targetTasks = tasksFor(targetCol, laneId);
+                                        onMoveTask(task.id, targetCol, laneId, targetTasks.length);
                                       }}
                                     >
-                                      <option value="">Unlaned</option>
-                                      {swimlanes.map(l => <option key={l.id} value={l.id}>{l.title}</option>)}
+                                      {columns.map(c => <option key={c.id} value={c.id}>{c.title}</option>)}
                                     </select>
                                   </label>
-                                )}
-                              </div>
-                              <textarea
-                                className={styles.cardNotes}
-                                defaultValue={task.description ?? ''}
-                                placeholder="Notes..."
-                                onBlur={(e) => e.target.value !== (task.description ?? '') && onUpdateDescription(task.id, e.target.value)}
-                              />
-                            </>
-                          )}
+                                  {swimlanes.length > 0 && (
+                                    <label className={styles.moveLabel}>
+                                      Swimlane
+                                      <select
+                                        className={styles.moveSelect}
+                                        value={laneId ?? ''}
+                                        onChange={(e) => {
+                                          const targetLane = e.target.value === '' ? null : Number(e.target.value);
+                                          const targetTasks = tasksFor(col.id, targetLane);
+                                          onMoveTask(task.id, col.id, targetLane, targetTasks.length);
+                                        }}
+                                      >
+                                        <option value="">Unlaned</option>
+                                        {swimlanes.map(l => <option key={l.id} value={l.id}>{l.title}</option>)}
+                                      </select>
+                                    </label>
+                                  )}
+                                </div>
+                                <textarea
+                                  className={styles.cardNotes}
+                                  defaultValue={task.description ?? ''}
+                                  placeholder="Notes..."
+                                  onBlur={(e) => e.target.value !== (task.description ?? '') && onUpdateDescription(task.id, e.target.value)}
+                                />
+                              </>
+                            )}
+                          </div>
                         </div>
                       );
                     })}
