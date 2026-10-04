@@ -249,6 +249,7 @@ export default function ClockGateMenu() {
 
           <BranchedMenu
             items={branchSections}
+            defaultOpen={[0, 2]}
             active={activeValue}
             onSelect={handleBranchSelect}
             width={200}
