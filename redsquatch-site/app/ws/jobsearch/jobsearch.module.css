@@ -6,31 +6,31 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 
 .page {
-  --hacienda-wall: #7d4d3d;
-  --hacienda-wall-deep: #5c3529;
-  --panel-bg: #f9f7f2;
-  --panel-border: #e8e2d6;
-  --wood-frame: #5d4037;
-  --copper-accent: #a67c52;
-  --copper-text: #8f6540;
-  --ink-main: #2c2420;
-  --ink-muted: #6b635f;
+  /* Tōnatiuh OS retint (2026-10-06) — see dashboard.module.css for the
+     mapping rationale; same mechanism, values only. Row/badge styling
+     below borrows the Notifications Panel draft's categorized-alert look.
+     --copper-text and --copper-solid diverge on purpose: text needs a
+     LIGHT tint to read on the dark glass panel, the solid launchBtn fill
+     needs a darker, more saturated shade so white text stays readable
+     on top of it — same split that drove dashboard's ledgerTicket fix. */
+  --hacienda-wall: #1a3a52;
+  --hacienda-wall-deep: #0F151B;
+  --panel-bg: rgba(22, 30, 40, 0.72);
+  --panel-border: rgba(255, 255, 255, 0.1);
+  --wood-frame: #161E28;
+  --copper-accent: #D97A38;
+  --copper-text: #F0A868;
+  --copper-solid: #B35E22;
+  --ink-main: #E2E8F0;
+  --ink-muted: #93A4B8;
 
   position: relative;
   width: 100%;
   min-height: 100vh;
   background-color: var(--hacienda-wall-deep);
   overflow-x: hidden;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Satoshi', system-ui, sans-serif;
   color: var(--ink-main);
-}
-
-@font-face {
-  font-family: 'Mexicala';
-  src: url('/fonts/Mexicala-Regular.ttf') format('truetype');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
 }
 
 .wallTexture {
@@ -46,7 +46,7 @@
 }
 .wallGlow {
   position: absolute; inset: 0; z-index: 0; pointer-events: none;
-  background: radial-gradient(ellipse 60% 50% at 15% 10%, rgba(255, 210, 150, 0.18), transparent 65%);
+  background: radial-gradient(ellipse 60% 50% at 15% 10%, rgba(217, 122, 56, 0.16), transparent 65%);
   mix-blend-mode: soft-light;
 }
 
@@ -60,7 +60,7 @@
 
 .header { margin-bottom: 2rem; }
 .wordmark {
-  font-family: 'Mexicala', serif;
+  font-family: 'Cabinet Grotesk', serif;
   font-size: 2.5rem;
   margin: 0 0 0.25rem;
   color: rgba(255, 250, 240, 0.92);
@@ -94,7 +94,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(166, 124, 82, 0.12);
+  background: rgba(217, 122, 56, 0.12);
   color: var(--copper-accent);
 }
 
@@ -133,15 +133,16 @@
   cursor: pointer;
   transition: background 0.15s ease;
 }
-.launchRow:hover { background: rgba(166, 124, 82, 0.06); }
+.launchRow:hover { background: rgba(217, 122, 56, 0.08); }
 
 .launchBtn {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  /* --copper-accent (#a67c52) only measures 3.73:1 with white text at this
-     size, under WCAG AA; --copper-text clears 5.12:1. */
-  background: var(--copper-text);
+  /* --copper-text (#F0A868) is tuned light, for reading as text on the
+     dark glass panel — too light to hold 4.5:1 with white text on top of
+     it as a solid fill; --copper-solid is the darker shade for that. */
+  background: var(--copper-solid);
   color: #fff;
   font-size: 0.78rem;
   font-weight: 700;

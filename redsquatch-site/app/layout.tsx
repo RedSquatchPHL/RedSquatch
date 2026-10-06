@@ -27,6 +27,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        {/* Cabinet Grotesk + Satoshi — Tonatiuh OS reskin typography for /ws/*,
+            sourced from Fontshare the same way the SuperDesign draft does. */}
+        <link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@800,700,500,400&f[]=satoshi@500,400&display=swap" rel="stylesheet" />
         {/* Runs before hydration so Work Mode / Downtime Mode is correct on first
             paint — avoids a flash of the wrong palette. See lib/homesquatch-gate.ts. */}
         <Script id="hs-gate-boot" strategy="beforeInteractive">

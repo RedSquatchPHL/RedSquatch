@@ -1,4 +1,6 @@
-/* Forest theme — Work page */
+/* Forest theme — Work page.
+   Tōnatiuh OS retint (2026-10-06) — see dashboard.module.css for the
+   mapping rationale; same mechanism, values only. */
 
 :root {
   --forest-parallax-far: 0.3;
@@ -7,10 +9,10 @@
   --silhouette-opacity-far: 0.15;
   --silhouette-opacity-mid: 0.3;
   --silhouette-opacity-near: 0.5;
-  --color-obsidian: #0f0f0f;
-  --color-copper: #b87333;
-  --color-light-copper: #d4a373;
-  --color-dark-gold: #996515;
+  --color-obsidian: #0F151B;
+  --color-copper: #D97A38;
+  --color-light-copper: #E8935A;
+  --color-dark-gold: #D4AF37;
 }
 
 /* Structural only — the actual background image comes from the .jungle-bg
@@ -166,7 +168,7 @@
 
 .modal-header h2 {
   color: var(--color-copper);
-  font-family: 'Playfair Display', serif;
+  font-family: 'Cabinet Grotesk', serif;
   font-size: 1.25rem;
   margin: 0;
 }
@@ -334,4 +336,4 @@
 /* Utility text colors used by work page */
 .text-copper { color: var(--color-copper); }
 .text-light-copper { color: var(--color-light-copper); }
-.font-playfair { font-family: 'Playfair Display', serif; }
+.font-playfair { font-family: 'Cabinet Grotesk', serif; }

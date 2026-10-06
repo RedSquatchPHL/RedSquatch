@@ -1,72 +1,62 @@
-/* WorkSquatch hacienda system for /ws/work — same tokens/texture recipe as
-   Tools/Dashboard/Goals/BA Tools. Replaces the earlier "Light Aztec"
-   parchment iteration: that version repeated decorative motifs per column
-   (a stepped-pyramid frieze), per swimlane (jade canal styling), and down
-   both viewport edges (a serape stripe) — inconsistent with the hacienda
-   principle used everywhere else on /ws: the room/chrome carries the
-   cultural identity, the data stays legible and modern. Tally marks and
+/* Tōnatiuh OS retint (2026-10-06) of the WorkSquatch hacienda system for
+   /ws/work — same tokens/texture recipe as Tools/Dashboard/Goals/BA Tools,
+   repointed dark-glass/Aztec per the SuperDesign draft; see
+   dashboard.module.css for the full mapping rationale. Tally marks and
    context seals are kept — they're informational (severity-by-count,
-   context-by-color), not decoration. Mexicala is reserved for the page
-   wordmark only, matching every other /ws page; column/swimlane/card
-   titles and buttons use Inter. */
-@font-face {
-  font-family: 'Mexicala';
-  src: url('/fonts/Mexicala-Regular.ttf') format('truetype');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
+   context-by-color), not decoration. Cabinet Grotesk is reserved for the
+   page wordmark only, matching every other /ws page; column/swimlane/card
+   titles and buttons use Satoshi. */
 
 .page {
-  --tk-wall: #7d4d3d;
-  --tk-wall-deep: #5c3529;
-  --tk-wood: #5d4037;
-  --tk-ui-font: 'Inter', sans-serif;
+  --tk-wall: #1a3a52;
+  --tk-wall-deep: #0F151B;
+  --tk-wood: #161E28;
+  --tk-ui-font: 'Satoshi', sans-serif;
 
   /* Shelf: the dark tray columns/lanes sit in — distinct from both the wall
      and the terracotta tile cards so the tiles read as objects placed on it,
      not a continuation of the wall. */
-  --tk-shelf: #1c1712;
-  --tk-shelf-border: rgba(184, 115, 51, 0.22);
+  --tk-shelf: #161E28;
+  --tk-shelf-border: rgba(217, 122, 56, 0.22);
 
   /* Terracotta tile frame (Option B: the card's outer material) and the dark
      modern inset it holds (the actual data surface — same obsidian family as
      the rest of /ws, kept legible per the room/data split). */
-  --tk-glaze: #b8683f;
-  --tk-glaze-deep: #8f4a2e;
-  --tk-glaze-border: #6e3a24;
-  --tk-inset: #14100d;
-  --tk-inset-border: rgba(184, 115, 51, 0.22);
-  --tk-inset-border-hover: #b87333;
+  --tk-glaze: #D97A38;
+  --tk-glaze-deep: #A85A28;
+  --tk-glaze-border: #8a4a1c;
+  --tk-inset: #0F151B;
+  --tk-inset-border: rgba(217, 122, 56, 0.22);
+  --tk-inset-border-hover: #D97A38;
 
-  --tk-copper: #b87333;
-  --tk-copper-light: #d4a373;
+  --tk-copper: #D97A38;
+  --tk-copper-light: #E8935A;
 
   /* on-inset / on-shelf (dark grounds): copper tint works — huge lightness
      gap does the contrast work even at low opacity. */
   --tk-ink: rgba(255, 250, 240, 0.92);
   /* .65 measured 4.16:1 on --tk-inset — under the 4.5:1 floor for body-sized
      text; .75 clears 5.16:1. */
-  --tk-ink-soft: rgba(212, 163, 115, 0.75);
+  --tk-ink-soft: rgba(232, 147, 90, 0.75);
   --tk-copper-text: var(--tk-copper-light);
   --tk-border: var(--tk-inset-border);
 
   /* on-wall (the terracotta wall itself): tint from cream, never copper — a
      copper tint on a copper-family wall nearly disappears regardless of
      opacity. Same fix as the wall header text below. */
-  /* Measured against the wall's base hex (#7d4d3d) — the actual rendered
+  /* Measured against the wall's base hex (#1a3a52) — the actual rendered
      wall is close to this after the texture/glow layers, so these clear
      4.5:1 with margin rather than landing right at the line. */
   --tk-onwall: rgba(255, 250, 240, 0.95);
   --tk-onwall-soft: rgba(255, 241, 222, 0.85);
 
-  /* Context/priority colors, brightened from the flat-cream era to clear
-     4.5:1 against the new dark inset (previous values were tuned for
-     --tk-card-bg: #fffdf8, which no longer exists). */
+  /* Context/priority colors — Lincoln/Personal stay their own distinct
+     semantic hues (unrelated to the terracotta accent system); terracotta
+     aligned exactly to the new aztec-terracotta for consistency. */
   --tk-lincoln: #8fa8d6;
   --tk-redsquatch: var(--tk-copper-light);
   --tk-personal: #7fb56a;
-  --tk-terracotta: #d97a5c;
+  --tk-terracotta: #D97A38;
 
   position: relative;
   min-height: 100vh;
@@ -108,7 +98,7 @@
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background: radial-gradient(ellipse 60% 50% at 15% 10%, rgba(255, 210, 150, 0.18), transparent 65%);
+  background: radial-gradient(ellipse 60% 50% at 15% 10%, rgba(217, 122, 56, 0.16), transparent 65%);
   mix-blend-mode: soft-light;
 }
 
@@ -126,7 +116,7 @@
 }
 
 .title {
-  font-family: 'Mexicala', serif;
+  font-family: 'Cabinet Grotesk', serif;
   letter-spacing: 0.01em;
   font-size: 2.5rem;
   line-height: 1;
@@ -671,7 +661,9 @@
 }
 
 .addTaskSave:hover {
-  background: var(--tk-wood);
+  /* A same-hue darken, not var(--tk-wood) (now a blue panel tone, not a
+     copper-family shade) — that would read as an odd hue-flip on hover. */
+  background: var(--tk-glaze-deep);
 }
 
 .addTaskCancel {
