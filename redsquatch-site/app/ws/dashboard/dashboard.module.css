@@ -9,34 +9,31 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 
 .page {
-  --hacienda-wall: #7d4d3d;
-  --hacienda-wall-deep: #5c3529;
-  --panel-bg: #f9f7f2;
-  --panel-border: #e8e2d6;
-  --wood-frame: #5d4037;
-  --copper-accent: #a67c52;
-  --ink-main: #2c2420;
-  --ink-muted: #6b635f;
-  --ink-faint: rgba(44, 36, 32, 0.45);
-  --status-green: #4d8b31;
-  --status-yellow: #d9a036;
-  --status-red: #c94c4c;
+  /* Tōnatiuh OS retint (2026-10-06) — same hacienda var names/mechanism,
+     repointed dark-glass/Aztec per the SuperDesign draft. Old names kept
+     as the mechanism (every rule below still just reads these vars);
+     only the values changed, same technique as the 2026-07-11 Mayan
+     Command Center repoint in cenote-tokens.css. */
+  --hacienda-wall: #1a3a52;
+  --hacienda-wall-deep: #0F151B;
+  --panel-bg: rgba(22, 30, 40, 0.72);
+  --panel-border: rgba(255, 255, 255, 0.1);
+  --wood-frame: #161E28;
+  --copper-accent: #D97A38;
+  --ink-main: #E2E8F0;
+  --ink-muted: #93A4B8;
+  --ink-faint: rgba(226, 232, 240, 0.45);
+  --status-green: #5FBF8F;
+  --status-yellow: #D4AF37;
+  --status-red: #E34C7A;
 
   position: relative;
   width: 100%;
   min-height: 100vh;
   background-color: var(--hacienda-wall-deep);
   overflow-x: hidden;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Satoshi', system-ui, sans-serif;
   color: var(--ink-main);
-}
-
-@font-face {
-  font-family: 'Mexicala';
-  src: url('/fonts/Mexicala-Regular.ttf') format('truetype');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
 }
 
 /* ---- Wall texture: grayscale noise, hue-mapped via mix-blend-mode:color,
@@ -65,7 +62,7 @@
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background: radial-gradient(ellipse 60% 50% at 15% 10%, rgba(255, 210, 150, 0.18), transparent 65%);
+  background: radial-gradient(ellipse 60% 50% at 15% 10%, rgba(217, 122, 56, 0.16), transparent 65%);
   mix-blend-mode: soft-light;
 }
 
@@ -82,7 +79,7 @@
 }
 
 .wordmark {
-  font-family: 'Mexicala', serif;
+  font-family: 'Cabinet Grotesk', serif;
   font-size: 2.5rem;
   margin: 0 0 0.25rem;
   color: rgba(255, 250, 240, 0.92);
@@ -275,11 +272,12 @@
 .ledgerTicket {
   font-family: 'JetBrains Mono', ui-monospace, monospace;
   font-size: 0.68rem;
-  /* Darker than --copper-accent specifically because this is read as text,
-     not just an icon/border tint — #a67c52 measures 3.49:1 on --panel-bg,
-     under the 4.5:1 WCAG AA floor; this shade clears 4.78:1. */
-  color: #8f6540;
-  border: 1px solid rgba(166, 124, 82, 0.35);
+  /* Lighter than --copper-accent specifically because this is read as text
+     on the dark glass panel now, not darker-for-light-bg like the old
+     hacienda cream panel — #D97A38 text on --panel-bg lands under 4.5:1;
+     this lighter tint clears it. */
+  color: #F0A868;
+  border: 1px solid rgba(217, 122, 56, 0.35);
   padding: 0.1rem 0.3rem;
   flex-shrink: 0;
 }
