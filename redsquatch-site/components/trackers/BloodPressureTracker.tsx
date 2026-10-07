@@ -13,7 +13,7 @@ interface Reading {
   id: number;
   systolic: number;
   diastolic: number;
-  heart_rate: number;
+  heart_rate: number | null;
   position: Position;
   arm: Arm;
   reading_at: string;
@@ -65,7 +65,7 @@ function toFormState(r: Reading): FormState {
   return {
     systolic: String(r.systolic),
     diastolic: String(r.diastolic),
-    heart_rate: String(r.heart_rate),
+    heart_rate: r.heart_rate != null ? String(r.heart_rate) : '',
     position: r.position,
     arm: r.arm,
     reading_at: toLocalDatetimeInputValue(r.reading_at),
@@ -73,10 +73,22 @@ function toFormState(r: Reading): FormState {
 }
 
 function formToPayload(f: FormState): Record<string, unknown> | null {
+  // Number('') and Number('  ') both coerce to 0, which IS an integer — without
+  // this guard a blank field silently becomes a "valid" 0 and only fails later,
+  // server-side, on the 40-300/20-200 range check. Heart rate has no such guard:
+  // it's optional (backfilled historical readings often predate owning a pulse
+  // cuff), so a blank field there deliberately maps to null, not a validation error.
+  if (!f.systolic.trim() || !f.diastolic.trim()) return null;
   const systolic = Number(f.systolic);
   const diastolic = Number(f.diastolic);
-  const heart_rate = Number(f.heart_rate);
-  if (!Number.isInteger(systolic) || !Number.isInteger(diastolic) || !Number.isInteger(heart_rate)) return null;
+  if (!Number.isInteger(systolic) || !Number.isInteger(diastolic)) return null;
+
+  let heart_rate: number | null = null;
+  if (f.heart_rate.trim()) {
+    heart_rate = Number(f.heart_rate);
+    if (!Number.isInteger(heart_rate)) return null;
+  }
+
   return {
     systolic,
     diastolic,
@@ -93,6 +105,16 @@ const inputStyle: React.CSSProperties = {
   color: 'var(--copper-tan)',
   background: 'transparent',
 };
+
+async function errorMessage(res: Response): Promise<string> {
+  try {
+    const data = await res.json();
+    if (typeof data?.error === 'string') return data.error;
+  } catch {
+    // non-JSON body (e.g. a proxy error page) — fall through to the generic message
+  }
+  return 'Failed to save — check your connection.';
+}
 
 function formatDateTime(iso: string): string {
   return new Date(iso).toLocaleString(undefined, {
@@ -150,7 +172,7 @@ export default function BloodPressureTracker() {
   async function saveForm() {
     const payload = formToPayload(form);
     if (!payload) {
-      flash('Systolic, diastolic, and heart rate must all be whole numbers.');
+      flash('Systolic and diastolic are required and, along with heart rate (if entered), must be whole numbers.');
       return;
     }
     try {
@@ -161,7 +183,7 @@ export default function BloodPressureTracker() {
           credentials: 'include',
           body: JSON.stringify(payload),
         });
-        if (!res.ok) throw new Error('save failed');
+        if (!res.ok) throw new Error(await errorMessage(res));
         const created = await res.json();
         setReadings(prev => [...prev, created]);
         flash('Reading added.');
@@ -172,7 +194,7 @@ export default function BloodPressureTracker() {
           credentials: 'include',
           body: JSON.stringify(payload),
         });
-        if (!res.ok) throw new Error('save failed');
+        if (!res.ok) throw new Error(await errorMessage(res));
         const updated = await res.json();
         setReadings(prev => prev.map(r => (r.id === editingId ? updated : r)));
         flash('Reading updated.');
@@ -180,8 +202,8 @@ export default function BloodPressureTracker() {
       setShowForm(false);
       setEditingId(null);
       setForm(emptyForm);
-    } catch {
-      flash('Failed to save — check your connection.');
+    } catch (err) {
+      flash(err instanceof Error ? err.message : 'Failed to save — check your connection.');
     }
   }
 
@@ -215,7 +237,7 @@ export default function BloodPressureTracker() {
           formatDateTime(r.reading_at),
           String(r.systolic),
           String(r.diastolic),
-          String(r.heart_rate),
+          r.heart_rate != null ? String(r.heart_rate) : '—',
           POSITION_LABEL[r.position],
           ARM_LABEL[r.arm],
           cat.label,
@@ -293,7 +315,7 @@ export default function BloodPressureTracker() {
                   <tr key={r.id} style={{ borderBottom: '1px solid rgba(var(--copper-bold-rgb),0.1)' }}>
                     <td className="px-3 py-2 whitespace-nowrap">{formatDateTime(r.reading_at)}</td>
                     <td className="px-3 py-2 font-semibold">{r.systolic}/{r.diastolic}</td>
-                    <td className="px-3 py-2">{r.heart_rate} bpm</td>
+                    <td className="px-3 py-2">{r.heart_rate != null ? `${r.heart_rate} bpm` : '—'}</td>
                     <td className="px-3 py-2">{POSITION_LABEL[r.position]}</td>
                     <td className="px-3 py-2">{ARM_LABEL[r.arm]}</td>
                     <td className="px-3 py-2">
@@ -338,7 +360,7 @@ export default function BloodPressureTracker() {
               <input value={form.diastolic} onChange={e => setForm(f => ({ ...f, diastolic: e.target.value }))} placeholder="e.g. 80" inputMode="numeric" className="w-full border px-2 py-1.5 text-sm rounded" style={inputStyle} />
             </div>
             <div>
-              <label className="block text-xs mb-1" style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }}>Heart Rate</label>
+              <label className="block text-xs mb-1" style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }}>Heart Rate (optional)</label>
               <input value={form.heart_rate} onChange={e => setForm(f => ({ ...f, heart_rate: e.target.value }))} placeholder="e.g. 70" inputMode="numeric" className="w-full border px-2 py-1.5 text-sm rounded" style={inputStyle} />
             </div>
           </div>

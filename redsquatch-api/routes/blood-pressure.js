@@ -13,7 +13,7 @@ const SCHEMA_STATEMENTS = [
     client_id   INTEGER NOT NULL REFERENCES client_users(id) ON DELETE CASCADE,
     systolic    SMALLINT NOT NULL,
     diastolic   SMALLINT NOT NULL,
-    heart_rate  SMALLINT NOT NULL,
+    heart_rate  SMALLINT,
     position    VARCHAR(20) NOT NULL,
     arm         VARCHAR(20) NOT NULL,
     reading_at  TIMESTAMP NOT NULL,
@@ -22,6 +22,10 @@ const SCHEMA_STATEMENTS = [
   )`,
   `CREATE INDEX IF NOT EXISTS idx_blood_pressure_readings_client_id ON blood_pressure_readings(client_id)`,
   `CREATE INDEX IF NOT EXISTS idx_blood_pressure_readings_reading_at ON blood_pressure_readings(client_id, reading_at)`,
+  // heart_rate started out NOT NULL — backfilled historical readings often predate
+  // owning a pulse-reading cuff, so the constraint has to come off for rows already
+  // in prod. DROP NOT NULL on an already-nullable column is a harmless no-op.
+  `ALTER TABLE blood_pressure_readings ALTER COLUMN heart_rate DROP NOT NULL`,
 ];
 
 async function runMigrations(db) {
@@ -47,8 +51,10 @@ function validateReading(body) {
   if (!Number.isInteger(diastolic) || diastolic < 20 || diastolic > 200) {
     return 'diastolic must be an integer between 20 and 200';
   }
-  if (!Number.isInteger(heart_rate) || heart_rate < 20 || heart_rate > 250) {
-    return 'heart_rate must be an integer between 20 and 250';
+  if (heart_rate !== null && heart_rate !== undefined) {
+    if (!Number.isInteger(heart_rate) || heart_rate < 20 || heart_rate > 250) {
+      return 'heart_rate must be an integer between 20 and 250';
+    }
   }
   if (!VALID_POSITIONS.includes(position)) {
     return `position must be one of ${VALID_POSITIONS.join(', ')}`;
@@ -98,7 +104,7 @@ function makeRouter(db) {
            (client_id, systolic, diastolic, heart_rate, position, arm, reading_at)
          VALUES ($1, $2, $3, $4, $5, $6, $7)
          RETURNING *`,
-        [clientId, systolic, diastolic, heart_rate, position, arm, reading_at]
+        [clientId, systolic, diastolic, heart_rate ?? null, position, arm, reading_at]
       );
       res.status(201).json(result.rows[0]);
     } catch (err) {
@@ -120,7 +126,7 @@ function makeRouter(db) {
          SET systolic = $1, diastolic = $2, heart_rate = $3, position = $4, arm = $5, reading_at = $6, updated_at = NOW()
          WHERE id = $7 AND client_id = $8
          RETURNING *`,
-        [systolic, diastolic, heart_rate, position, arm, reading_at, req.params.id, clientId]
+        [systolic, diastolic, heart_rate ?? null, position, arm, reading_at, req.params.id, clientId]
       );
       if (result.rows.length === 0) return res.status(404).json({ error: 'Reading not found' });
       res.json(result.rows[0]);
