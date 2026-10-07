@@ -110,6 +110,17 @@ async function readLimitedText(response, maxBytes) {
   return Buffer.concat(chunks.map(c => Buffer.from(c))).toString('utf-8');
 }
 
+// Open Food Facts categories_tags look like "en:groceries", "en:hot-sauces" —
+// most specific (last) tag, without the language prefix, is the best rough
+// category guess for a pantry item.
+function categoryFromOffTags(tags) {
+  if (!Array.isArray(tags) || tags.length === 0) return null;
+  const last = tags[tags.length - 1];
+  const stripped = String(last).replace(/^\w{2}:/, '').replace(/-/g, ' ').trim();
+  if (!stripped) return null;
+  return stripped.replace(/\b\w/g, c => c.toUpperCase());
+}
+
 function extractJsonLdRecipes(html) {
   const scripts = [...html.matchAll(/<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)];
   const recipes = [];
@@ -295,6 +306,20 @@ const SCHEMA_STATEMENTS = [
     updated_at        TIMESTAMP DEFAULT NOW()
   )`,
   `CREATE INDEX IF NOT EXISTS idx_cocina_pantry_items_client_id ON cocina_pantry_items(client_id)`,
+  `ALTER TABLE cocina_pantry_items ADD COLUMN IF NOT EXISTS barcode VARCHAR(64)`,
+  `CREATE INDEX IF NOT EXISTS idx_cocina_pantry_items_barcode ON cocina_pantry_items(client_id, barcode)`,
+
+  // Global barcode -> product cache, shared across clients since a UPC/EAN
+  // maps to the same product for everyone — avoids re-hitting Open Food
+  // Facts every time the same item gets scanned again.
+  `CREATE TABLE IF NOT EXISTS cocina_barcode_lookups (
+    barcode     VARCHAR(64) PRIMARY KEY,
+    name        VARCHAR(255) NOT NULL,
+    category    VARCHAR(100),
+    image_url   TEXT,
+    source      VARCHAR(50) NOT NULL DEFAULT 'openfoodfacts',
+    created_at  TIMESTAMP DEFAULT NOW()
+  )`,
 
   `CREATE TABLE IF NOT EXISTS cocina_salsas (
     id            SERIAL PRIMARY KEY,
@@ -428,6 +453,58 @@ function makeRouter(db) {
     next();
   }
 
+  // ---- Barcode lookup ----
+  // Resolves a scanned UPC/EAN to a product name via a local cache first,
+  // falling back to Open Food Facts (free, no key). Fixed host, not
+  // user-supplied, so this doesn't need the isPrivateHost SSRF guard the
+  // recipe importer uses. Produce and other unpackaged items won't resolve
+  // here — the frontend falls back to manual entry on a 404.
+  router.get('/barcode/:code', auth, async (req, res) => {
+    const code = String(req.params.code || '').trim();
+    if (!/^\d{6,14}$/.test(code)) return res.status(400).json({ error: 'Not a valid barcode' });
+
+    try {
+      const cached = await db.query(`SELECT * FROM cocina_barcode_lookups WHERE barcode = $1`, [code]);
+      if (cached.rows.length > 0) {
+        const row = cached.rows[0];
+        return res.json({ barcode: code, name: row.name, category: row.category, image_url: row.image_url, source: row.source, cached: true });
+      }
+
+      const response = await fetch(`https://world.openfoodfacts.org/api/v2/product/${code}.json`, {
+        headers: { 'User-Agent': 'CocinaPantryScanner/1.0 (redsquatch.com)' },
+        signal: AbortSignal.timeout(8000),
+      });
+      // Open Food Facts responds HTTP 404 (with a JSON body, status: 0) for
+      // an unknown barcode — that's a normal "no match" outcome, not a
+      // service failure, so only a genuinely broken response (5xx, non-JSON)
+      // should be treated as unavailable.
+      if (!response.ok && response.status !== 404) {
+        return res.status(502).json({ error: 'Barcode lookup service unavailable' });
+      }
+
+      const data = await response.json();
+      const product = data?.product;
+      const name = product?.product_name || product?.product_name_en || product?.generic_name;
+      if (data.status !== 1 || !name) {
+        return res.status(404).json({ error: 'No product found for that barcode' });
+      }
+
+      const category = categoryFromOffTags(product.categories_tags);
+      const imageUrl = product.image_front_small_url || product.image_small_url || null;
+
+      await db.query(
+        `INSERT INTO cocina_barcode_lookups (barcode, name, category, image_url, source)
+         VALUES ($1, $2, $3, $4, 'openfoodfacts') ON CONFLICT (barcode) DO NOTHING`,
+        [code, name, category, imageUrl]
+      );
+
+      res.json({ barcode: code, name, category, image_url: imageUrl, source: 'openfoodfacts', cached: false });
+    } catch (err) {
+      console.error('Cocina barcode lookup error:', err.message);
+      res.status(502).json({ error: 'Barcode lookup failed' });
+    }
+  });
+
   // ---- Pantry ----
 
   router.get('/pantry', auth, async (req, res) => {
@@ -447,14 +524,14 @@ function makeRouter(db) {
   router.post('/pantry', auth, async (req, res) => {
     try {
       const clientId = await getClientId(db, req);
-      const { name, category, quantity, unit, storage_condition } = req.body || {};
+      const { name, category, quantity, unit, storage_condition, barcode } = req.body || {};
       if (!name || !String(name).trim()) return res.status(400).json({ error: 'name is required' });
       const storage = VALID_STORAGE.includes(storage_condition) ? storage_condition : 'fresh';
 
       const result = await db.query(
-        `INSERT INTO cocina_pantry_items (client_id, name, category, quantity, unit, storage_condition)
-         VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-        [clientId, String(name).trim(), category || null, quantity || null, unit || null, storage]
+        `INSERT INTO cocina_pantry_items (client_id, name, category, quantity, unit, storage_condition, barcode)
+         VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+        [clientId, String(name).trim(), category || null, quantity || null, unit || null, storage, barcode || null]
       );
       res.status(201).json(result.rows[0]);
     } catch (err) {
@@ -466,7 +543,7 @@ function makeRouter(db) {
   router.put('/pantry/:id', auth, async (req, res) => {
     try {
       const clientId = await getClientId(db, req);
-      const { name, category, quantity, unit, storage_condition } = req.body || {};
+      const { name, category, quantity, unit, storage_condition, barcode } = req.body || {};
       const storage = storage_condition !== undefined
         ? (VALID_STORAGE.includes(storage_condition) ? storage_condition : 'fresh')
         : undefined;
@@ -478,9 +555,10 @@ function makeRouter(db) {
            quantity = COALESCE($3, quantity),
            unit = COALESCE($4, unit),
            storage_condition = COALESCE($5, storage_condition),
+           barcode = COALESCE($6, barcode),
            updated_at = NOW()
-         WHERE id = $6 AND client_id = $7 RETURNING *`,
-        [name ?? null, category ?? null, quantity ?? null, unit ?? null, storage ?? null, req.params.id, clientId]
+         WHERE id = $7 AND client_id = $8 RETURNING *`,
+        [name ?? null, category ?? null, quantity ?? null, unit ?? null, storage ?? null, barcode ?? null, req.params.id, clientId]
       );
       if (result.rows.length === 0) return res.status(404).json({ error: 'Pantry item not found' });
       res.json(result.rows[0]);
