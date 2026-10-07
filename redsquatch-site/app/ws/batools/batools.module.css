@@ -25,16 +25,15 @@
   color: var(--ink-main);
 }
 
+/* Replaces the old hacienda plaster-grain texture — see dashboard.module.css
+   for the reasoning. This is the SuperDesign draft's actual background: a
+   subtle repeating diamond motif, no grain. */
 .wallTexture {
   position: absolute; inset: 0; z-index: 0; pointer-events: none;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  opacity: 0.7;
-  filter: contrast(115%) brightness(95%);
+  background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 0l20 20-20 20L0 20 20 0zm0 10l10 10-10 10L10 20l10-10z' fill='%231a3a52' fill-opacity='0.4' fill-rule='evenodd'/%3E%3C/svg%3E");
 }
 .wallColor {
-  position: absolute; inset: 0; z-index: 0; pointer-events: none;
-  background-color: var(--hacienda-wall);
-  mix-blend-mode: color;
+  display: none;
 }
 .wallGlow {
   position: absolute; inset: 0; z-index: 0; pointer-events: none;
