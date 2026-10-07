@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { Plus, Pencil, Trash2, FileDown } from 'lucide-react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
+import { Plus, Pencil, Trash2, FileDown, ChevronDown, ChevronRight } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { API } from '@/lib/api';
@@ -122,6 +122,67 @@ function formatDateTime(iso: string): string {
   });
 }
 
+function monthKeyOf(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+}
+
+function monthLabelOf(monthKey: string): string {
+  const [y, m] = monthKey.split('-').map(Number);
+  return new Date(y, m - 1, 1).toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+}
+
+// Weeks run Sunday-Saturday and are scoped inside a reading's own calendar
+// month — a week that straddles a month boundary shows up as a (short) group
+// in each month rather than being split mid-week, which keeps "which month is
+// this under" unambiguous at the cost of occasional 1-6 day week groups.
+function weekKeyOf(d: Date): string {
+  const start = new Date(d.getFullYear(), d.getMonth(), d.getDate() - d.getDay());
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${start.getFullYear()}-${pad(start.getMonth() + 1)}-${pad(start.getDate())}`;
+}
+
+function weekLabelOf(weekKey: string): string {
+  const [y, m, day] = weekKey.split('-').map(Number);
+  const start = new Date(y, m - 1, day);
+  return `Week of ${start.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`;
+}
+
+interface WeekGroup {
+  key: string;
+  label: string;
+  readings: Reading[];
+}
+
+interface MonthGroup {
+  key: string;
+  label: string;
+  weeks: WeekGroup[];
+}
+
+// `rows` must already be sorted newest-first — Map preserves insertion order,
+// so no re-sort is needed for groups or the readings within them.
+function groupByMonthAndWeek(rows: Reading[]): MonthGroup[] {
+  const months = new Map<string, Map<string, Reading[]>>();
+  for (const r of rows) {
+    const d = new Date(r.reading_at);
+    const mKey = monthKeyOf(d);
+    const wKey = weekKeyOf(d);
+    if (!months.has(mKey)) months.set(mKey, new Map());
+    const weeks = months.get(mKey)!;
+    if (!weeks.has(wKey)) weeks.set(wKey, []);
+    weeks.get(wKey)!.push(r);
+  }
+  return Array.from(months.entries()).map(([mKey, weeks]) => ({
+    key: mKey,
+    label: monthLabelOf(mKey),
+    weeks: Array.from(weeks.entries()).map(([wKey, readings]) => ({
+      key: wKey,
+      label: weekLabelOf(wKey),
+      readings,
+    })),
+  }));
+}
+
 export default function BloodPressureTracker() {
   const [readings, setReadings] = useState<Reading[]>([]);
   const [loading, setLoading] = useState(true);
@@ -132,13 +193,22 @@ export default function BloodPressureTracker() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm);
 
+  const [collapsedMonths, setCollapsedMonths] = useState<Set<string>>(new Set());
+  const [collapsedWeeks, setCollapsedWeeks] = useState<Set<string>>(new Set());
+
   useEffect(() => {
     (async () => {
       try {
         const res = await fetch(`${API}/api/client/blood-pressure`, { credentials: 'include' });
         if (!res.ok) throw new Error('fetch failed');
         const data = await res.json();
-        setReadings(data.readings ?? []);
+        const fetched: Reading[] = data.readings ?? [];
+        setReadings(fetched);
+        // Months arrive newest-first from the API — collapse every month
+        // except the most recent so a long backfilled history doesn't open
+        // as one giant wall of rows.
+        const monthKeys = Array.from(new Set(fetched.map(r => monthKeyOf(new Date(r.reading_at)))));
+        setCollapsedMonths(new Set(monthKeys.slice(1)));
       } catch {
         setError('Could not load your readings — check your connection.');
       } finally {
@@ -151,6 +221,45 @@ export default function BloodPressureTracker() {
     () => [...readings].sort((a, b) => new Date(b.reading_at).getTime() - new Date(a.reading_at).getTime()),
     [readings]
   );
+
+  const monthGroups = useMemo(() => groupByMonthAndWeek(sorted), [sorted]);
+
+  function toggleMonth(key: string) {
+    setCollapsedMonths(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      return next;
+    });
+  }
+
+  function toggleWeek(key: string) {
+    setCollapsedWeeks(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      return next;
+    });
+  }
+
+  // Un-collapse wherever a just-added/edited reading lives, so saving
+  // something backdated into a collapsed month doesn't make it look like it
+  // silently vanished.
+  function ensureExpanded(r: Reading) {
+    const d = new Date(r.reading_at);
+    const mKey = monthKeyOf(d);
+    const wKey = weekKeyOf(d);
+    setCollapsedMonths(prev => {
+      if (!prev.has(mKey)) return prev;
+      const next = new Set(prev);
+      next.delete(mKey);
+      return next;
+    });
+    setCollapsedWeeks(prev => {
+      if (!prev.has(wKey)) return prev;
+      const next = new Set(prev);
+      next.delete(wKey);
+      return next;
+    });
+  }
 
   function flash(msg: string) {
     setConfirmMsg(msg);
@@ -186,6 +295,7 @@ export default function BloodPressureTracker() {
         if (!res.ok) throw new Error(await errorMessage(res));
         const created = await res.json();
         setReadings(prev => [...prev, created]);
+        ensureExpanded(created);
         flash('Reading added.');
       } else {
         const res = await fetch(`${API}/api/client/blood-pressure/${editingId}`, {
@@ -197,6 +307,7 @@ export default function BloodPressureTracker() {
         if (!res.ok) throw new Error(await errorMessage(res));
         const updated = await res.json();
         setReadings(prev => prev.map(r => (r.id === editingId ? updated : r)));
+        ensureExpanded(updated);
         flash('Reading updated.');
       }
       setShowForm(false);
@@ -309,34 +420,81 @@ export default function BloodPressureTracker() {
               </tr>
             </thead>
             <tbody>
-              {sorted.map(r => {
-                const cat = getCategory(r.systolic, r.diastolic);
+              {monthGroups.map(month => {
+                const monthCollapsed = collapsedMonths.has(month.key);
+                const monthCount = month.weeks.reduce((n, w) => n + w.readings.length, 0);
                 return (
-                  <tr key={r.id} style={{ borderBottom: '1px solid rgba(var(--copper-bold-rgb),0.1)' }}>
-                    <td className="px-3 py-2 whitespace-nowrap">{formatDateTime(r.reading_at)}</td>
-                    <td className="px-3 py-2 font-semibold">{r.systolic}/{r.diastolic}</td>
-                    <td className="px-3 py-2">{r.heart_rate != null ? `${r.heart_rate} bpm` : '—'}</td>
-                    <td className="px-3 py-2">{POSITION_LABEL[r.position]}</td>
-                    <td className="px-3 py-2">{ARM_LABEL[r.arm]}</td>
-                    <td className="px-3 py-2">
-                      <span
-                        className="inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold whitespace-nowrap"
-                        style={{ background: `${cat.color}2e`, color: cat.color }}
-                      >
-                        {cat.label}
-                      </span>
-                    </td>
-                    <td className="px-3 py-2">
-                      <div className="flex items-center justify-end gap-2">
-                        <button type="button" onClick={() => startEdit(r)} title="Edit">
-                          <Pencil size={13} style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }} />
+                  <Fragment key={month.key}>
+                    <tr style={{ borderBottom: '1px solid rgba(var(--copper-bold-rgb),0.15)' }}>
+                      <td colSpan={7} className="px-3 py-1.5">
+                        <button
+                          type="button"
+                          onClick={() => toggleMonth(month.key)}
+                          className="flex items-center gap-1.5 w-full text-left font-semibold text-sm"
+                          style={{ color: 'var(--copper-tan)' }}
+                        >
+                          {monthCollapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}
+                          {month.label}
+                          <span className="text-xs font-normal" style={{ color: 'rgba(var(--copper-tan-rgb),0.5)' }}>
+                            ({monthCount} reading{monthCount === 1 ? '' : 's'})
+                          </span>
                         </button>
-                        <button type="button" onClick={() => deleteReading(r)} title="Delete">
-                          <Trash2 size={13} style={{ color: '#c85050' }} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
+                      </td>
+                    </tr>
+                    {!monthCollapsed && month.weeks.map(week => {
+                      const weekCollapsed = collapsedWeeks.has(week.key);
+                      return (
+                        <Fragment key={week.key}>
+                          <tr style={{ borderBottom: '1px solid rgba(var(--copper-bold-rgb),0.08)' }}>
+                            <td colSpan={7} className="pl-8 pr-3 py-1">
+                              <button
+                                type="button"
+                                onClick={() => toggleWeek(week.key)}
+                                className="flex items-center gap-1.5 w-full text-left text-xs"
+                                style={{ color: 'rgba(var(--copper-tan-rgb),0.75)' }}
+                              >
+                                {weekCollapsed ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
+                                {week.label}
+                                <span style={{ color: 'rgba(var(--copper-tan-rgb),0.45)' }}>
+                                  ({week.readings.length})
+                                </span>
+                              </button>
+                            </td>
+                          </tr>
+                          {!weekCollapsed && week.readings.map(r => {
+                            const cat = getCategory(r.systolic, r.diastolic);
+                            return (
+                              <tr key={r.id} style={{ borderBottom: '1px solid rgba(var(--copper-bold-rgb),0.1)' }}>
+                                <td className="px-3 py-2 pl-10 whitespace-nowrap">{formatDateTime(r.reading_at)}</td>
+                                <td className="px-3 py-2 font-semibold">{r.systolic}/{r.diastolic}</td>
+                                <td className="px-3 py-2">{r.heart_rate != null ? `${r.heart_rate} bpm` : '—'}</td>
+                                <td className="px-3 py-2">{POSITION_LABEL[r.position]}</td>
+                                <td className="px-3 py-2">{ARM_LABEL[r.arm]}</td>
+                                <td className="px-3 py-2">
+                                  <span
+                                    className="inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold whitespace-nowrap"
+                                    style={{ background: `${cat.color}2e`, color: cat.color }}
+                                  >
+                                    {cat.label}
+                                  </span>
+                                </td>
+                                <td className="px-3 py-2">
+                                  <div className="flex items-center justify-end gap-2">
+                                    <button type="button" onClick={() => startEdit(r)} title="Edit">
+                                      <Pencil size={13} style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }} />
+                                    </button>
+                                    <button type="button" onClick={() => deleteReading(r)} title="Delete">
+                                      <Trash2 size={13} style={{ color: '#c85050' }} />
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </Fragment>
+                      );
+                    })}
+                  </Fragment>
                 );
               })}
             </tbody>
