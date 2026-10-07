@@ -1,19 +1,15 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   WorkSquatch — Dashboard. Same hacienda system as Gates/Patio/Tools/Work,
-   but a different structure: instead of three uniform separated panels
-   (Work's pattern), each zone here reads as a distinct physical object
-   sitting on the wall — a rolodex, a pinned corkboard, a ruled ledger —
-   echoing the actual desk objects in the reference photo rather than
-   repeating Work's panel shape. Composition choice, not a new visual world:
-   same tokens, same texture recipe, same sharp-corners-by-default rule.
+   WorkSquatch — Dashboard. Tōnatiuh OS depth pass (2026-10-07): rebuilt to
+   match the actual SuperDesign Dashboard draft structure (greeting+clock,
+   stat cards, a goals-progress panel standing in for the draft's workflow
+   chart, embedded mini BA-Tools/Work-Items widgets standing in for the
+   draft's Control Center/Notifications widgets, a quick-access row of the
+   6 real nav destinations standing in for its Recent Apps row) — not just
+   the color retint from the first pass. Same tokens/texture mechanism as
+   every other /ws page.
    ═══════════════════════════════════════════════════════════════════════════ */
 
 .page {
-  /* Tōnatiuh OS retint (2026-10-06) — same hacienda var names/mechanism,
-     repointed dark-glass/Aztec per the SuperDesign draft. Old names kept
-     as the mechanism (every rule below still just reads these vars);
-     only the values changed, same technique as the 2026-07-11 Mayan
-     Command Center repoint in cenote-tokens.css. */
   --hacienda-wall: #1a3a52;
   --hacienda-wall-deep: #0F151B;
   --panel-bg: rgba(22, 30, 40, 0.72);
@@ -36,8 +32,6 @@
   color: var(--ink-main);
 }
 
-/* ---- Wall texture: grayscale noise, hue-mapped via mix-blend-mode:color,
-   plus a separate soft-light warmth glow — same recipe as Gates/Patio/Tools. */
 .wallTexture {
   position: absolute;
   inset: 0;
@@ -69,270 +63,348 @@
 .content {
   position: relative;
   z-index: 1;
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 3rem 1.5rem 4rem;
+  padding: 2.5rem 1.5rem 4rem;
 }
 
-.header {
+/* ── Greeting row ──────────────────────────────────────────────────── */
+.greetingRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 1rem;
   margin-bottom: 2rem;
+}
+
+.greetingLabel {
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--copper-accent);
+  margin: 0 0 0.3rem;
 }
 
 .wordmark {
   font-family: 'Cabinet Grotesk', serif;
-  font-size: 2.5rem;
-  margin: 0 0 0.25rem;
-  color: rgba(255, 250, 240, 0.92);
-  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.35);
+  font-size: 2.25rem;
+  font-weight: 700;
+  margin: 0;
+  color: rgba(255, 250, 240, 0.95);
+  line-height: 1.1;
 }
 
-.subtitle {
-  font-size: 0.75rem;
-  letter-spacing: 0.1em;
-  color: rgba(255, 250, 240, 0.55);
+.clockBlock {
+  text-align: right;
 }
 
-.layout {
+.clockTime {
+  font-family: 'Cabinet Grotesk', serif;
+  font-size: 1.6rem;
+  color: rgba(255, 250, 240, 0.95);
+  margin: 0;
+}
+
+.clockDate {
+  font-size: 0.8rem;
+  color: var(--ink-muted);
+  margin: 0.1rem 0 0;
+}
+
+/* ── Main grid ─────────────────────────────────────────────────────── */
+.mainGrid {
   display: grid;
-  grid-template-columns: 220px 1fr 1fr;
-  gap: 1.75rem;
-  align-items: start;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
 }
 
-@media (max-width: 900px) {
-  .layout {
-    grid-template-columns: 1fr;
+@media (min-width: 900px) {
+  .mainGrid {
+    grid-template-columns: 2fr 1fr;
   }
 }
 
-/* ── Zone 1: the rolodex — a small fanned stack of index cards, all
-   simultaneously visible and clickable (a real flip-one-at-a-time
-   mechanism would hide the other destinations, which is wrong for a
-   primary nav). The fan is the object; nothing is hidden. ── */
-.rolodex {
-  position: relative;
-  padding-top: 1.5rem;
+.leftCol,
+.rightCol {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
-.rolodexCard {
-  display: block;
+/* ── Stat cards ────────────────────────────────────────────────────── */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+}
+
+.statCard {
   background: var(--panel-bg);
   border: 1px solid var(--panel-border);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
-  padding: 0.9rem 1rem;
-  margin-bottom: 0.9rem;
-  text-decoration: none;
-  color: var(--ink-main);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  border-radius: 1rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  padding: 1.1rem;
 }
 
-.rolodexCard:nth-child(odd) { transform: rotate(-1.2deg); }
-.rolodexCard:nth-child(even) { transform: rotate(1deg); }
-
-.rolodexCard:hover,
-.rolodexCard:focus-visible {
-  transform: rotate(0deg) translateY(-3px);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.3);
-  border-color: var(--copper-accent);
-  outline: none;
+.statIconRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.75rem;
 }
 
-.rolodexIcon {
-  color: var(--copper-accent);
-  margin-bottom: 0.5rem;
+.statIconWrap {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.rolodexTitle {
-  font-size: 0.85rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.rolodexSubtitle {
-  font-size: 0.68rem;
+.statLabel {
+  font-size: 0.72rem;
   color: var(--ink-muted);
-  margin-top: 0.15rem;
-  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  margin: 0 0 0.15rem;
 }
 
-/* ── Zone 2: pinned corkboard — goal cards tacked on loosely, not a
-   strict list. ── */
-.pinnedBoard {
-  background: var(--wood-frame);
-  background-image: repeating-linear-gradient(115deg, rgba(0,0,0,0.08) 0 1px, transparent 1px 5px);
+.statValue {
+  font-family: 'Cabinet Grotesk', serif;
+  font-size: 1.7rem;
+  font-weight: 700;
+  color: var(--ink-main);
+  margin: 0;
+}
+
+.statUnit {
+  font-size: 0.9rem;
+  color: var(--ink-muted);
+  font-weight: 400;
+}
+
+/* ── Goals-progress panel (workflow chart replacement) ────────────── */
+.chartPanel {
+  background: var(--panel-bg);
   border: 1px solid var(--panel-border);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+  border-radius: 1rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  padding: 1.25rem 1.5rem;
+  flex: 1;
+  min-height: 260px;
+  display: flex;
+  flex-direction: column;
+}
+
+.panelHeading {
+  font-family: 'Cabinet Grotesk', serif;
+  font-size: 1.1rem;
+  color: var(--ink-main);
+  margin: 0 0 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.goalBarRow {
+  margin-bottom: 0.9rem;
+}
+
+.goalBarLabel {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  margin-bottom: 0.3rem;
+}
+
+.goalBarName {
+  color: var(--ink-main);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-right: 0.5rem;
+}
+
+.goalBarPct {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  color: var(--copper-accent);
+  flex-shrink: 0;
+}
+
+.goalBarTrack {
+  height: 6px;
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.goalBarFill {
+  height: 100%;
+  background: linear-gradient(90deg, #a35928, var(--copper-accent));
+  border-radius: 999px;
+}
+
+/* ── Mini widgets (right column) ──────────────────────────────────── */
+.miniPanel {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 1rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
   padding: 1.25rem;
 }
 
-.zoneHeading {
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: rgba(255, 250, 240, 0.75);
-  margin: 0 0 1rem;
+.miniPanel.grow {
+  flex: 1;
 }
 
-.pinnedCard {
-  position: relative;
-  background: var(--panel-bg);
-  border: 1px solid var(--panel-border);
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25);
-  padding: 0.75rem 0.85rem 0.65rem;
-  margin-bottom: 1.1rem;
+.toggleGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
 }
 
-.pinnedCard:nth-child(even) { transform: rotate(-0.8deg); }
-.pinnedCard:nth-child(odd) { transform: rotate(0.6deg); }
-
-.tack {
-  position: absolute;
-  top: -6px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--copper-accent);
-  box-shadow: 0 2px 3px rgba(0,0,0,0.4);
-}
-
-.pinnedTitle {
-  font-size: 0.85rem;
-  font-weight: 600;
+.toggleTile {
   display: flex;
-  justify-content: space-between;
-  gap: 0.5rem;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.9rem 0.5rem;
+  border-radius: 0.75rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--panel-border);
+  text-decoration: none;
+  color: var(--ink-muted);
+  transition: background 0.15s ease, border-color 0.15s ease;
 }
 
-.pinnedPct {
+.toggleTile:hover {
+  background: rgba(217, 122, 56, 0.12);
+  border-color: rgba(217, 122, 56, 0.3);
+  color: var(--ink-main);
+}
+
+.toggleTileLabel {
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.alertList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.alertItem {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.6rem;
+  border-radius: 0.6rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-left: 2px solid var(--copper-accent);
+  text-decoration: none;
+  color: inherit;
+}
+
+.alertIconWrap {
+  width: 1.8rem;
+  height: 1.8rem;
+  border-radius: 999px;
+  background: rgba(217, 122, 56, 0.18);
+  color: var(--copper-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
   font-family: 'JetBrains Mono', ui-monospace, monospace;
-  font-size: 0.75rem;
-  color: var(--ink-muted);
+  font-size: 0.6rem;
+  font-weight: 700;
+}
+
+.alertTitle {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--ink-main);
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.pinnedTrack {
-  height: 4px;
-  background: var(--panel-border);
-  margin-top: 0.5rem;
-}
-
-.pinnedFill {
-  height: 100%;
-  background: var(--copper-accent);
+.alertDesc {
+  font-size: 0.72rem;
+  color: var(--ink-muted);
+  margin-top: 0.1rem;
 }
 
 .emptyNote {
-  color: rgba(255, 250, 240, 0.75);
+  color: rgba(255, 250, 240, 0.7);
   font-size: 0.85rem;
   padding: 0.5rem 0;
 }
 
 .viewAllLink {
   display: inline-block;
-  margin-top: 0.4rem;
+  margin-top: 0.7rem;
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: rgba(255, 250, 240, 0.85);
-  text-decoration: none;
-  border-bottom: 1px solid rgba(255, 250, 240, 0.4);
-}
-
-.viewAllLink:hover { border-bottom-color: rgba(255, 250, 240, 0.9); }
-
-/* ── Zone 3: ruled ledger — work tickets as accounting-ledger lines,
-   matching the parchment/ledger metaphor already used on /ws/work. ── */
-.ledgerPanel {
-  background: var(--panel-bg);
-  border: 1px solid var(--panel-border);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
-  padding: 1.25rem;
-}
-
-.ledgerPanel .zoneHeading {
-  color: var(--ink-muted);
-}
-
-.ledgerRow {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.55rem 0;
-  border-bottom: 1px solid var(--panel-border);
-}
-
-.ledgerRow:last-of-type { border-bottom: none; }
-
-.ledgerTicket {
-  font-family: 'JetBrains Mono', ui-monospace, monospace;
-  font-size: 0.68rem;
-  /* Lighter than --copper-accent specifically because this is read as text
-     on the dark glass panel now, not darker-for-light-bg like the old
-     hacienda cream panel — #D97A38 text on --panel-bg lands under 4.5:1;
-     this lighter tint clears it. */
-  color: #F0A868;
-  border: 1px solid rgba(217, 122, 56, 0.35);
-  padding: 0.1rem 0.3rem;
-  flex-shrink: 0;
-}
-
-.ledgerTitle {
-  flex: 1;
-  min-width: 0;
-  font-size: 0.85rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.ledgerStatus {
-  font-size: 0.68rem;
-  color: var(--ink-muted);
-  white-space: nowrap;
-  font-family: 'JetBrains Mono', ui-monospace, monospace;
-}
-
-/* ── Pager, shared by both content zones ── */
-.pager {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 0.85rem;
-}
-
-.pagerBtn {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  background: none;
-  border: none;
-  font-size: 0.72rem;
-  font-family: 'JetBrains Mono', ui-monospace, monospace;
   color: var(--copper-accent);
-  cursor: pointer;
-  min-height: 24px;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(217, 122, 56, 0.4);
 }
 
-.pagerBtn:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
+.viewAllLink:hover { border-bottom-color: var(--copper-accent); }
+
+/* ── Quick access row ──────────────────────────────────────────────── */
+.quickAccessRow {
+  display: flex;
+  gap: 1.25rem;
+  overflow-x: auto;
+  padding: 0.5rem 0.25rem 1rem;
 }
 
-.pagerLabel {
+.quickAccessTile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  text-decoration: none;
+  color: var(--ink-muted);
+  width: 72px;
+}
+
+.quickAccessIcon {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 1rem;
+  background: linear-gradient(155deg, #1a3a52, #161E28);
+  border: 1px solid var(--panel-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--copper-accent);
+  transition: transform 0.15s ease;
+}
+
+.quickAccessTile:hover .quickAccessIcon {
+  transform: translateY(-3px);
+}
+
+.quickAccessLabel {
   font-size: 0.68rem;
-  color: var(--ink-faint);
-  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  text-align: center;
+}
+
+.quickAccessTile:hover .quickAccessLabel {
+  color: var(--ink-main);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .rolodexCard,
-  .pinnedCard {
+  .quickAccessIcon,
+  .toggleTile {
     transition: none;
   }
 }

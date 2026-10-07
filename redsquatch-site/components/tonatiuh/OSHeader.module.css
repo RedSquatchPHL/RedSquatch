@@ -1,0 +1,136 @@
+/* Tōnatiuh OS top header — lives in app/ws/layout.tsx, outside any page's own
+   CSS module scope, so it hardcodes the same hex values the page modules use
+   rather than relying on their page-scoped vars. */
+
+.bar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  height: 64px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0 1.5rem;
+  background: rgba(22, 30, 40, 0.75);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-shrink: 0;
+  text-decoration: none;
+}
+
+.brandWord {
+  font-family: 'Cabinet Grotesk', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #E2E8F0;
+  text-transform: uppercase;
+}
+
+.brandAccent {
+  color: #D97A38;
+}
+
+.dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #D4AF37;
+}
+
+.brandTag {
+  font-size: 0.72rem;
+  color: #93A4B8;
+  font-family: 'Satoshi', sans-serif;
+}
+
+.searchForm {
+  flex: 1;
+  max-width: 420px;
+  position: relative;
+}
+
+.searchInput {
+  width: 100%;
+  background: rgba(15, 21, 27, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #E2E8F0;
+  font-family: 'Satoshi', sans-serif;
+  font-size: 0.82rem;
+  border-radius: 999px;
+  padding: 0.5rem 2.6rem;
+}
+
+.searchInput::placeholder {
+  color: #93A4B8;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: rgba(217, 122, 56, 0.5);
+}
+
+.searchIcon {
+  position: absolute;
+  left: 0.9rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #93A4B8;
+  pointer-events: none;
+}
+
+.searchHint {
+  position: absolute;
+  right: 0.7rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.65rem;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  color: rgba(147, 164, 184, 0.7);
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  pointer-events: none;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-shrink: 0;
+}
+
+.bellLink {
+  position: relative;
+  color: #93A4B8;
+  display: flex;
+  align-items: center;
+  transition: color 0.15s ease;
+}
+
+.bellLink:hover {
+  color: #E2E8F0;
+}
+
+.bellDot {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #E34C7A;
+  border: 2px solid #0F151B;
+}
+
+@media (max-width: 640px) {
+  .searchForm { display: none; }
+}

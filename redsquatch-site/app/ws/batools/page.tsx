@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { FileText, Lightbulb, ListChecks, Search, SlidersHorizontal, BookOpen } from 'lucide-react';
 import { API } from '@/lib/api';
+import AppletModal from '@/components/AppletModal';
 import PDFReaderApplet from '@/components/ba-tools/PDFReaderApplet';
 import UserStoryGame from '@/components/ba-tools/UserStoryGame';
 import AcceptanceCriteriaGame from '@/components/ba-tools/AcceptanceCriteriaGame';
@@ -13,6 +14,7 @@ import GlossaryReference from '@/components/ba-tools/GlossaryReference';
 import s from './batools.module.css';
 
 type Applet = 'babok' | 'glossary' | 'userstory' | 'acceptancecriteria' | 'elicitation' | 'moscow';
+type Group = 'all' | 'reference' | 'practice';
 
 const REFERENCE = [
   { key: 'babok' as const, label: 'BABOK Guide v3', description: 'Reference reader for the BABOK Guide (Member Edition)', icon: FileText, content: <PDFReaderApplet /> },
@@ -26,34 +28,12 @@ const PRACTICE = [
   { key: 'moscow' as const, label: 'MoSCoW Prioritization Challenge', description: 'Sort a backlog into Must/Should/Could/Won\'t and defend the call', icon: SlidersHorizontal, content: <MoscowGame /> },
 ];
 
-function AccordionSection({ item, expanded, onToggle }: {
-  item: { key: Applet; label: string; description: string; icon: typeof FileText; content: React.ReactNode };
-  expanded: boolean;
-  onToggle: () => void;
-}) {
-  const Icon = item.icon;
-  return (
-    <div className={s.section}>
-      <button className={s.sectionHeader} onClick={onToggle} aria-expanded={expanded} aria-controls={`applet-${item.key}`}>
-        <div className={s.iconWrap}><Icon size={18} /></div>
-        <div className={s.sectionTitleBlock}>
-          <div className={s.sectionTitle}>{item.label}</div>
-          <div className={s.sectionDesc}>{item.description}</div>
-        </div>
-        <span className={s.chevron}>{expanded ? '▾' : '▸'}</span>
-      </button>
-      {expanded && (
-        <div className={s.sectionBody} id={`applet-${item.key}`}>
-          {item.content}
-        </div>
-      )}
-    </div>
-  );
-}
+const ALL_TOOLS = [...REFERENCE, ...PRACTICE];
 
 export default function WSBAToolsPage() {
   const [checking, setChecking] = useState(true);
-  const [openKey, setOpenKey] = useState<Applet | null>(null);
+  const [group, setGroup] = useState<Group>('all');
+  const [activeKey, setActiveKey] = useState<Applet | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -66,6 +46,14 @@ export default function WSBAToolsPage() {
       .catch(() => router.push('/'));
   }, [router]);
 
+  const visibleTools = useMemo(() => {
+    if (group === 'reference') return REFERENCE;
+    if (group === 'practice') return PRACTICE;
+    return ALL_TOOLS;
+  }, [group]);
+
+  const active = ALL_TOOLS.find(t => t.key === activeKey) ?? null;
+
   if (checking) {
     return (
       <div className={s.page}>
@@ -75,10 +63,6 @@ export default function WSBAToolsPage() {
         </div>
       </div>
     );
-  }
-
-  function toggle(key: Applet) {
-    setOpenKey(prev => (prev === key ? null : key));
   }
 
   return (
@@ -91,20 +75,43 @@ export default function WSBAToolsPage() {
           <p className={s.subtitle}>BA TOOLS</p>
         </div>
 
-        <div className={s.groupLabel}>Reference</div>
-        <div className={s.accordion}>
-          {REFERENCE.map(item => (
-            <AccordionSection key={item.key} item={item} expanded={openKey === item.key} onToggle={() => toggle(item.key)} />
-          ))}
+        <div className={s.presetRow}>
+          <button
+            className={`${s.presetBtn} ${group === 'all' ? s.presetBtnActive : ''}`}
+            onClick={() => setGroup('all')}
+          >
+            All
+          </button>
+          <button
+            className={`${s.presetBtn} ${group === 'reference' ? s.presetBtnActive : ''}`}
+            onClick={() => setGroup('reference')}
+          >
+            Reference
+          </button>
+          <button
+            className={`${s.presetBtn} ${group === 'practice' ? s.presetBtnActive : ''}`}
+            onClick={() => setGroup('practice')}
+          >
+            Practice
+          </button>
         </div>
 
-        <div className={s.groupLabel}>Practice</div>
-        <div className={s.accordion}>
-          {PRACTICE.map(item => (
-            <AccordionSection key={item.key} item={item} expanded={openKey === item.key} onToggle={() => toggle(item.key)} />
+        <div className={s.toggleGrid}>
+          {visibleTools.map(tool => (
+            <button key={tool.key} className={s.toggleCard} onClick={() => setActiveKey(tool.key)}>
+              <div className={s.toggleIconWrap}><tool.icon size={18} /></div>
+              <div>
+                <p className={s.toggleLabel}>{tool.label}</p>
+                <p className={s.toggleDesc}>{tool.description}</p>
+              </div>
+            </button>
           ))}
         </div>
       </div>
+
+      <AppletModal isOpen={active !== null} title={active?.label ?? ''} onClose={() => setActiveKey(null)} wide>
+        {active?.content}
+      </AppletModal>
     </div>
   );
 }
