@@ -1,23 +1,17 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   WorkSquatch — Job Search. Same hacienda system as the rest of /ws.
-   Structure: a single ruled ledger listing (launch action + three features
-   as rows) instead of a hero card plus a tile grid — same ledger motif
-   already established on Dashboard and Work.
+   WorkSquatch — Job Search. Tōnatiuh OS depth pass (2026-10-07): rebuilt to
+   match the SuperDesign Notifications draft's grouped, color-coded card
+   pattern (section heading + colored-left-border cards) for the real
+   JobOps launch + 3 real feature descriptions — not the ledger-row list
+   from the first pass. Dropped the draft's fake unread badge, timestamps,
+   and filter tabs: none of that data exists for a static feature list.
    ═══════════════════════════════════════════════════════════════════════════ */
 
 .page {
-  /* Tōnatiuh OS retint (2026-10-06) — see dashboard.module.css for the
-     mapping rationale; same mechanism, values only. Row/badge styling
-     below borrows the Notifications Panel draft's categorized-alert look.
-     --copper-text and --copper-solid diverge on purpose: text needs a
-     LIGHT tint to read on the dark glass panel, the solid launchBtn fill
-     needs a darker, more saturated shade so white text stays readable
-     on top of it — same split that drove dashboard's ledgerTicket fix. */
   --hacienda-wall: #1a3a52;
   --hacienda-wall-deep: #0F151B;
   --panel-bg: rgba(22, 30, 40, 0.72);
   --panel-border: rgba(255, 255, 255, 0.1);
-  --wood-frame: #161E28;
   --copper-accent: #D97A38;
   --copper-text: #F0A868;
   --copper-solid: #B35E22;
@@ -53,7 +47,7 @@
 .content {
   position: relative;
   z-index: 1;
-  max-width: 760px;
+  max-width: 800px;
   margin: 0 auto;
   padding: 3rem 1.5rem 4rem;
 }
@@ -72,84 +66,97 @@
   color: rgba(255, 250, 240, 0.85);
 }
 
-.ledger {
-  background: var(--panel-bg);
-  border: 1px solid var(--panel-border);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+/* ---- Grouped cards ---- */
+.group {
+  margin-bottom: 2rem;
 }
 
-.row {
+.groupLabel {
   display: flex;
-  align-items: flex-start;
-  gap: 0.9rem;
-  padding: 1.1rem 1.25rem;
-  border-bottom: 1px solid var(--panel-border);
+  align-items: center;
+  gap: 0.5rem;
+  font-family: 'Cabinet Grotesk', serif;
+  font-size: 1.05rem;
+  color: var(--ink-main);
+  margin: 0 0 0.9rem;
 }
-.row:last-child { border-bottom: none; }
+
+.groupDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.cardList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.card {
+  display: flex;
+  gap: 0.9rem;
+  padding: 1rem 1.1rem;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-left: 3px solid var(--copper-accent);
+  border-radius: 0.6rem;
+  text-decoration: none;
+  color: inherit;
+}
 
 .iconWrap {
   flex-shrink: 0;
-  width: 34px;
-  height: 34px;
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 0.6rem;
+  background: rgba(217, 122, 56, 0.18);
+  color: var(--copper-accent);
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(217, 122, 56, 0.12);
-  color: var(--copper-accent);
 }
 
-.rowBody { flex: 1; min-width: 0; }
+.cardBody { flex: 1; min-width: 0; }
 
-.rowLabel {
-  font-size: 0.68rem;
+.cardTitle {
+  font-size: 0.92rem;
   font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--copper-text);
-  font-family: 'JetBrains Mono', ui-monospace, monospace;
-  margin-bottom: 0.2rem;
+  color: var(--ink-main);
+  margin: 0;
 }
 
-.rowTitle {
-  font-size: 0.95rem;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-.rowDesc {
+.cardDesc {
   font-size: 0.8rem;
   color: var(--ink-muted);
-  margin-top: 0.2rem;
+  margin: 0.2rem 0 0;
 }
 
-/* The launch row is the one primary action on the page — link styling on
-   the whole row, a filled button rather than plain text so it reads as the
-   thing to press, not just another manifest line. */
-.launchRow {
-  text-decoration: none;
-  color: inherit;
+.launchCard {
   cursor: pointer;
   transition: background 0.15s ease;
 }
-.launchRow:hover { background: rgba(217, 122, 56, 0.08); }
+
+.launchCard:hover {
+  background: rgba(217, 122, 56, 0.08);
+}
 
 .launchBtn {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  /* --copper-text (#F0A868) is tuned light, for reading as text on the
-     dark glass panel — too light to hold 4.5:1 with white text on top of
-     it as a solid fill; --copper-solid is the darker shade for that. */
+  /* --copper-text is tuned light, for reading as text on the dark glass
+     panel — too light to hold 4.5:1 with white text on top of it as a
+     solid fill; --copper-solid is the darker shade for that. */
   background: var(--copper-solid);
   color: #fff;
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   font-weight: 700;
-  padding: 0.45rem 0.9rem;
-  margin-top: 0.6rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 0.4rem;
+  margin-top: 0.5rem;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .launchRow { transition: none; }
+  .launchCard { transition: none; }
 }

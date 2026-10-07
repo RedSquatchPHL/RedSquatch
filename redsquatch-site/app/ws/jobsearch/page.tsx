@@ -9,9 +9,9 @@ import s from './jobsearch.module.css';
 const JOBOPS_URL = 'https://jobsearch.redsquatch.com';
 
 const FEATURES = [
-  { label: 'Discovery', title: 'Job Discovery', description: 'Scrapes LinkedIn, Indeed, Adzuna, Seek and more, ranked by fit against your profile', icon: Search },
-  { label: 'Resumes', title: 'Tailored Resumes', description: 'Generates a custom resume PDF per application and keeps the exact version sent', icon: FileText },
-  { label: 'Tracking', title: 'Application Tracking', description: 'Snapshots each job description at apply time and tracks status end-to-end', icon: ClipboardList },
+  { title: 'Job Discovery', description: 'Scrapes LinkedIn, Indeed, Adzuna, Seek and more, ranked by fit against your profile', icon: Search },
+  { title: 'Tailored Resumes', description: 'Generates a custom resume PDF per application and keeps the exact version sent', icon: FileText },
+  { title: 'Application Tracking', description: 'Snapshots each job description at apply time and tracks status end-to-end', icon: ClipboardList },
 ];
 
 export default function WSJobSearchPage() {
@@ -49,32 +49,44 @@ export default function WSJobSearchPage() {
           <p className={s.subtitle}>JOB SEARCH</p>
         </div>
 
-        <div className={s.ledger}>
-          <a href={JOBOPS_URL} target="_blank" rel="noopener noreferrer" className={`${s.row} ${s.launchRow}`}>
-            <div className={s.iconWrap}><FileSearch size={18} /></div>
-            <div className={s.rowBody}>
-              <div className={s.rowLabel}>JobOps</div>
-              <p className={s.rowDesc}>
-                Opens jobsearch.redsquatch.com in a new tab — sign in with the basic-auth credentials,
-                then complete the onboarding wizard on first visit.
-              </p>
-              <span className={s.launchBtn}>Launch JobOps <ExternalLink size={13} /></span>
-            </div>
-          </a>
+        <div className={s.group}>
+          <h2 className={s.groupLabel}>
+            <span className={s.groupDot} style={{ background: '#D97A38' }} />
+            Launch
+          </h2>
+          <div className={s.cardList}>
+            <a href={JOBOPS_URL} target="_blank" rel="noopener noreferrer" className={`${s.card} ${s.launchCard}`}>
+              <div className={s.iconWrap}><FileSearch size={18} /></div>
+              <div className={s.cardBody}>
+                <p className={s.cardTitle}>JobOps</p>
+                <p className={s.cardDesc}>
+                  Opens jobsearch.redsquatch.com in a new tab — sign in with the basic-auth credentials,
+                  then complete the onboarding wizard on first visit.
+                </p>
+                <span className={s.launchBtn}>Launch JobOps <ExternalLink size={13} /></span>
+              </div>
+            </a>
+          </div>
+        </div>
 
-          {FEATURES.map(feature => {
-            const Icon = feature.icon;
-            return (
-              <div key={feature.label} className={s.row}>
-                <div className={s.iconWrap}><Icon size={18} /></div>
-                <div className={s.rowBody}>
-                  <div className={s.rowLabel}>{feature.label}</div>
-                  <div className={s.rowTitle}>{feature.title}</div>
-                  <p className={s.rowDesc}>{feature.description}</p>
+        <div className={s.group}>
+          <h2 className={s.groupLabel}>
+            <span className={s.groupDot} style={{ background: '#D4AF37' }} />
+            Capabilities
+          </h2>
+          <div className={s.cardList}>
+            {FEATURES.map(feature => (
+              <div key={feature.title} className={s.card} style={{ borderLeftColor: '#D4AF37' }}>
+                <div className={s.iconWrap} style={{ background: 'rgba(212,175,55,0.18)', color: '#D4AF37' }}>
+                  <feature.icon size={18} />
+                </div>
+                <div className={s.cardBody}>
+                  <p className={s.cardTitle}>{feature.title}</p>
+                  <p className={s.cardDesc}>{feature.description}</p>
                 </div>
               </div>
-            );
-          })}
+            ))}
+          </div>
         </div>
       </div>
     </div>

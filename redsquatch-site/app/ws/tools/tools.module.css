@@ -1,22 +1,16 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   WorkSquatch — Tools page. Same hacienda system established for Gates,
-   Patio, and the Work/Goals SuperDesign drafts: a matte terracotta wall
-   (grayscale noise hue-mapped via mix-blend-mode:color, not multiply/overlay
-   — that stack reads muddy/flat) behind genuinely separate cream panels,
-   sharp corners throughout, Cabinet Grotesk for the wordmark only.
+   WorkSquatch — Tools page. Tōnatiuh OS depth pass (2026-10-07): rebuilt as a
+   real Apps Launcher (search + card grid, each card opening its widget in a
+   modal) matching the SuperDesign Apps Launcher draft's structure — not just
+   the color retint from the first pass. Category tabs from the draft were
+   dropped: there's nothing real to categorize across 3 tools.
    ═══════════════════════════════════════════════════════════════════════════ */
 
 .page {
-  /* Tōnatiuh OS retint (2026-10-06) — see dashboard.module.css for the
-     mapping rationale; same mechanism, values only. --wood-frame here
-     stays a saturated accent (not a deep panel like goals/dashboard)
-     since on this page it's a 4px divider strip meant to pop, same role
-     as .picadoDivider below. */
   --hacienda-wall: #1a3a52;
   --hacienda-wall-deep: #0F151B;
   --panel-bg: rgba(22, 30, 40, 0.72);
   --panel-border: rgba(255, 255, 255, 0.1);
-  --wood-frame: #D97A38;
   --copper-accent: #D97A38;
   --ink-main: #E2E8F0;
   --ink-muted: #93A4B8;
@@ -33,9 +27,6 @@
   color: var(--ink-main);
 }
 
-/* ---- Wall texture: grayscale noise, hue-mapped via mix-blend-mode:color,
-   plus a separate soft-light warmth glow. Never stack overlay/multiply/
-   soft-light together on the same layer — that's what reads flat. ---- */
 .wallTexture {
   position: absolute;
   inset: 0;
@@ -90,57 +81,100 @@
   color: rgba(255, 250, 240, 0.55);
 }
 
-/* ---- Panels: genuinely separate, real gaps, sharp corners, own shadow ---- */
-.panels {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.5rem;
+/* ---- Search ---- */
+.searchBar {
+  position: relative;
+  max-width: 420px;
+  margin-bottom: 2rem;
 }
 
-.panel {
-  position: relative;
+.searchIcon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--ink-muted);
+  pointer-events: none;
+}
+
+.searchInput {
+  width: 100%;
   background: var(--panel-bg);
   border: 1px solid var(--panel-border);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+  color: var(--ink-main);
+  font-family: 'Satoshi', sans-serif;
+  font-size: 0.85rem;
+  border-radius: 1rem;
+  padding: 0.75rem 1rem 0.75rem 2.6rem;
 }
 
-.woodFrame {
-  height: 4px;
-  background-color: var(--wood-frame);
-  background-image: repeating-linear-gradient(90deg, rgba(0,0,0,0.15) 0 2px, transparent 2px 6px);
-}
-
-.panelHead {
-  padding: 1rem 1.4rem;
-  border-bottom: 1px solid var(--panel-border);
-}
-
-.panelHead h2 {
-  margin: 0;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
+.searchInput::placeholder {
   color: var(--ink-muted);
 }
 
-.panelHead p {
-  margin: 0.25rem 0 0;
-  font-size: 0.75rem;
-  color: var(--ink-faint);
+.searchInput:focus {
+  outline: none;
+  border-color: rgba(217, 122, 56, 0.5);
 }
 
-.panelBody {
-  padding: 0;
+/* ---- Launcher grid ---- */
+.launcherGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1.25rem;
 }
 
-/* ---- One structural papel-picado moment, not repeated ---- */
-.picadoDivider {
-  height: 18px;
-  background-color: var(--copper-accent);
-  clip-path: polygon(0 0, 5% 100%, 10% 0, 15% 100%, 20% 0, 25% 100%, 30% 0, 35% 100%, 40% 0, 45% 100%, 50% 0, 55% 100%, 60% 0, 65% 100%, 70% 0, 75% 100%, 80% 0, 85% 100%, 90% 0, 95% 100%, 100% 0);
+.launcherCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  text-align: left;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 1rem;
+  padding: 1.25rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.launcherCard:hover {
+  transform: translateY(-3px);
+  border-color: rgba(217, 122, 56, 0.4);
+}
+
+.launcherIconWrap {
+  flex-shrink: 0;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.85rem;
+  background: linear-gradient(155deg, var(--copper-accent), #a35928);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0F151B;
+  box-shadow: 0 4px 16px rgba(217, 122, 56, 0.3);
+}
+
+.launcherTitle {
+  font-weight: 700;
+  color: var(--ink-main);
+  margin: 0 0 0.2rem;
+}
+
+.launcherDesc {
+  font-size: 0.8rem;
+  color: var(--ink-muted);
+  margin: 0;
+}
+
+.emptyNote {
+  color: rgba(255, 250, 240, 0.7);
+  font-size: 0.85rem;
+  padding: 1rem 0;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .page * { animation: none !important; transition: none !important; }
+  .launcherCard { transition: none; }
 }

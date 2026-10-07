@@ -1,15 +1,27 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Search, Code2, FolderOpen, Library } from 'lucide-react';
 import { API } from '@/lib/api';
+import AppletModal from '@/components/AppletModal';
 import DevelopmentWidget from '@/components/DevelopmentWidget';
 import FileTransferPanel from '@/components/FileTransferPanel';
 import BookLibrary from '@/components/BookLibrary';
 import s from './tools.module.css';
 
+type AppletKey = 'scratchpad' | 'files' | 'library' | null;
+
+const APPS = [
+  { key: 'scratchpad' as const, title: 'Scratchpad', description: 'Multi-tab code & notes, auto-saved as you type.', icon: Code2 },
+  { key: 'files' as const, title: 'Files', description: 'Personal document transfer, up to 1GB per file.', icon: FolderOpen },
+  { key: 'library' as const, title: 'Library', description: 'A shelf of ebooks, browsable page by page.', icon: Library },
+];
+
 export default function WSToolsPage() {
   const [loading, setLoading] = useState(true);
+  const [query, setQuery] = useState('');
+  const [activeApplet, setActiveApplet] = useState<AppletKey>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -24,6 +36,12 @@ export default function WSToolsPage() {
       }
     })();
   }, [router]);
+
+  const filteredApps = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return APPS;
+    return APPS.filter(a => a.title.toLowerCase().includes(q) || a.description.toLowerCase().includes(q));
+  }, [query]);
 
   if (loading) {
     return (
@@ -46,37 +64,45 @@ export default function WSToolsPage() {
           <p className={s.subtitle}>PERSONAL TOOLS</p>
         </div>
 
-        <div className={s.panels}>
-          <section className={s.panel}>
-            <div className={s.woodFrame} />
-            <div className={s.panelHead}>
-              <h2>Scratchpad</h2>
-              <p>Multi-tab code &amp; notes, auto-saved as you type.</p>
-            </div>
-            <div className={s.panelBody}><DevelopmentWidget /></div>
-          </section>
-
-          <section className={s.panel}>
-            <div className={s.woodFrame} />
-            <div className={s.panelHead}>
-              <h2>Files</h2>
-              <p>Personal document transfer, up to 1GB per file.</p>
-            </div>
-            <div className={s.panelBody}><FileTransferPanel /></div>
-          </section>
-
-          <div className={s.picadoDivider} />
-
-          <section className={s.panel}>
-            <div className={s.woodFrame} />
-            <div className={s.panelHead}>
-              <h2>Library</h2>
-              <p>A shelf of ebooks, browsable page by page.</p>
-            </div>
-            <div className={s.panelBody}><BookLibrary /></div>
-          </section>
+        <div className={s.searchBar}>
+          <Search size={15} className={s.searchIcon} />
+          <input
+            type="text"
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            placeholder="Search tools..."
+            className={s.searchInput}
+          />
         </div>
+
+        {filteredApps.length === 0 ? (
+          <div className={s.emptyNote}>No tools match &quot;{query}&quot;.</div>
+        ) : (
+          <div className={s.launcherGrid}>
+            {filteredApps.map(app => (
+              <button key={app.key} className={s.launcherCard} onClick={() => setActiveApplet(app.key)}>
+                <div className={s.launcherIconWrap}><app.icon size={22} /></div>
+                <div>
+                  <p className={s.launcherTitle}>{app.title}</p>
+                  <p className={s.launcherDesc}>{app.description}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
+
+      <AppletModal isOpen={activeApplet === 'scratchpad'} title="Scratchpad" onClose={() => setActiveApplet(null)} wide>
+        <DevelopmentWidget />
+      </AppletModal>
+
+      <AppletModal isOpen={activeApplet === 'files'} title="Files" onClose={() => setActiveApplet(null)} wide>
+        <FileTransferPanel />
+      </AppletModal>
+
+      <AppletModal isOpen={activeApplet === 'library'} title="Library" onClose={() => setActiveApplet(null)} wide>
+        <BookLibrary />
+      </AppletModal>
     </div>
   );
 }
