@@ -8,6 +8,7 @@ import { API } from '@/lib/api';
 
 type Position = 'sitting' | 'lying_down' | 'standing';
 type Arm = 'upper_left' | 'upper_right' | 'left_forearm' | 'right_forearm';
+type Medication = 'amlodipine_5mg' | 'amlodipine_10mg';
 
 interface Reading {
   id: number;
@@ -16,6 +17,7 @@ interface Reading {
   heart_rate: number | null;
   position: Position;
   arm: Arm;
+  medication: Medication | null;
   reading_at: string;
 }
 
@@ -30,6 +32,11 @@ const ARM_LABEL: Record<Arm, string> = {
   upper_right: 'Upper Right',
   left_forearm: 'Left Forearm',
   right_forearm: 'Right Forearm',
+};
+
+const MEDICATION_LABEL: Record<Medication, string> = {
+  amlodipine_5mg: 'Amlodipine 5mg',
+  amlodipine_10mg: 'Amlodipine 10mg',
 };
 
 // Standard AHA categories — purely derived from systolic/diastolic, no extra
@@ -56,6 +63,7 @@ const emptyForm = {
   heart_rate: '',
   position: 'sitting' as Position,
   arm: 'upper_left' as Arm,
+  medication: '' as Medication | '',
   reading_at: toLocalDatetimeInputValue(new Date().toISOString()),
 };
 
@@ -68,6 +76,7 @@ function toFormState(r: Reading): FormState {
     heart_rate: r.heart_rate != null ? String(r.heart_rate) : '',
     position: r.position,
     arm: r.arm,
+    medication: r.medication ?? '',
     reading_at: toLocalDatetimeInputValue(r.reading_at),
   };
 }
@@ -95,6 +104,7 @@ function formToPayload(f: FormState): Record<string, unknown> | null {
     heart_rate,
     position: f.position,
     arm: f.arm,
+    medication: f.medication || null,
     // datetime-local has no timezone — read as local time, same as the input displayed it.
     reading_at: new Date(f.reading_at).toISOString(),
   };
@@ -341,7 +351,7 @@ export default function BloodPressureTracker() {
 
     autoTable(doc, {
       startY: 30,
-      head: [['Date/Time', 'Systolic', 'Diastolic', 'Heart Rate', 'Position', 'Arm', 'Category']],
+      head: [['Date/Time', 'Systolic', 'Diastolic', 'Heart Rate', 'Position', 'Arm', 'Medication', 'Category']],
       body: sorted.map(r => {
         const cat = getCategory(r.systolic, r.diastolic);
         return [
@@ -351,6 +361,7 @@ export default function BloodPressureTracker() {
           r.heart_rate != null ? String(r.heart_rate) : '—',
           POSITION_LABEL[r.position],
           ARM_LABEL[r.arm],
+          r.medication ? MEDICATION_LABEL[r.medication] : '—',
           cat.label,
         ];
       }),
@@ -415,6 +426,7 @@ export default function BloodPressureTracker() {
                 <th className="text-left px-3 py-2">Heart Rate</th>
                 <th className="text-left px-3 py-2">Position</th>
                 <th className="text-left px-3 py-2">Arm</th>
+                <th className="text-left px-3 py-2">Medication</th>
                 <th className="text-left px-3 py-2">Category</th>
                 <th className="text-right px-3 py-2">Actions</th>
               </tr>
@@ -426,7 +438,7 @@ export default function BloodPressureTracker() {
                 return (
                   <Fragment key={month.key}>
                     <tr style={{ borderBottom: '1px solid rgba(var(--copper-bold-rgb),0.15)' }}>
-                      <td colSpan={7} className="px-3 py-1.5">
+                      <td colSpan={8} className="px-3 py-1.5">
                         <button
                           type="button"
                           onClick={() => toggleMonth(month.key)}
@@ -446,7 +458,7 @@ export default function BloodPressureTracker() {
                       return (
                         <Fragment key={week.key}>
                           <tr style={{ borderBottom: '1px solid rgba(var(--copper-bold-rgb),0.08)' }}>
-                            <td colSpan={7} className="pl-8 pr-3 py-1">
+                            <td colSpan={8} className="pl-8 pr-3 py-1">
                               <button
                                 type="button"
                                 onClick={() => toggleWeek(week.key)}
@@ -470,6 +482,7 @@ export default function BloodPressureTracker() {
                                 <td className="px-3 py-2">{r.heart_rate != null ? `${r.heart_rate} bpm` : '—'}</td>
                                 <td className="px-3 py-2">{POSITION_LABEL[r.position]}</td>
                                 <td className="px-3 py-2">{ARM_LABEL[r.arm]}</td>
+                                <td className="px-3 py-2">{r.medication ? MEDICATION_LABEL[r.medication] : '—'}</td>
                                 <td className="px-3 py-2">
                                   <span
                                     className="inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold whitespace-nowrap"
@@ -523,7 +536,7 @@ export default function BloodPressureTracker() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             <div>
               <label className="block text-xs mb-1" style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }}>Position</label>
               <select value={form.position} onChange={e => setForm(f => ({ ...f, position: e.target.value as Position }))} className="w-full border px-2 py-1.5 text-sm rounded" style={inputStyle}>
@@ -536,6 +549,15 @@ export default function BloodPressureTracker() {
               <label className="block text-xs mb-1" style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }}>Arm</label>
               <select value={form.arm} onChange={e => setForm(f => ({ ...f, arm: e.target.value as Arm }))} className="w-full border px-2 py-1.5 text-sm rounded" style={inputStyle}>
                 {Object.entries(ARM_LABEL).map(([v, label]) => (
+                  <option key={v} value={v} style={{ color: '#000' }}>{label}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs mb-1" style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }}>Medication (optional)</label>
+              <select value={form.medication} onChange={e => setForm(f => ({ ...f, medication: e.target.value as Medication | '' }))} className="w-full border px-2 py-1.5 text-sm rounded" style={inputStyle}>
+                <option value="" style={{ color: '#000' }}>None</option>
+                {Object.entries(MEDICATION_LABEL).map(([v, label]) => (
                   <option key={v} value={v} style={{ color: '#000' }}>{label}</option>
                 ))}
               </select>
