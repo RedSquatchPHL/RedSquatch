@@ -1,7 +1,7 @@
 'use client';
 
 import { Fragment, useEffect, useMemo, useState } from 'react';
-import { Plus, Pencil, Trash2, FileDown, ChevronDown, ChevronRight } from 'lucide-react';
+import { Plus, Pencil, Trash2, FileDown, ChevronDown, ChevronRight, Check, X, Lock, Unlock } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { API } from '@/lib/api';
@@ -206,6 +206,10 @@ export default function BloodPressureTracker() {
   const [collapsedMonths, setCollapsedMonths] = useState<Set<string>>(new Set());
   const [collapsedWeeks, setCollapsedWeeks] = useState<Set<string>>(new Set());
 
+  // Defaults locked every load — a deliberate re-lock, not a remembered
+  // preference, so a stray tap on a phone can't edit or delete history.
+  const [locked, setLocked] = useState(true);
+
   useEffect(() => {
     (async () => {
       try {
@@ -283,9 +287,19 @@ export default function BloodPressureTracker() {
   }
 
   function startEdit(r: Reading) {
+    setShowForm(false);
     setEditingId(r.id);
     setForm(toFormState(r));
-    setShowForm(true);
+  }
+
+  function cancelEdit() {
+    setEditingId(null);
+    setForm(emptyForm);
+  }
+
+  function toggleLock() {
+    if (!locked) cancelEdit(); // currently unlocked, about to lock — abandon any in-progress row
+    setLocked(prev => !prev);
   }
 
   async function saveForm() {
@@ -392,6 +406,21 @@ export default function BloodPressureTracker() {
           {readings.length > 0 && (
             <button
               type="button"
+              onClick={toggleLock}
+              title={locked ? 'Unlock to edit or delete readings' : 'Lock editing'}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold border"
+              style={{
+                borderColor: locked ? 'rgba(var(--copper-bold-rgb),0.3)' : 'rgba(76,175,80,0.5)',
+                color: locked ? 'var(--copper-tan)' : '#4caf50',
+              }}
+            >
+              {locked ? <Lock size={14} /> : <Unlock size={14} />}
+              {locked ? 'Locked' : 'Unlocked'}
+            </button>
+          )}
+          {readings.length > 0 && (
+            <button
+              type="button"
               onClick={exportPdf}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold border"
               style={{ borderColor: 'rgba(var(--copper-bold-rgb),0.3)', color: 'var(--copper-tan)' }}
@@ -474,6 +503,77 @@ export default function BloodPressureTracker() {
                             </td>
                           </tr>
                           {!weekCollapsed && week.readings.map(r => {
+                            if (editingId === r.id) {
+                              const liveSystolic = Number(form.systolic);
+                              const liveDiastolic = Number(form.diastolic);
+                              const cat = Number.isInteger(liveSystolic) && Number.isInteger(liveDiastolic)
+                                ? getCategory(liveSystolic, liveDiastolic)
+                                : getCategory(r.systolic, r.diastolic);
+                              return (
+                                <tr key={r.id} style={{ borderBottom: '1px solid rgba(var(--copper-bold-rgb),0.1)', background: 'rgba(184,115,51,0.08)' }}>
+                                  <td className="px-3 py-2 pl-10">
+                                    <input
+                                      type="datetime-local"
+                                      value={form.reading_at}
+                                      onChange={e => setForm(f => ({ ...f, reading_at: e.target.value }))}
+                                      className="w-full border px-1.5 py-1 text-xs rounded"
+                                      style={inputStyle}
+                                    />
+                                  </td>
+                                  <td className="px-3 py-2">
+                                    <div className="flex items-center gap-1">
+                                      <input value={form.systolic} onChange={e => setForm(f => ({ ...f, systolic: e.target.value }))} inputMode="numeric" className="w-10 border px-1 py-1 text-xs rounded" style={inputStyle} />
+                                      <span>/</span>
+                                      <input value={form.diastolic} onChange={e => setForm(f => ({ ...f, diastolic: e.target.value }))} inputMode="numeric" className="w-10 border px-1 py-1 text-xs rounded" style={inputStyle} />
+                                    </div>
+                                  </td>
+                                  <td className="px-3 py-2">
+                                    <input value={form.heart_rate} onChange={e => setForm(f => ({ ...f, heart_rate: e.target.value }))} inputMode="numeric" placeholder="—" className="w-14 border px-1 py-1 text-xs rounded" style={inputStyle} />
+                                  </td>
+                                  <td className="px-3 py-2">
+                                    <select value={form.position} onChange={e => setForm(f => ({ ...f, position: e.target.value as Position }))} className="w-full border px-1 py-1 text-xs rounded" style={inputStyle}>
+                                      {Object.entries(POSITION_LABEL).map(([v, label]) => (
+                                        <option key={v} value={v} style={{ color: '#000' }}>{label}</option>
+                                      ))}
+                                    </select>
+                                  </td>
+                                  <td className="px-3 py-2">
+                                    <select value={form.arm} onChange={e => setForm(f => ({ ...f, arm: e.target.value as Arm }))} className="w-full border px-1 py-1 text-xs rounded" style={inputStyle}>
+                                      {Object.entries(ARM_LABEL).map(([v, label]) => (
+                                        <option key={v} value={v} style={{ color: '#000' }}>{label}</option>
+                                      ))}
+                                    </select>
+                                  </td>
+                                  <td className="px-3 py-2">
+                                    <select value={form.medication} onChange={e => setForm(f => ({ ...f, medication: e.target.value as Medication | '' }))} className="w-full border px-1 py-1 text-xs rounded" style={inputStyle}>
+                                      <option value="" style={{ color: '#000' }}>None</option>
+                                      {Object.entries(MEDICATION_LABEL).map(([v, label]) => (
+                                        <option key={v} value={v} style={{ color: '#000' }}>{label}</option>
+                                      ))}
+                                    </select>
+                                  </td>
+                                  <td className="px-3 py-2">
+                                    <span
+                                      className="inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold whitespace-nowrap"
+                                      style={{ background: `${cat.color}2e`, color: cat.color }}
+                                    >
+                                      {cat.label}
+                                    </span>
+                                  </td>
+                                  <td className="px-3 py-2">
+                                    <div className="flex items-center justify-end gap-2">
+                                      <button type="button" onClick={saveForm} title="Save">
+                                        <Check size={15} style={{ color: '#4caf50' }} />
+                                      </button>
+                                      <button type="button" onClick={cancelEdit} title="Cancel">
+                                        <X size={15} style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }} />
+                                      </button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              );
+                            }
+
                             const cat = getCategory(r.systolic, r.diastolic);
                             return (
                               <tr key={r.id} style={{ borderBottom: '1px solid rgba(var(--copper-bold-rgb),0.1)' }}>
@@ -492,14 +592,16 @@ export default function BloodPressureTracker() {
                                   </span>
                                 </td>
                                 <td className="px-3 py-2">
-                                  <div className="flex items-center justify-end gap-2">
-                                    <button type="button" onClick={() => startEdit(r)} title="Edit">
-                                      <Pencil size={13} style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }} />
-                                    </button>
-                                    <button type="button" onClick={() => deleteReading(r)} title="Delete">
-                                      <Trash2 size={13} style={{ color: '#c85050' }} />
-                                    </button>
-                                  </div>
+                                  {!locked && (
+                                    <div className="flex items-center justify-end gap-2">
+                                      <button type="button" onClick={() => startEdit(r)} title="Edit">
+                                        <Pencil size={13} style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }} />
+                                      </button>
+                                      <button type="button" onClick={() => deleteReading(r)} title="Delete">
+                                        <Trash2 size={13} style={{ color: '#c85050' }} />
+                                      </button>
+                                    </div>
+                                  )}
                                 </td>
                               </tr>
                             );
@@ -518,7 +620,7 @@ export default function BloodPressureTracker() {
       {showForm && (
         <div className="rounded-md p-4 mt-4 space-y-3" style={{ background: 'rgba(20,18,16,0.6)' }}>
           <h3 className="text-sm font-bold" style={{ color: 'var(--copper-tan)' }}>
-            {editingId === null ? 'Add a Reading' : 'Edit Reading'}
+            Add a Reading
           </h3>
 
           <div className="grid grid-cols-3 gap-3">
@@ -577,11 +679,11 @@ export default function BloodPressureTracker() {
 
           <div className="flex items-center gap-2">
             <button type="button" onClick={saveForm} className="flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-semibold" style={{ background: 'var(--copper-bold)', color: 'var(--stone-0)' }}>
-              {editingId === null ? 'Add Reading' : 'Save Changes'}
+              Add Reading
             </button>
             <button
               type="button"
-              onClick={() => { setShowForm(false); setEditingId(null); }}
+              onClick={() => setShowForm(false)}
               className="px-4 py-2 rounded-md text-sm font-semibold border"
               style={{ borderColor: 'rgba(var(--copper-bold-rgb),0.3)', color: 'var(--copper-tan)' }}
             >
