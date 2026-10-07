@@ -3,12 +3,12 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { API } from '@/lib/api';
-import { Syringe } from 'lucide-react';
+import { HeartPulse } from 'lucide-react';
 import AppletModal from '@/components/AppletModal';
-import TirzepatideTracker from '@/components/trackers/TirzepatideTracker';
+import BloodPressureTracker from '@/components/trackers/BloodPressureTracker';
 import CopperPanel from '@/components/cenote/CopperPanel';
 
-type Applet = 'tirzepatide' | null;
+type Applet = 'blood_pressure' | null;
 
 export default function HSHealthPage() {
   const [loading, setLoading] = useState(true);
@@ -45,7 +45,7 @@ export default function HSHealthPage() {
       <div className="w-full max-w-5xl">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {([
-            { key: 'tirzepatide' as const, label: 'Tirzepatide Tracker', description: 'Compare compounder pricing to find the most affordable option', },
+            { key: 'blood_pressure' as const, label: 'Blood Pressure Log', description: 'Track systolic/diastolic, heart rate, position, and arm — export to PDF', icon: HeartPulse },
           ]).map((t) => (
             <button
               key={t.key}
@@ -75,7 +75,7 @@ export default function HSHealthPage() {
                   className="p-3 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform w-fit"
                   style={{ backgroundColor: '#b8733322' }}
                 >
-                  <Syringe size={24} style={{ color: '#b87333' }} />
+                  <t.icon size={24} style={{ color: '#b87333' }} />
                 </div>
                 <div className="flex-1">
                   <h3 className="font-semibold text-sm" style={{ color: '#d4a373' }}>
@@ -95,8 +95,8 @@ export default function HSHealthPage() {
         </div>
       </div>
 
-      <AppletModal isOpen={activeApplet === 'tirzepatide'} title="Tirzepatide Compounder Tracker" onClose={() => setActiveApplet(null)} wide>
-        <TirzepatideTracker />
+      <AppletModal isOpen={activeApplet === 'blood_pressure'} title="Blood Pressure Log" onClose={() => setActiveApplet(null)} wide>
+        <BloodPressureTracker />
       </AppletModal>
     </div>
   );
