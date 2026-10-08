@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { API } from '@/lib/api';
 import s from './gates.module.css';
 
@@ -9,8 +9,10 @@ import s from './gates.module.css';
    Arrive to the compound; click the carved RS shield; the login panel slides
    up over the scene. Auth logic (login → optional OTP → interceptor) is
    unchanged from the previous version — only the skin and the reveal are new. */
-export default function GatesPage() {
+function GatesInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const nextPath = searchParams.get('next');
 
   const [revealed,    setRevealed]    = useState(false);
   const [username,    setUsername]    = useState('');
@@ -34,7 +36,7 @@ export default function GatesPage() {
       const data = await res.json();
       if (!res.ok) { setError(data.error || 'Login failed'); return; }
       if (data.awaiting_otp) { setAwaitingOtp(true); return; }
-      router.push('/login-interceptor');
+      router.push(nextPath || '/login-interceptor');
     } catch {
       setError('Network error. Check API connectivity.');
     } finally {
@@ -55,7 +57,7 @@ export default function GatesPage() {
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error || 'Invalid code'); return; }
-      router.push('/login-interceptor');
+      router.push(nextPath || '/login-interceptor');
     } catch {
       setError('Network error. Check API connectivity.');
     } finally {
@@ -159,5 +161,13 @@ export default function GatesPage() {
         </div>
       )}
     </main>
+  );
+}
+
+export default function GatesPage() {
+  return (
+    <Suspense>
+      <GatesInner />
+    </Suspense>
   );
 }
