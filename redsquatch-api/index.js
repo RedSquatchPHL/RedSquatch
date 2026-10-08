@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const { rateLimit } = require('express-rate-limit');
 const session = require('express-session');
 const pgSession = require('connect-pg-simple')(session);
 const bcrypt = require('bcrypt');
@@ -154,7 +155,23 @@ function requireAuth(req, res, next) {
 
 // ============ AUTH ============
 
-app.post('/api/client/login', async (req, res) => {
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  limit: 10,                 // max 10 attempts per IP per window
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  message: { error: 'Too many login attempts. Try again in 15 minutes.' },
+});
+
+const otpLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000,
+  limit: 5,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  message: { error: 'Too many OTP attempts. Try again in 5 minutes.' },
+});
+
+app.post('/api/client/login', loginLimiter, async (req, res) => {
   const { username, password } = req.body;
   if (!username || !password) return res.status(400).json({ error: 'Username and password required' });
 
@@ -196,7 +213,7 @@ app.post('/api/client/login', async (req, res) => {
   }
 });
 
-app.post('/api/client/verify-otp', async (req, res) => {
+app.post('/api/client/verify-otp', otpLimiter, async (req, res) => {
   const { token } = req.body;
   if (!req.session.pendingUser) return res.status(401).json({ error: 'No pending login' });
   if (!token) return res.status(400).json({ error: 'Token required' });
