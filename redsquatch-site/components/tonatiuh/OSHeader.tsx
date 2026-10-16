@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Search, Bell } from 'lucide-react';
 import { WS_NAV } from '@/lib/menuConfig';
+import ClockGateMenu from '@/components/ClockGateMenu';
 import { WS_NAV_ES, WS_SEARCH_ALIASES } from '@/lib/bilingual';
 import s from './OSHeader.module.css';
 
@@ -72,6 +73,7 @@ export default function OSHeader() {
           <Bell size={18} />
           <span className={s.bellDot} />
         </Link>
+        <ClockGateMenu />
       </div>
     </header>
   );

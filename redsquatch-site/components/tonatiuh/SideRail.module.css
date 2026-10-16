@@ -15,7 +15,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 1.25rem 0 4rem; /* bottom slot is the ClockGateMenu trigger (see ClockGateMenu.ws.module.css) */
+  padding: 1.25rem 0;
   background: rgba(22, 30, 40, 0.75);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -109,8 +109,7 @@
   opacity: 1;
 }
 
-/* Phone width: the rail becomes a bottom bar, left-padded so it clears the
-   fixed ClockGateMenu badge. */
+/* Phone width: the rail becomes a bottom nav bar. */
 @media (max-width: 767px) {
   .rail {
     position: fixed;
@@ -121,7 +120,7 @@
     width: 100%;
     height: 56px;
     flex-direction: row;
-    padding: 0 0 0 64px;
+    padding: 0;
     border-right: none;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
   }

@@ -9,9 +9,7 @@ import s from './SideRail.module.css';
 
 // Tōnatiuh OS icon rail (the SuperDesign drafts' shared SidebarNavigation).
 // Items come from the real WS_NAV list, not the drafts' placeholder
-// Files/Notes. The bottom slot is left empty on purpose: ClockGateMenu's
-// menu trigger docks there (see ClockGateMenu.ws.module.css) as the rail's
-// settings entry (clock in/out, switch, log out).
+// Files/Notes. No settings slot: the clock/account menu lives in OSHeader.
 export default function SideRail() {
   const pathname = usePathname() ?? '';
 

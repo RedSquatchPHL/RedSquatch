@@ -33,8 +33,9 @@ export default function GlobalEffects() {
 
   return (
     <>
-      {/* Work Mode <-> Downtime Mode manual toggle — global, not tied to /ws or /hs */}
-      <ClockGateMenu />
+      {/* Work Mode <-> Downtime Mode manual toggle. Floating bottom-left everywhere except
+          /ws, where OSHeader renders it in the top bar instead (no bottom buttons there). */}
+      {!isWorkMode && <ClockGateMenu />}
 
       {isWorkMode ? (
         <StaticWorkBackdrop />
