@@ -156,6 +156,12 @@ export function WSGoalsTimeline() {
     } catch { /* silent */ }
   }
 
+  const activeCount = goals.filter(g => g.status === 'active').length;
+  const achievedCount = goals.filter(g => g.status === 'achieved').length;
+  const blockedCount = goals.filter(g => g.status === 'blocked').length;
+  const avgProgress = goals.length ? Math.round(goals.reduce((sum, g) => sum + (g.progress ?? 0), 0) / goals.length) : 0;
+  const statusCounts = STATUSES.map(st => ({ st, n: goals.filter(g => g.status === st).length })).filter(x => x.n > 0);
+
   const dated = goals.filter(g => g.target_date).sort((a, b) => (a.target_date! < b.target_date! ? -1 : 1));
   const undated = goals.filter(g => !g.target_date);
 
@@ -295,20 +301,54 @@ export function WSGoalsTimeline() {
       ) : goals.length === 0 ? (
         <div className={s.emptyNote}>No {context} goals yet — add one above.</div>
       ) : (
-        <div className={s.timeline}>
-          {dated.length > 0 && (
-            <>
-              <div className={s.sectionLabel}>Upcoming</div>
-              {dated.map(renderEntry)}
-            </>
-          )}
-          {undated.length > 0 && (
-            <>
-              <div className={s.sectionLabel}>Undated</div>
-              {undated.map(renderEntry)}
-            </>
-          )}
-        </div>
+        <>
+          <div className={s.statRow}>
+            {[
+              { label: 'Goals', value: goals.length, tone: 'var(--ink-main)' },
+              { label: 'Active', value: activeCount, tone: 'var(--status-green)' },
+              { label: 'Achieved', value: achievedCount, tone: 'var(--copper-accent)' },
+              { label: 'Blocked', value: blockedCount, tone: 'var(--status-red)' },
+            ].map(st => (
+              <div key={st.label} className={s.statCard} style={{ ['--stat-tone' as string]: st.tone }}>
+                <span className={s.statValue}>{st.value}</span>
+                <span className={s.statLabel}>{st.label}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className={s.body}>
+            <div className={s.timeline}>
+              {dated.length > 0 && (
+                <>
+                  <div className={s.sectionLabel}>Upcoming</div>
+                  {dated.map(renderEntry)}
+                </>
+              )}
+              {undated.length > 0 && (
+                <>
+                  <div className={s.sectionLabel}>Undated</div>
+                  {undated.map(renderEntry)}
+                </>
+              )}
+            </div>
+
+            <aside className={s.aside} aria-label="Progress summary">
+              <h3 className={s.asideHeading}>Progress</h3>
+              <div className={s.asideBig}>{avgProgress}%</div>
+              <p className={s.asideSub}>average across {goals.length} {context} goal{goals.length === 1 ? '' : 's'}</p>
+              <div className={s.track}><div className={s.fill} style={{ width: `${avgProgress}%` }} /></div>
+              <ul className={s.statusList}>
+                {statusCounts.map(({ st, n }) => (
+                  <li key={st} className={s.statusItem}>
+                    <span className={s.statusDot} style={{ background: STATUS_COLOR[st] }} />
+                    {STATUS_LABEL[st]}
+                    <span className={s.statusCount}>{n}</span>
+                  </li>
+                ))}
+              </ul>
+            </aside>
+          </div>
+        </>
       )}
     </div>
   );

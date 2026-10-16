@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { ListChecks, CalendarClock, Flame, CheckCircle2 } from 'lucide-react';
 import { API } from '@/lib/api';
 import KanbanBoard, { Task, TaskColumn, TaskSwimlane } from '@/components/tasks/KanbanBoard';
 import TaskListView from '@/components/tasks/TaskListView';
@@ -124,6 +125,25 @@ export default function TasksPage() {
     await loadBoard();
   }
 
+  // Stat-card counts for the header row. "Done" follows the board's own
+  // is_done column flag, so renamed/added columns keep working.
+  const doneColIds = new Set((board?.columns ?? []).filter(c => c.is_done).map(c => c.id));
+  const openTasks = (board?.tasks ?? []).filter(t => !doneColIds.has(t.column_id));
+  const weekAhead = Date.now() + 7 * 24 * 60 * 60 * 1000;
+  const dueSoon = openTasks.filter(t => {
+    if (!t.due_date) return false;
+    const ms = Date.parse(t.due_date);
+    return !Number.isNaN(ms) && ms <= weekAhead;
+  }).length;
+  const highPriority = openTasks.filter(t => t.priority === 'high').length;
+  const doneCount = (board?.tasks ?? []).length - openTasks.length;
+  const stats = [
+    { label: 'Open', value: openTasks.length, Icon: ListChecks, tone: styles.statCopper },
+    { label: 'Due this week', value: dueSoon, Icon: CalendarClock, tone: styles.statGold },
+    { label: 'High priority', value: highPriority, Icon: Flame, tone: styles.statPink },
+    { label: 'Done', value: doneCount, Icon: CheckCircle2, tone: styles.statGreen },
+  ];
+
   if (checking || !board) {
     return (
       <div className={styles.page}>
@@ -160,6 +180,16 @@ export default function TasksPage() {
           </button>
         </div>
       </header>
+
+      <div className={styles.statRow}>
+        {stats.map(({ label, value, Icon, tone }) => (
+          <div key={label} className={`${styles.statCard} ${tone}`}>
+            <Icon size={18} className={styles.statIcon} />
+            <span className={styles.statValue}>{value}</span>
+            <span className={styles.statLabel}>{label}</span>
+          </div>
+        ))}
+      </div>
 
       {view === 'board' ? (
         <KanbanBoard

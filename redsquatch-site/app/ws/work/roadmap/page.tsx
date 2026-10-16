@@ -3,16 +3,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Unbounded, JetBrains_Mono } from 'next/font/google';
 import { API } from '@/lib/api';
-import AztecHeader from '@/components/aztec/AztecHeader';
-import AztecPanel from '@/components/aztec/AztecPanel';
-import AztecMotion from '@/components/aztec/AztecMotion';
+import { CheckCircle2, Target, TrendingUp } from 'lucide-react';
 import styles from '@/styles/roadmap.module.css';
-import '@/styles/aztec-command.css';
-
-const unbounded = Unbounded({ subsets: ['latin'], weight: ['700', '800'], variable: '--font-unbounded' });
-const jbMono = JetBrains_Mono({ subsets: ['latin'], weight: ['400', '500'], variable: '--font-jbmono' });
 
 type Category = 'did_well' | 'demonstrate' | 'improve';
 
@@ -25,24 +18,27 @@ type RoadmapItem = {
   updated_at: string;
 };
 
-const SECTIONS: { category: Category; title: string; intro: string; family: 'codex' | 'eagle' | 'fire' }[] = [
+const SECTIONS: { category: Category; title: string; intro: string; tone: 'green' | 'gold' | 'pink'; Icon: typeof Target }[] = [
   {
     category: 'did_well',
     title: 'What I Did Well',
     intro: 'Concrete examples worth pointing back to — proof it\'s in me, not just a one-off.',
-    family: 'codex',
+    tone: 'green',
+    Icon: CheckCircle2,
   },
   {
     category: 'demonstrate',
     title: 'What I Need to Consistently Demonstrate',
     intro: 'The standard, every ticket, every week — not just when it\'s convenient.',
-    family: 'eagle',
+    tone: 'gold',
+    Icon: Target,
   },
   {
     category: 'improve',
     title: 'What I Can Improve Upon',
     intro: 'Open growth edges to keep working, honestly.',
-    family: 'fire',
+    tone: 'pink',
+    Icon: TrendingUp,
   },
 ];
 
@@ -121,21 +117,15 @@ export default function WorkRoadmapPage() {
 
   if (checking) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg" style={{ color: '#b87333' }}>Loading...</div>
+      <div className={styles.page}>
+        <div className={styles.loading}>Loading…</div>
       </div>
     );
   }
 
   return (
-    <div className={`work-page aztec-command ${unbounded.variable} ${jbMono.variable} ${styles.page} pb-28`}>
-      <AztecMotion marqueeItems={['Goals', 'Work Items', 'Sports', 'Tools', 'RedSquatch']} />
-
-      <div className="relative z-[1] max-w-[1400px] mx-auto mb-6">
-        <AztecHeader label="OVERVIEW" />
-      </div>
-
-      <div className={`relative z-[1] ${styles.content}`}>
+    <div className={styles.page}>
+      <div className={styles.content}>
         <header className={styles.header}>
           <div>
             <h1 className={styles.title}>Roadmap</h1>
@@ -146,7 +136,12 @@ export default function WorkRoadmapPage() {
 
         <div className={styles.sections}>
           {SECTIONS.map(section => (
-            <AztecPanel key={section.category} family={section.family} title={section.title}>
+            <section key={section.category} className={`${styles.section} ${styles[section.tone]}`}>
+              <h2 className={styles.sectionTitle}>
+                <section.Icon size={18} className={styles.sectionIcon} />
+                {section.title}
+                <span className={styles.sectionCount}>{byCategory[section.category].length}</span>
+              </h2>
               <p className={styles.sectionIntro}>{section.intro}</p>
 
               <div className={styles.list}>
@@ -192,7 +187,7 @@ export default function WorkRoadmapPage() {
                   Add
                 </button>
               </div>
-            </AztecPanel>
+            </section>
           ))}
         </div>
       </div>

@@ -25,7 +25,6 @@ export default function WSGoalsPage() {
 
         <div className={s.boardFrame}>
           <h2 className={s.boardHeading}>Task Board &amp; Career Trajectory</h2>
-          <p className={s.boardNote}>Shared with /hs — not yet reskinned, kept as-is here.</p>
           <div className={s.boardInner}>
             <TasksBoard onOpenLogs={setLogTask} />
           </div>

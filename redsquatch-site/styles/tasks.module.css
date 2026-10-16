@@ -16,8 +16,12 @@
   /* Shelf: the dark tray columns/lanes sit in — distinct from both the wall
      and the terracotta tile cards so the tiles read as objects placed on it,
      not a continuation of the wall. */
-  --tk-shelf: #161E28;
-  --tk-shelf-border: rgba(217, 122, 56, 0.22);
+  --tk-shelf: rgba(22, 30, 40, 0.72);
+  --tk-shelf-border: rgba(255, 255, 255, 0.1);
+  --tk-radius: 1rem;
+  --tk-status-green: #5FBF8F;
+  --tk-status-gold: #D4AF37;
+  --tk-status-pink: #E34C7A;
 
   /* Terracotta tile frame (Option B: the card's outer material) and the dark
      modern inset it holds (the actual data surface — same obsidian family as
@@ -25,8 +29,8 @@
   --tk-glaze: #D97A38;
   --tk-glaze-deep: #A85A28;
   --tk-glaze-border: #8a4a1c;
-  --tk-inset: #0F151B;
-  --tk-inset-border: rgba(217, 122, 56, 0.22);
+  --tk-inset: rgba(15, 21, 27, 0.55);
+  --tk-inset-border: rgba(255, 255, 255, 0.1);
   --tk-inset-border-hover: #D97A38;
 
   --tk-copper: #D97A38;
@@ -37,7 +41,7 @@
   --tk-ink: rgba(255, 250, 240, 0.92);
   /* .65 measured 4.16:1 on --tk-inset — under the 4.5:1 floor for body-sized
      text; .75 clears 5.16:1. */
-  --tk-ink-soft: rgba(232, 147, 90, 0.75);
+  --tk-ink-soft: rgba(232, 147, 90, 0.82);
   --tk-copper-text: var(--tk-copper-light);
   --tk-border: var(--tk-inset-border);
 
@@ -115,6 +119,7 @@
   font-family: 'Cabinet Grotesk', serif;
   letter-spacing: 0.01em;
   font-size: 2.5rem;
+  font-weight: 700;
   line-height: 1;
   margin: 0;
   color: var(--tk-onwall);
@@ -142,7 +147,8 @@
   text-transform: uppercase;
   padding: 0.4rem 0.8rem;
   min-height: 30px;
-  background: rgba(13, 10, 8, 0.5);
+  border-radius: 0.5rem;
+  background: var(--tk-shelf);
   border: 1px solid var(--tk-shelf-border);
   color: var(--tk-onwall-soft);
   cursor: pointer;
@@ -157,7 +163,7 @@
 .viewBtnActive {
   border-color: var(--tk-copper);
   color: var(--tk-onwall);
-  background: rgba(184, 115, 51, 0.22);
+  background: rgba(217, 122, 56, 0.22);
 }
 
 /* ── Board scaffolding ─────────────────────────────────────────── */
@@ -247,7 +253,9 @@
   border: 1px solid var(--tk-shelf-border);
   flex-shrink: 0;
   position: relative;
-  box-shadow: 0 6px 14px -10px rgba(0, 0, 0, 0.45);
+  border-radius: var(--tk-radius) var(--tk-radius) 0 0;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
 }
 
 .columnHeader {
@@ -311,7 +319,8 @@
   background: var(--tk-shelf);
   border: 1px solid var(--tk-shelf-border);
   border-top: none;
-  box-shadow: 0 10px 22px -14px rgba(0, 0, 0, 0.45);
+  border-radius: 0 0 var(--tk-radius) var(--tk-radius);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
@@ -322,7 +331,7 @@
 }
 
 .columnDragOver {
-  background: rgba(184, 115, 51, 0.14);
+  background: rgba(217, 122, 56, 0.14);
   box-shadow: 0 0 0 2px var(--tk-copper), 0 16px 34px -12px rgba(0, 0, 0, 0.55);
 }
 
@@ -347,8 +356,9 @@
 }
 
 .addColumnBtn {
-  background: rgba(13, 10, 8, 0.35);
-  border: 1px dashed var(--tk-shelf-border);
+  border-radius: 0.75rem;
+  background: rgba(22, 30, 40, 0.45);
+  border: 1px dashed rgba(255, 255, 255, 0.18);
   color: var(--tk-onwall-soft);
   cursor: pointer;
   flex-shrink: 0;
@@ -367,8 +377,9 @@
 }
 
 .addLaneBtn {
-  background: rgba(13, 10, 8, 0.35);
-  border: 1px dashed var(--tk-shelf-border);
+  border-radius: 0.75rem;
+  background: rgba(22, 30, 40, 0.45);
+  border: 1px dashed rgba(255, 255, 255, 0.18);
   color: var(--tk-onwall-soft);
   cursor: pointer;
   font-family: var(--tk-ui-font);
@@ -384,26 +395,26 @@
 }
 
 /* ── Cards ─────────────────────────────────────────────────────────
-   Option B from the design-preview comparison: the card is a glazed
-   terracotta tile (frame) holding a small dark modern data screen
-   (.cardInset) — frame carries the room's material, inset stays legible
-   and modern. Motion is the focal moment this board never had: a real
-   pickup lift and a settle pulse on drop, confident ease-out throughout. */
+   Tōnatiuh OS glass card (same recipe as the Dashboard stat cards). The
+   earlier terracotta-tile-around-obsidian-inset frame is retired: .card
+   is the glass surface and .cardInset is just its padded content box.
+   Motion kept: pickup lift, hover lift and the drop settle pulse. */
 
 .card {
   position: relative;
-  background: linear-gradient(155deg, var(--tk-glaze) 0%, var(--tk-glaze-deep) 100%);
-  border: 1px solid var(--tk-glaze-border);
+  background: rgba(22, 30, 40, 0.85);
+  border: 1px solid var(--tk-shelf-border);
+  border-radius: 0.75rem;
   cursor: grab;
-  padding: 0.4rem;
-  box-shadow: 0 10px 24px -8px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.16);
+  padding: 0;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
   transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 220ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 18px 36px -10px rgba(0, 0, 0, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.2);
-  border-color: #8a5230;
+  box-shadow: 0 16px 32px -8px rgba(0, 0, 0, 0.5);
+  border-color: rgba(217, 122, 56, 0.55);
 }
 
 .card:active {
@@ -411,9 +422,7 @@
 }
 
 .cardInset {
-  background: var(--tk-inset);
-  border: 1px solid var(--tk-inset-border);
-  padding: 0.55rem 0.65rem;
+  padding: 0.7rem 0.8rem;
 }
 
 .cardDragging {
@@ -430,8 +439,8 @@
 }
 
 @keyframes cardSettlePulse {
-  0% { transform: scale(1.05) translateY(-4px); box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.22); }
-  100% { transform: scale(1) translateY(0); box-shadow: 0 10px 24px -8px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.16); }
+  0% { transform: scale(1.05) translateY(-4px); box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5); }
+  100% { transform: scale(1) translateY(0); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3); }
 }
 
 .cardDone {
@@ -604,6 +613,7 @@
 .addTaskForm {
   background: var(--tk-inset);
   border: 1px solid var(--tk-inset-border);
+  border-radius: 0.5rem;
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
@@ -790,3 +800,59 @@
     animation: none;
   }
 }
+
+
+/* ── Stat row (Tōnatiuh OS stat cards, real board counts) ─────────── */
+
+.statRow {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+}
+
+@media (max-width: 760px) {
+  .statRow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.statCard {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas: 'icon value' 'label label';
+  align-items: center;
+  gap: 0.15rem 0.75rem;
+  padding: 1rem 1.1rem;
+  background: var(--tk-shelf);
+  border: 1px solid var(--tk-shelf-border);
+  border-radius: var(--tk-radius);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(12px);
+}
+
+.statIcon {
+  grid-area: icon;
+  color: var(--stat-tone);
+}
+
+.statValue {
+  grid-area: value;
+  font-family: 'Cabinet Grotesk', sans-serif;
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--tk-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.statLabel {
+  grid-area: label;
+  font-size: 0.78rem;
+  color: #93A4B8;
+}
+
+.statCopper { --stat-tone: var(--tk-copper); }
+.statGold { --stat-tone: var(--tk-status-gold); }
+.statPink { --stat-tone: var(--tk-status-pink); }
+.statGreen { --stat-tone: var(--tk-status-green); }

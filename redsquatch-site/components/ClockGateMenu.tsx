@@ -103,15 +103,17 @@ export default function ClockGateMenu() {
     (activeNavItem?.type === 'internal' ? activeNavItem.path : undefined)
     ?? (pathname === '/settings' ? '/settings' : '');
 
+  // /ws has its own always-visible SideRail (components/tonatiuh), so Navigate
+  // would just duplicate it there; /hs still relies on this section.
   const branchSections: BranchedMenuSection[] = [
-    {
+    ...(inHS ? [{
       label: 'Navigate',
       children: navItems.map(item => ({
         value: item.type === 'internal' ? item.path : item.id,
         label: item.label,
         icon: item.icon,
       })),
-    },
+    }] : []),
     {
       label: 'Quick Links',
       children: QUICK_LINKS_SUBMENU.map(item => ({ value: item.id, label: item.label, icon: item.icon })),

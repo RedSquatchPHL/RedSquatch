@@ -1,0 +1,162 @@
+/* Tōnatiuh OS icon rail — lives in app/ws/layout.tsx, outside any page's
+   CSS module scope, so it hardcodes the same hex values as OSHeader. Draft
+   spec: 96px glass rail, right hairline, active item copper with a 2px
+   right-edge bar. Narrowed to 80px so the 34px ClockGateMenu badge fits
+   inside the reserved bottom slot. */
+
+.rail {
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+  flex-shrink: 0;
+  width: 80px;
+  height: 100vh;
+  z-index: 45;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.25rem 0 4.5rem; /* bottom clears the fixed ClockGateMenu badge */
+  background: rgba(22, 30, 40, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin-bottom: 1.75rem;
+  border-radius: 0.75rem;
+  background: #D97A38;
+  box-shadow: 0 0 20px rgba(217, 122, 56, 0.3);
+  text-decoration: none;
+}
+
+.logoMark {
+  font-family: 'Cabinet Grotesk', sans-serif;
+  font-weight: 800;
+  font-size: 1.35rem;
+  color: #0F151B;
+  line-height: 1;
+}
+
+.items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 52px;
+  color: #93A4B8; /* 6.9:1 on #161E28 */
+  text-decoration: none;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.item:hover {
+  color: #E2E8F0;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.item:focus-visible {
+  outline: 2px solid #D97A38;
+  outline-offset: -2px;
+}
+
+.itemActive {
+  color: #D97A38;
+  border-right: 2px solid #D97A38;
+  background: rgba(217, 122, 56, 0.08);
+}
+
+.itemActive:hover {
+  color: #D97A38;
+}
+
+/* Label tooltip, shown on hover/focus to the right of the rail. */
+.tip {
+  position: absolute;
+  left: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 0.3rem 0.6rem;
+  border-radius: 0.5rem;
+  background: #161E28;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #E2E8F0;
+  font-family: 'Satoshi', sans-serif;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+
+.item:hover .tip,
+.item:focus-visible .tip {
+  opacity: 1;
+}
+
+/* Phone width: the rail becomes a bottom bar, left-padded so it clears the
+   fixed ClockGateMenu badge. */
+@media (max-width: 767px) {
+  .rail {
+    position: fixed;
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 56px;
+    flex-direction: row;
+    padding: 0 0 0 64px;
+    border-right: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .logo {
+    display: none;
+  }
+
+  .items {
+    flex-direction: row;
+    gap: 0;
+    height: 100%;
+  }
+
+  .items li {
+    flex: 1;
+  }
+
+  .item {
+    height: 100%;
+  }
+
+  .itemActive {
+    border-right: none;
+    border-top: 2px solid #D97A38;
+  }
+
+  .tip {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .item,
+  .tip {
+    transition: none;
+  }
+}
