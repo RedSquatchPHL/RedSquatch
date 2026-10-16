@@ -5,22 +5,18 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Search, Bell } from 'lucide-react';
 import { WS_NAV } from '@/lib/menuConfig';
+import { WS_NAV_ES, WS_SEARCH_ALIASES } from '@/lib/bilingual';
 import s from './OSHeader.module.css';
-
-// A few aliases beyond the exact WS_NAV labels, so "jobs"/"ba"/"home" etc. also resolve.
-const ALIASES: Record<string, string> = {
-  home: '/ws/dashboard',
-  ba: '/ws/batools',
-  'ba tools': '/ws/batools',
-  jobs: '/ws/jobsearch',
-  'job search': '/ws/jobsearch',
-};
 
 function resolveDestination(query: string): string | null {
   const q = query.trim().toLowerCase();
   if (!q) return null;
-  if (ALIASES[q]) return ALIASES[q];
-  const match = WS_NAV.find(item => item.label.toLowerCase().includes(q) || q.includes(item.label.toLowerCase()));
+  if (WS_SEARCH_ALIASES[q]) return WS_SEARCH_ALIASES[q];
+  const match = WS_NAV.find(item => {
+    const en = item.label.toLowerCase();
+    const es = (WS_NAV_ES[item.id] ?? '').toLowerCase();
+    return en.includes(q) || q.includes(en) || (es && (es.includes(q) || q.includes(es)));
+  });
   return match?.type === 'internal' ? match.path : null;
 }
 
@@ -65,7 +61,7 @@ export default function OSHeader() {
           type="text"
           value={query}
           onChange={e => setQuery(e.target.value)}
-          placeholder="Jump to a page..."
+          placeholder="Ir a una página… (Jump to a page)"
           className={s.searchInput}
         />
         <span className={s.searchHint}>⌘K</span>

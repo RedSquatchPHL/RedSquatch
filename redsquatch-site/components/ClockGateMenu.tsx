@@ -6,6 +6,7 @@ import { useHomeSquatchGate } from './HomeSquatchGate';
 import { logout } from '@/lib/api';
 import { WS_NAV, HS_NAV, QUICK_LINKS_SUBMENU, type MenuLeaf } from '@/lib/menuConfig';
 import BranchedMenu, { type BranchedMenuSection } from './BranchedMenu';
+import wsDock from './ClockGateMenu.ws.module.css';
 
 // 5-minute increments, matching the requested "wrap up between 4 and 6" window.
 const INCREMENTS = [5, 10, 15, 20, 25, 30];
@@ -34,6 +35,9 @@ export default function ClockGateMenu() {
   const router = useRouter();
   const pathname = usePathname();
   const inHS = pathname?.startsWith('/hs') ?? false;
+  // On /ws the trigger lives inside the SideRail's bottom slot instead of
+  // floating as its own pill; wsDock.* handles that placement + styling.
+  const inWS = pathname?.startsWith('/ws') ?? false;
   const navItems = inHS ? HS_NAV : WS_NAV;
   const [open, setOpen] = useState(false);
   const [remaining, setRemaining] = useState('');
@@ -152,9 +156,14 @@ export default function ClockGateMenu() {
   };
 
   return (
-    <div ref={ref} style={{ position: 'fixed', bottom: 14, left: 14, zIndex: 60 }}>
+    <div
+      ref={ref}
+      className={inWS ? wsDock.dock : undefined}
+      style={inWS ? undefined : { position: 'fixed', bottom: 14, left: 14, zIndex: 60 }}
+    >
       {open && (
         <div
+          className={inWS ? wsDock.panel : undefined}
           style={{
             position: 'absolute',
             bottom: 'calc(100% + 6px)',
@@ -265,7 +274,10 @@ export default function ClockGateMenu() {
       <button
         onClick={() => setOpen(o => !o)}
         title={mode === 'work' ? 'Clock out' : 'Clock in'}
-        style={{
+        aria-label="Clock in/out and account menu"
+        aria-expanded={open}
+        className={inWS ? `${wsDock.trigger} ${open ? wsDock.triggerOpen : ''}` : undefined}
+        style={inWS ? { position: 'relative' } : {
           ...pillBase,
           position: 'relative',
           width: 34,

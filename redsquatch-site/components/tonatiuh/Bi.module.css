@@ -1,0 +1,36 @@
+/* English subtitle for <Bi>. Color is #93A4B8 (6.5:1 on the glass panels);
+   the drafts used a dimmer gray-500 that would fail AA here. Size/weight are
+   relative so it follows whatever heading or label it sits under. */
+.sub {
+  display: block;
+  margin-top: 0.15em;
+  font-family: 'Satoshi', system-ui, sans-serif;
+  font-size: max(0.7rem, 0.62em);
+  font-weight: 400;
+  letter-spacing: normal;
+  text-transform: none;
+  color: #93A4B8;
+  text-shadow: none;
+}
+
+.subTitle {
+  display: block;
+  margin-top: 0.4rem;
+  font-family: 'Satoshi', system-ui, sans-serif;
+  font-size: 1rem;
+  font-weight: 400;
+  letter-spacing: normal;
+  text-transform: none;
+  color: #93A4B8;
+  text-shadow: none;
+}
+
+.subInline {
+  font-family: 'Satoshi', system-ui, sans-serif;
+  font-size: 0.85em;
+  font-weight: 400;
+  letter-spacing: normal;
+  text-transform: none;
+  color: #93A4B8;
+  text-shadow: none;
+}

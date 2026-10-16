@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Target, ListChecks, TrendingUp, FileText, BookOpen, Lightbulb, SlidersHorizontal } from 'lucide-react';
 import { API } from '@/lib/api';
+import Bi from '@/components/tonatiuh/Bi';
+import { WS_NAV_ES, greetingEs } from '@/lib/bilingual';
 import { WS_NAV } from '@/lib/menuConfig';
 import s from './dashboard.module.css';
 
@@ -37,11 +39,6 @@ const BA_TOOLS_TEASER = [
   { label: 'MoSCoW', icon: SlidersHorizontal },
 ];
 
-function greetingLabel(hour: number): string {
-  if (hour < 12) return 'Good Morning';
-  if (hour < 18) return 'Good Afternoon';
-  return 'Good Evening';
-}
 
 export default function WSDashboardPage() {
   const [loading, setLoading] = useState(true);
@@ -101,13 +98,13 @@ export default function WSDashboardPage() {
       <div className={s.content}>
         <div className={s.greetingRow}>
           <div>
-            <p className={s.greetingLabel}>{now ? greetingLabel(now.getHours()) : 'Welcome'}</p>
+            <p className={s.greetingLabel}>{now ? <Bi {...greetingEs(now.getHours())} /> : <Bi es="Bienvenido" en="Welcome" />}</p>
             <h1 className={s.wordmark}>WorkSquatch</h1>
           </div>
           {now && (
             <div className={s.clockBlock}>
               <p className={s.clockTime}>{now.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}</p>
-              <p className={s.clockDate}>{now.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}</p>
+              <p className={s.clockDate}>{now.toLocaleDateString('es-MX', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
             </div>
           )}
         </div>
@@ -122,7 +119,7 @@ export default function WSDashboardPage() {
                     <TrendingUp size={18} />
                   </div>
                 </div>
-                <p className={s.statLabel}>Goal Progress</p>
+                <p className={s.statLabel}><Bi es="Progreso de Metas" en="Goal Progress" /></p>
                 <p className={s.statValue}>{avgProgress}<span className={s.statUnit}>%</span></p>
               </div>
 
@@ -132,7 +129,7 @@ export default function WSDashboardPage() {
                     <ListChecks size={18} />
                   </div>
                 </div>
-                <p className={s.statLabel}>Open Items</p>
+                <p className={s.statLabel}><Bi es="Pendientes" en="Open Items" /></p>
                 <p className={s.statValue}>{openWorkItems.length}</p>
               </div>
 
@@ -142,15 +139,15 @@ export default function WSDashboardPage() {
                     <Target size={18} />
                   </div>
                 </div>
-                <p className={s.statLabel}>Active Goals</p>
+                <p className={s.statLabel}><Bi es="Metas Activas" en="Active Goals" /></p>
                 <p className={s.statValue}>{goals.length}</p>
               </div>
             </div>
 
             <div className={s.chartPanel}>
-              <h2 className={s.panelHeading}>Goals</h2>
+              <h2 className={s.panelHeading}><span><Bi es="Metas" en="Goals" /></span></h2>
               {topGoals.length === 0 ? (
-                <div className={s.emptyNote}>No goals yet.</div>
+                <div className={s.emptyNote}><Bi es="Aún no hay metas." en="No goals yet." inline /></div>
               ) : (
                 topGoals.map(goal => (
                   <div key={goal.id} className={s.goalBarRow}>
@@ -164,14 +161,14 @@ export default function WSDashboardPage() {
                   </div>
                 ))
               )}
-              <Link href="/ws/goals" className={s.viewAllLink}>View all goals →</Link>
+              <Link href="/ws/goals" className={s.viewAllLink}><Bi es="Ver todas las metas" en="View all goals" inline /> →</Link>
             </div>
           </div>
 
           {/* Right column: BA Tools teaser + recent Work Items */}
           <div className={s.rightCol}>
             <div className={s.miniPanel}>
-              <h2 className={s.panelHeading}>BA Tools</h2>
+              <h2 className={s.panelHeading}><span><Bi es="Herramientas BA" en="BA Tools" /></span></h2>
               <div className={s.toggleGrid}>
                 {BA_TOOLS_TEASER.map(tool => (
                   <Link key={tool.label} href="/ws/batools" className={s.toggleTile}>
@@ -183,9 +180,9 @@ export default function WSDashboardPage() {
             </div>
 
             <div className={`${s.miniPanel} ${s.grow}`}>
-              <h2 className={s.panelHeading}>Work Items{openWorkItems.length ? ` — ${openWorkItems.length} open` : ''}</h2>
+              <h2 className={s.panelHeading}><span><Bi es={`Elementos de Trabajo${openWorkItems.length ? ` — ${openWorkItems.length} abiertos` : ''}`} en={`Work Items${openWorkItems.length ? ` — ${openWorkItems.length} open` : ''}`} /></span></h2>
               {recentOpenItems.length === 0 ? (
-                <div className={s.emptyNote}>No open work items.</div>
+                <div className={s.emptyNote}><Bi es="No hay elementos abiertos." en="No open work items." inline /></div>
               ) : (
                 <div className={s.alertList}>
                   {recentOpenItems.map(item => (
@@ -199,7 +196,7 @@ export default function WSDashboardPage() {
                   ))}
                 </div>
               )}
-              <Link href="/ws/work" className={s.viewAllLink}>View all work items →</Link>
+              <Link href="/ws/work" className={s.viewAllLink}><Bi es="Ver todos los elementos" en="View all work items" inline /> →</Link>
             </div>
           </div>
         </div>
@@ -212,7 +209,7 @@ export default function WSDashboardPage() {
               <div className={s.quickAccessIcon}>
                 <item.icon size={22} />
               </div>
-              <span className={s.quickAccessLabel}>{item.label}</span>
+              <span className={s.quickAccessLabel}><Bi es={WS_NAV_ES[item.id] ?? item.label} en={item.label} /></span>
             </Link>
           ) : null)}
         </div>

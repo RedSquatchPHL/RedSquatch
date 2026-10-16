@@ -4,14 +4,15 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ExternalLink, FileSearch, Search, FileText, ClipboardList } from 'lucide-react';
 import { API } from '@/lib/api';
+import Bi from '@/components/tonatiuh/Bi';
 import s from './jobsearch.module.css';
 
 const JOBOPS_URL = 'https://jobsearch.redsquatch.com';
 
 const FEATURES = [
-  { title: 'Job Discovery', description: 'Scrapes LinkedIn, Indeed, Adzuna, Seek and more, ranked by fit against your profile', icon: Search },
-  { title: 'Tailored Resumes', description: 'Generates a custom resume PDF per application and keeps the exact version sent', icon: FileText },
-  { title: 'Application Tracking', description: 'Snapshots each job description at apply time and tracks status end-to-end', icon: ClipboardList },
+  { title: 'Job Discovery', es: 'Descubrimiento de Empleos', description: 'Scrapes LinkedIn, Indeed, Adzuna, Seek and more, ranked by fit against your profile', icon: Search },
+  { title: 'Tailored Resumes', es: 'Currículums a la Medida', description: 'Generates a custom resume PDF per application and keeps the exact version sent', icon: FileText },
+  { title: 'Application Tracking', es: 'Seguimiento de Solicitudes', description: 'Snapshots each job description at apply time and tracks status end-to-end', icon: ClipboardList },
 ];
 
 export default function WSJobSearchPage() {
@@ -45,14 +46,13 @@ export default function WSJobSearchPage() {
 
       <div className={s.content}>
         <div className={s.header}>
-          <h1 className={s.wordmark}>WorkSquatch</h1>
-          <p className={s.subtitle}>JOB SEARCH</p>
+          <h1 className={s.wordmark}><Bi es="Búsqueda de Empleo" en="Job Search" title /></h1>
         </div>
 
         <div className={s.group}>
           <h2 className={s.groupLabel}>
             <span className={s.groupDot} style={{ background: '#D97A38' }} />
-            Launch
+            <Bi es="Lanzar" en="Launch" inline />
           </h2>
           <div className={s.cardList}>
             <a href={JOBOPS_URL} target="_blank" rel="noopener noreferrer" className={`${s.card} ${s.launchCard}`}>
@@ -63,7 +63,7 @@ export default function WSJobSearchPage() {
                   Opens jobsearch.redsquatch.com in a new tab — sign in with the basic-auth credentials,
                   then complete the onboarding wizard on first visit.
                 </p>
-                <span className={s.launchBtn}>Launch JobOps <ExternalLink size={13} /></span>
+                <span className={s.launchBtn}><Bi es="Abrir JobOps" en="Launch JobOps" inline /> <ExternalLink size={13} /></span>
               </div>
             </a>
           </div>
@@ -72,7 +72,7 @@ export default function WSJobSearchPage() {
         <div className={s.group}>
           <h2 className={s.groupLabel}>
             <span className={s.groupDot} style={{ background: '#D4AF37' }} />
-            Capabilities
+            <Bi es="Capacidades" en="Capabilities" inline />
           </h2>
           <div className={s.cardList}>
             {FEATURES.map(feature => (
@@ -81,7 +81,7 @@ export default function WSJobSearchPage() {
                   <feature.icon size={18} />
                 </div>
                 <div className={s.cardBody}>
-                  <p className={s.cardTitle}>{feature.title}</p>
+                  <p className={s.cardTitle}><Bi es={feature.es} en={feature.title} inline /></p>
                   <p className={s.cardDesc}>{feature.description}</p>
                 </div>
               </div>

@@ -3,13 +3,15 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { WS_NAV } from '@/lib/menuConfig';
+import { WS_NAV_ES } from '@/lib/bilingual';
+import Bi from './Bi';
 import s from './SideRail.module.css';
 
 // Tōnatiuh OS icon rail (the SuperDesign drafts' shared SidebarNavigation).
 // Items come from the real WS_NAV list, not the drafts' placeholder
 // Files/Notes. The bottom slot is left empty on purpose: ClockGateMenu's
-// fixed bottom-left badge sits there and doubles as the rail's settings
-// entry (clock in/out, switch, log out).
+// menu trigger docks there (see ClockGateMenu.ws.module.css) as the rail's
+// settings entry (clock in/out, switch, log out).
 export default function SideRail() {
   const pathname = usePathname() ?? '';
 
@@ -33,7 +35,7 @@ export default function SideRail() {
                 aria-current={active ? 'page' : undefined}
               >
                 <Icon size={22} />
-                <span className={s.tip}>{item.label}</span>
+                <span className={s.tip}><Bi es={WS_NAV_ES[item.id] ?? item.label} en={item.label} inline /></span>
               </Link>
             </li>
           );
