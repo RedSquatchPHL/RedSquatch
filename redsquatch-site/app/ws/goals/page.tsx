@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { TasksBoard, type Task } from '@/components/work/TasksBoard';
 import { WSGoalsTimeline } from '@/components/work/WSGoalsTimeline';
 import { MaintenanceDrawer } from '@/components/MaintenanceDrawer';
+import Bi from '@/components/tonatiuh/Bi';
 import s from './goals.module.css';
 
 export default function WSGoalsPage() {
@@ -15,8 +16,7 @@ export default function WSGoalsPage() {
 
       <div className={s.content}>
         <div className={s.header}>
-          <h1 className={s.wordmark}>WorkSquatch</h1>
-          <p className={s.subtitle}>GOALS</p>
+          <h1 className={s.wordmark}><Bi es="Metas" en="Goals" title /></h1>
         </div>
 
         <div className={s.timelinePanel}>
@@ -24,8 +24,7 @@ export default function WSGoalsPage() {
         </div>
 
         <div className={s.boardFrame}>
-          <h2 className={s.boardHeading}>Task Board &amp; Career Trajectory</h2>
-          <p className={s.boardNote}>Shared with /hs — not yet reskinned, kept as-is here.</p>
+          <h2 className={s.boardHeading}><Bi es="Tablero de Tareas y Trayectoria Profesional" en="Task Board & Career Trajectory" /></h2>
           <div className={s.boardInner}>
             <TasksBoard onOpenLogs={setLogTask} />
           </div>

@@ -2,13 +2,14 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { API } from '@/lib/api';
+import Bi from '@/components/tonatiuh/Bi';
 import s from './WSGoalsTimeline.module.css';
 
 type AppContext = 'work' | 'home' | 'personal';
-const CONTEXTS: { value: AppContext; label: string }[] = [
-  { value: 'work', label: 'Work' },
-  { value: 'home', label: 'Home' },
-  { value: 'personal', label: 'Personal' },
+const CONTEXTS: { value: AppContext; label: string; es: string }[] = [
+  { value: 'work', label: 'Work', es: 'Trabajo' },
+  { value: 'home', label: 'Home', es: 'Hogar' },
+  { value: 'personal', label: 'Personal', es: 'Personal' },
 ];
 
 interface Category { id: number; parent_context: string; sub_type: string; }
@@ -156,6 +157,12 @@ export function WSGoalsTimeline() {
     } catch { /* silent */ }
   }
 
+  const activeCount = goals.filter(g => g.status === 'active').length;
+  const achievedCount = goals.filter(g => g.status === 'achieved').length;
+  const blockedCount = goals.filter(g => g.status === 'blocked').length;
+  const avgProgress = goals.length ? Math.round(goals.reduce((sum, g) => sum + (g.progress ?? 0), 0) / goals.length) : 0;
+  const statusCounts = STATUSES.map(st => ({ st, n: goals.filter(g => g.status === st).length })).filter(x => x.n > 0);
+
   const dated = goals.filter(g => g.target_date).sort((a, b) => (a.target_date! < b.target_date! ? -1 : 1));
   const undated = goals.filter(g => !g.target_date);
 
@@ -241,16 +248,16 @@ export function WSGoalsTimeline() {
               onClick={() => setContext(c.value)}
               aria-pressed={context === c.value}
             >
-              {c.label}
+              <Bi es={c.es} en={c.label} inline />
             </button>
           ))}
         </div>
-        <button className={s.addBtn} onClick={startCreate}>+ Add Goal</button>
+        <button className={s.addBtn} onClick={startCreate}>+ <Bi es="Nueva Meta" en="Add Goal" inline /></button>
       </div>
 
       {showForm && (
         <div className={s.form}>
-          <h3 className={s.formTitle}>{editId ? 'Edit Goal' : 'New Goal'}</h3>
+          <h3 className={s.formTitle}>{editId ? <Bi es="Editar Meta" en="Edit Goal" inline /> : <Bi es="Nueva Meta" en="New Goal" inline />}</h3>
           <input
             className={s.input}
             placeholder="Goal title *"
@@ -295,20 +302,54 @@ export function WSGoalsTimeline() {
       ) : goals.length === 0 ? (
         <div className={s.emptyNote}>No {context} goals yet — add one above.</div>
       ) : (
-        <div className={s.timeline}>
-          {dated.length > 0 && (
-            <>
-              <div className={s.sectionLabel}>Upcoming</div>
-              {dated.map(renderEntry)}
-            </>
-          )}
-          {undated.length > 0 && (
-            <>
-              <div className={s.sectionLabel}>Undated</div>
-              {undated.map(renderEntry)}
-            </>
-          )}
-        </div>
+        <>
+          <div className={s.statRow}>
+            {[
+              { label: 'Metas', en: 'Goals', value: goals.length, tone: 'var(--ink-main)' },
+              { label: 'Activas', en: 'Active', value: activeCount, tone: 'var(--status-green)' },
+              { label: 'Logradas', en: 'Achieved', value: achievedCount, tone: 'var(--copper-accent)' },
+              { label: 'Bloqueadas', en: 'Blocked', value: blockedCount, tone: 'var(--status-red)' },
+            ].map(st => (
+              <div key={st.label} className={s.statCard} style={{ ['--stat-tone' as string]: st.tone }}>
+                <span className={s.statValue}>{st.value}</span>
+                <span className={s.statLabel}><Bi es={st.label} en={st.en} inline /></span>
+              </div>
+            ))}
+          </div>
+
+          <div className={s.body}>
+            <div className={s.timeline}>
+              {dated.length > 0 && (
+                <>
+                  <div className={s.sectionLabel}><Bi es="Próximas" en="Upcoming" inline /></div>
+                  {dated.map(renderEntry)}
+                </>
+              )}
+              {undated.length > 0 && (
+                <>
+                  <div className={s.sectionLabel}><Bi es="Sin fecha" en="Undated" inline /></div>
+                  {undated.map(renderEntry)}
+                </>
+              )}
+            </div>
+
+            <aside className={s.aside} aria-label="Progress summary">
+              <h3 className={s.asideHeading}><Bi es="Progreso" en="Progress" /></h3>
+              <div className={s.asideBig}>{avgProgress}%</div>
+              <p className={s.asideSub}><Bi es={`promedio de ${goals.length} meta${goals.length === 1 ? '' : 's'}`} en={`average across ${goals.length} ${context} goal${goals.length === 1 ? '' : 's'}`} inline /></p>
+              <div className={s.track}><div className={s.fill} style={{ width: `${avgProgress}%` }} /></div>
+              <ul className={s.statusList}>
+                {statusCounts.map(({ st, n }) => (
+                  <li key={st} className={s.statusItem}>
+                    <span className={s.statusDot} style={{ background: STATUS_COLOR[st] }} />
+                    {STATUS_LABEL[st]}
+                    <span className={s.statusCount}>{n}</span>
+                  </li>
+                ))}
+              </ul>
+            </aside>
+          </div>
+        </>
       )}
     </div>
   );

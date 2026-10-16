@@ -8,14 +8,15 @@ import AppletModal from '@/components/AppletModal';
 import DevelopmentWidget from '@/components/DevelopmentWidget';
 import FileTransferPanel from '@/components/FileTransferPanel';
 import BookLibrary from '@/components/BookLibrary';
+import Bi from '@/components/tonatiuh/Bi';
 import s from './tools.module.css';
 
 type AppletKey = 'scratchpad' | 'files' | 'library' | null;
 
 const APPS = [
-  { key: 'scratchpad' as const, title: 'Scratchpad', description: 'Multi-tab code & notes, auto-saved as you type.', icon: Code2 },
-  { key: 'files' as const, title: 'Files', description: 'Personal document transfer, up to 1GB per file.', icon: FolderOpen },
-  { key: 'library' as const, title: 'Library', description: 'A shelf of ebooks, browsable page by page.', icon: Library },
+  { key: 'scratchpad' as const, title: 'Scratchpad', es: 'Bloc de Notas', description: 'Multi-tab code & notes, auto-saved as you type.', icon: Code2 },
+  { key: 'files' as const, title: 'Files', es: 'Archivos', description: 'Personal document transfer, up to 1GB per file.', icon: FolderOpen },
+  { key: 'library' as const, title: 'Library', es: 'Biblioteca', description: 'A shelf of ebooks, browsable page by page.', icon: Library },
 ];
 
 export default function WSToolsPage() {
@@ -40,7 +41,7 @@ export default function WSToolsPage() {
   const filteredApps = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return APPS;
-    return APPS.filter(a => a.title.toLowerCase().includes(q) || a.description.toLowerCase().includes(q));
+    return APPS.filter(a => a.title.toLowerCase().includes(q) || a.es.toLowerCase().includes(q) || a.description.toLowerCase().includes(q));
   }, [query]);
 
   if (loading) {
@@ -60,8 +61,7 @@ export default function WSToolsPage() {
 
       <div className={s.content}>
         <div className={s.header}>
-          <h1 className={s.wordmark}>WorkSquatch</h1>
-          <p className={s.subtitle}>PERSONAL TOOLS</p>
+          <h1 className={s.wordmark}><Bi es="Herramientas Personales" en="Personal Tools" title /></h1>
         </div>
 
         <div className={s.searchBar}>
@@ -70,20 +70,20 @@ export default function WSToolsPage() {
             type="text"
             value={query}
             onChange={e => setQuery(e.target.value)}
-            placeholder="Search tools..."
+            placeholder="Buscar herramientas… (Search tools)"
             className={s.searchInput}
           />
         </div>
 
         {filteredApps.length === 0 ? (
-          <div className={s.emptyNote}>No tools match &quot;{query}&quot;.</div>
+          <div className={s.emptyNote}><Bi es={`Ninguna herramienta coincide con “${query}”.`} en={`No tools match “${query}”.`} inline /></div>
         ) : (
           <div className={s.launcherGrid}>
             {filteredApps.map(app => (
               <button key={app.key} className={s.launcherCard} onClick={() => setActiveApplet(app.key)}>
                 <div className={s.launcherIconWrap}><app.icon size={22} /></div>
                 <div>
-                  <p className={s.launcherTitle}>{app.title}</p>
+                  <p className={s.launcherTitle}><Bi es={app.es} en={app.title} inline /></p>
                   <p className={s.launcherDesc}>{app.description}</p>
                 </div>
               </button>
@@ -92,15 +92,15 @@ export default function WSToolsPage() {
         )}
       </div>
 
-      <AppletModal isOpen={activeApplet === 'scratchpad'} title="Scratchpad" onClose={() => setActiveApplet(null)} wide>
+      <AppletModal isOpen={activeApplet === 'scratchpad'} title="Bloc de Notas (Scratchpad)" onClose={() => setActiveApplet(null)} wide>
         <DevelopmentWidget />
       </AppletModal>
 
-      <AppletModal isOpen={activeApplet === 'files'} title="Files" onClose={() => setActiveApplet(null)} wide>
+      <AppletModal isOpen={activeApplet === 'files'} title="Archivos (Files)" onClose={() => setActiveApplet(null)} wide>
         <FileTransferPanel />
       </AppletModal>
 
-      <AppletModal isOpen={activeApplet === 'library'} title="Library" onClose={() => setActiveApplet(null)} wide>
+      <AppletModal isOpen={activeApplet === 'library'} title="Biblioteca (Library)" onClose={() => setActiveApplet(null)} wide>
         <BookLibrary />
       </AppletModal>
     </div>

@@ -11,6 +11,7 @@ import AcceptanceCriteriaGame from '@/components/ba-tools/AcceptanceCriteriaGame
 import ElicitationGame from '@/components/ba-tools/ElicitationGame';
 import MoscowGame from '@/components/ba-tools/MoscowGame';
 import GlossaryReference from '@/components/ba-tools/GlossaryReference';
+import Bi from '@/components/tonatiuh/Bi';
 import s from './batools.module.css';
 
 type Applet = 'babok' | 'glossary' | 'userstory' | 'acceptancecriteria' | 'elicitation' | 'moscow';
@@ -71,8 +72,7 @@ export default function WSBAToolsPage() {
 
       <div className={s.content}>
         <div className={s.header}>
-          <h1 className={s.wordmark}>WorkSquatch</h1>
-          <p className={s.subtitle}>BA TOOLS</p>
+          <h1 className={s.wordmark}><Bi es="Herramientas BA" en="BA Tools" title /></h1>
         </div>
 
         <div className={s.presetRow}>
@@ -80,19 +80,19 @@ export default function WSBAToolsPage() {
             className={`${s.presetBtn} ${group === 'all' ? s.presetBtnActive : ''}`}
             onClick={() => setGroup('all')}
           >
-            All
+            <Bi es="Todo" en="All" inline />
           </button>
           <button
             className={`${s.presetBtn} ${group === 'reference' ? s.presetBtnActive : ''}`}
             onClick={() => setGroup('reference')}
           >
-            Reference
+            <Bi es="Referencia" en="Reference" inline />
           </button>
           <button
             className={`${s.presetBtn} ${group === 'practice' ? s.presetBtnActive : ''}`}
             onClick={() => setGroup('practice')}
           >
-            Practice
+            <Bi es="Práctica" en="Practice" inline />
           </button>
         </div>
 

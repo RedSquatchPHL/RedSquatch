@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { ListChecks, CalendarClock, Flame, CheckCircle2 } from 'lucide-react';
 import { API } from '@/lib/api';
 import KanbanBoard, { Task, TaskColumn, TaskSwimlane } from '@/components/tasks/KanbanBoard';
 import TaskListView from '@/components/tasks/TaskListView';
+import Bi from '@/components/tonatiuh/Bi';
 import styles from '@/styles/tasks.module.css';
 
 interface BoardData {
@@ -124,6 +126,25 @@ export default function TasksPage() {
     await loadBoard();
   }
 
+  // Stat-card counts for the header row. "Done" follows the board's own
+  // is_done column flag, so renamed/added columns keep working.
+  const doneColIds = new Set((board?.columns ?? []).filter(c => c.is_done).map(c => c.id));
+  const openTasks = (board?.tasks ?? []).filter(t => !doneColIds.has(t.column_id));
+  const weekAhead = Date.now() + 7 * 24 * 60 * 60 * 1000;
+  const dueSoon = openTasks.filter(t => {
+    if (!t.due_date) return false;
+    const ms = Date.parse(t.due_date);
+    return !Number.isNaN(ms) && ms <= weekAhead;
+  }).length;
+  const highPriority = openTasks.filter(t => t.priority === 'high').length;
+  const doneCount = (board?.tasks ?? []).length - openTasks.length;
+  const stats = [
+    { label: 'Abiertas', en: 'Open', value: openTasks.length, Icon: ListChecks, tone: styles.statCopper },
+    { label: 'Vencen esta semana', en: 'Due this week', value: dueSoon, Icon: CalendarClock, tone: styles.statGold },
+    { label: 'Prioridad alta', en: 'High priority', value: highPriority, Icon: Flame, tone: styles.statPink },
+    { label: 'Hechas', en: 'Done', value: doneCount, Icon: CheckCircle2, tone: styles.statGreen },
+  ];
+
   if (checking || !board) {
     return (
       <div className={styles.page}>
@@ -140,8 +161,8 @@ export default function TasksPage() {
       <div className={styles.bgPhoto} aria-hidden="true" />
       <header className={styles.header}>
         <div>
-          <h1 className={styles.title}>Work</h1>
-          <p className={styles.subheader}>{board.tasks.length} task{board.tasks.length === 1 ? '' : 's'} on the board</p>
+          <h1 className={styles.title}><Bi es="Trabajo" en="Work" title /></h1>
+          <p className={styles.subheader}><Bi es={`${board.tasks.length} tarea${board.tasks.length === 1 ? '' : 's'} en el tablero`} en={`${board.tasks.length} task${board.tasks.length === 1 ? '' : 's'} on the board`} inline /></p>
         </div>
         <div className={styles.viewToggle}>
           <button
@@ -149,17 +170,27 @@ export default function TasksPage() {
             onClick={() => setView('board')}
             aria-pressed={view === 'board'}
           >
-            Board
+            <Bi es="Tablero" en="Board" inline />
           </button>
           <button
             className={`${styles.viewBtn} ${view === 'list' ? styles.viewBtnActive : ''}`}
             onClick={() => setView('list')}
             aria-pressed={view === 'list'}
           >
-            List
+            <Bi es="Lista" en="List" inline />
           </button>
         </div>
       </header>
+
+      <div className={styles.statRow}>
+        {stats.map(({ label, en, value, Icon, tone }) => (
+          <div key={label} className={`${styles.statCard} ${tone}`}>
+            <Icon size={18} className={styles.statIcon} />
+            <span className={styles.statValue}>{value}</span>
+            <span className={styles.statLabel}><Bi es={label} en={en} inline /></span>
+          </div>
+        ))}
+      </div>
 
       {view === 'board' ? (
         <KanbanBoard

@@ -1,51 +1,94 @@
+/* Tōnatiuh OS Roadmap — moved off the Aztec Command Center system (Oct 2026)
+   onto the same glass/diamond-wall language as the other /ws pages. */
+
 .page {
-  min-height: 100vh;
-  padding: 2rem;
+  --panel-bg: rgba(22, 30, 40, 0.72);
+  --panel-border: rgba(255, 255, 255, 0.1);
+  --copper-accent: #D97A38;
+  --ink-main: #E2E8F0;
+  --ink-muted: #93A4B8;
+  --green: #5FBF8F;
+  --gold: #D4AF37;
+  --pink: #E34C7A;
+
   position: relative;
+  min-height: 100vh;
+  padding: 2.5rem 1.5rem 4rem;
+  background-color: #0F151B;
+  background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 0l20 20-20 20L0 20 20 0zm0 10l10 10-10 10L10 20l10-10z' fill='%231a3a52' fill-opacity='0.4' fill-rule='evenodd'/%3E%3C/svg%3E");
+  font-family: 'Satoshi', system-ui, sans-serif;
+  color: var(--ink-main);
+  isolation: isolate;
+}
+
+.page::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(ellipse 60% 50% at 15% 10%, rgba(217, 122, 56, 0.16), transparent 65%);
+  mix-blend-mode: soft-light;
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  color: var(--ink-muted);
 }
 
 .content {
   max-width: 56rem;
   margin: 0 auto;
-  position: relative;
-  z-index: 2;
 }
 
 .header {
   align-items: flex-start;
   display: flex;
   justify-content: space-between;
-  margin-bottom: 1.5rem;
+  gap: 1rem;
+  margin-bottom: 1.75rem;
 }
 
 .title {
-  color: #8e633f;
-  font-family: 'Stardom', serif;
-  text-transform: uppercase;
+  font-family: 'Cabinet Grotesk', serif;
   font-size: 2.5rem;
-  margin: 0 0 0.5rem;
+  font-weight: 700;
+  line-height: 1;
+  margin: 0 0 0.45rem;
+  color: var(--ink-main);
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.35);
 }
 
 .subheader {
-  color: #d4a373;
-  font-size: 0.875rem;
+  color: var(--ink-muted);
+  font-size: 0.85rem;
   margin: 0;
 }
 
 .backLink {
-  background: transparent;
-  border: 1px solid rgba(184, 115, 51, 0.3);
-  color: #d4a373;
-  cursor: pointer;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 0.5rem;
+  color: var(--ink-main);
   font-size: 0.8rem;
   padding: 0.5rem 1rem;
   text-decoration: none;
   white-space: nowrap;
+  transition: border-color 0.15s ease;
 }
 
 .backLink:hover {
-  background: rgba(184, 115, 51, 0.14);
-  border-color: #b87333;
+  border-color: var(--copper-accent);
+}
+
+.backLink:focus-visible,
+.addBtn:focus-visible,
+.deleteBtn:focus-visible {
+  outline: 2px solid var(--copper-accent);
+  outline-offset: 2px;
 }
 
 .sections {
@@ -54,10 +97,46 @@
   gap: 1.5rem;
 }
 
+.section {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 1rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(12px);
+  padding: 1.25rem 1.4rem 1.4rem;
+}
+
+.green { --tone: var(--green); }
+.gold { --tone: var(--gold); }
+.pink { --tone: var(--pink); }
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: 'Cabinet Grotesk', serif;
+  font-size: 1.15rem;
+  margin: 0 0 0.4rem;
+  color: var(--ink-main);
+}
+
+.sectionIcon {
+  color: var(--tone);
+  flex-shrink: 0;
+}
+
+.sectionCount {
+  margin-left: auto;
+  font-family: 'Satoshi', sans-serif;
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-muted);
+}
+
 .sectionIntro {
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--ink-muted);
   font-size: 0.85rem;
-  margin: -0.25rem 0 1rem;
+  margin: 0 0 1rem;
 }
 
 .list {
@@ -68,18 +147,24 @@
 
 .item {
   align-items: flex-start;
-  background: rgba(15, 15, 15, 0.4);
-  border: 1px solid rgba(184, 115, 51, 0.18);
-  border-left: 3px solid rgba(184, 115, 51, 0.4);
+  background: rgba(15, 21, 27, 0.55);
+  border: 1px solid var(--panel-border);
+  border-radius: 0.75rem;
   display: flex;
   gap: 0.75rem;
   padding: 0.75rem 0.9rem;
+  transition: border-color 0.15s ease;
+}
+
+.item:focus-within,
+.item:hover {
+  border-color: color-mix(in srgb, var(--tone) 55%, transparent);
 }
 
 .itemText {
   background: transparent;
   border: none;
-  color: rgba(255, 255, 255, 0.88);
+  color: var(--ink-main);
   flex: 1;
   font: inherit;
   font-size: 0.9rem;
@@ -93,29 +178,25 @@
   outline: none;
 }
 
-.itemMeta {
-  color: rgba(212, 163, 115, 0.45);
-  font-size: 0.65rem;
-  margin-top: 0.35rem;
-}
-
 .deleteBtn {
   background: none;
   border: none;
-  color: rgba(255, 255, 255, 0.25);
+  border-radius: 0.35rem;
+  color: var(--ink-muted);
   cursor: pointer;
   flex-shrink: 0;
-  font-size: 1rem;
+  font-size: 1.1rem;
   line-height: 1;
-  padding: 0.1rem 0.2rem;
+  min-width: 28px;
+  min-height: 28px;
 }
 
 .deleteBtn:hover {
-  color: #e08a3c;
+  color: var(--pink);
 }
 
 .empty {
-  color: rgba(255, 255, 255, 0.3);
+  color: var(--ink-muted);
   font-size: 0.85rem;
   font-style: italic;
   padding: 0.5rem 0;
@@ -124,44 +205,50 @@
 .addRow {
   display: flex;
   gap: 0.6rem;
-  margin-top: 0.75rem;
+  margin-top: 0.9rem;
 }
 
 .addInput {
-  background: rgba(15, 15, 15, 0.5);
-  border: 1px solid rgba(184, 115, 51, 0.25);
-  color: #fff;
+  background: rgba(15, 21, 27, 0.55);
+  border: 1px solid var(--panel-border);
+  border-radius: 0.5rem;
+  color: var(--ink-main);
   flex: 1;
   font: inherit;
   font-size: 0.85rem;
   min-height: 2.6rem;
-  padding: 0.5rem 0.6rem;
+  padding: 0.5rem 0.65rem;
   resize: vertical;
 }
 
 .addInput:focus {
-  border-color: #d4a373;
+  border-color: var(--copper-accent);
   outline: none;
 }
 
 .addBtn {
   align-self: flex-start;
-  background: rgba(184, 115, 51, 0.14);
-  border: 1px solid rgba(184, 115, 51, 0.4);
-  color: #d4a373;
+  background: var(--copper-accent);
+  border: none;
+  border-radius: 0.5rem;
+  color: #0F151B;
   cursor: pointer;
   flex-shrink: 0;
   font-size: 0.8rem;
-  font-weight: 600;
-  padding: 0.6rem 1.1rem;
+  font-weight: 700;
+  padding: 0.65rem 1.1rem;
 }
 
 .addBtn:hover:not(:disabled) {
-  background: rgba(184, 115, 51, 0.28);
-  border-color: #b87333;
+  background: #E8935A;
 }
 
 .addBtn:disabled {
   cursor: not-allowed;
   opacity: 0.4;
+}
+
+@media (max-width: 640px) {
+  .header { flex-direction: column; }
+  .addRow { flex-direction: column; }
 }
