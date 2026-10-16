@@ -71,25 +71,25 @@ export default function UserStoryGame() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between flex-wrap gap-2">
-        <span className="text-xs" style={{ color: '#6b635f' }}>
+        <span className="text-xs" style={{ color: '#93A4B8' }}>
           Pick the one solid user story — the rest are flawed in different ways.
         </span>
         {progress && (
-          <div className="flex items-center gap-4 text-xs" style={{ color: '#8f6540' }}>
+          <div className="flex items-center gap-4 text-xs" style={{ color: '#E8935A' }}>
             <span className="flex items-center gap-1"><Trophy size={13} /> {progress.score} pts</span>
             <span className="flex items-center gap-1"><Flame size={13} /> streak {progress.current_streak}</span>
-            <span style={{ color: '#756558' }}>best {progress.best_streak}</span>
+            <span style={{ color: '#93A4B8' }}>best {progress.best_streak}</span>
           </div>
         )}
       </div>
 
       {error && (
-        <div className="text-xs px-3 py-2" style={{ background: 'rgba(200,60,60,0.12)', color: '#b53f3f' }}>
+        <div className="text-xs px-3 py-2" style={{ background: 'rgba(200,60,60,0.12)', color: '#F0708F' }}>
           {error}
         </div>
       )}
 
-      <div className="text-[11px] uppercase tracking-wide" style={{ color: '#8f6540' }}>
+      <div className="text-[11px] uppercase tracking-wide" style={{ color: '#E8935A' }}>
         {round.theme}
       </div>
 
@@ -107,20 +107,20 @@ export default function UserStoryGame() {
               disabled={revealed}
               className="text-left p-3 transition-colors disabled:cursor-default"
               style={{
-                border: '1px solid ' + (showAsCorrect ? 'rgba(76,175,80,0.5)' : showAsWrong ? 'rgba(220,80,80,0.5)' : 'rgba(184,115,51,0.25)'),
-                background: showAsCorrect ? 'rgba(76,175,80,0.1)' : showAsWrong ? 'rgba(220,80,80,0.1)' : 'rgba(44,36,32,0.04)',
+                border: '1px solid ' + (showAsCorrect ? 'rgba(76,175,80,0.5)' : showAsWrong ? 'rgba(220,80,80,0.5)' : 'rgba(217,122,56,0.25)'),
+                background: showAsCorrect ? 'rgba(76,175,80,0.1)' : showAsWrong ? 'rgba(220,80,80,0.1)' : 'rgba(255,255,255,0.05)',
               }}
             >
               <div className="flex items-start gap-2">
                 {revealed && (option.correct
-                  ? <CheckCircle2 size={16} className="flex-shrink-0 mt-0.5" style={{ color: '#3f7327' }} />
+                  ? <CheckCircle2 size={16} className="flex-shrink-0 mt-0.5" style={{ color: '#5FBF8F' }} />
                   : isPicked
-                    ? <XCircle size={16} className="flex-shrink-0 mt-0.5" style={{ color: '#b53f3f' }} />
+                    ? <XCircle size={16} className="flex-shrink-0 mt-0.5" style={{ color: '#F0708F' }} />
                     : <span className="w-4" />)}
-                <span className="text-sm" style={{ color: '#2c2420' }}>{option.text}</span>
+                <span className="text-sm" style={{ color: '#E2E8F0' }}>{option.text}</span>
               </div>
               {revealed && (isPicked || option.correct) && (
-                <div className="mt-2 pl-6 text-xs" style={{ color: option.correct ? '#3f7327' : '#b53f3f' }}>
+                <div className="mt-2 pl-6 text-xs" style={{ color: option.correct ? '#5FBF8F' : '#F0708F' }}>
                   {option.flaw && <span className="font-semibold">{option.flaw}: </span>}
                   {option.explanation}
                 </div>
@@ -132,12 +132,12 @@ export default function UserStoryGame() {
 
       {pickedId && (
         <div className="flex items-center justify-between">
-          <span className="text-xs" style={{ color: picked?.correct ? '#3f7327' : '#b53f3f' }}>
+          <span className="text-xs" style={{ color: picked?.correct ? '#5FBF8F' : '#F0708F' }}>
             {picked?.correct ? 'Correct!' : `Not quite — "${correctOption.text.slice(0, 40)}..." was the solid one.`}
           </span>
           <button
             onClick={nextRound}
-            className="px-4 py-1.5 text-xs font-semibold" style={{ background: '#a67c52', color: '#fff', border: 'none', cursor: 'pointer' }}
+            className="px-4 py-1.5 text-xs font-semibold" style={{ background: '#D97A38', color: '#0F151B', border: 'none', cursor: 'pointer' }}
           >
             Next round
           </button>

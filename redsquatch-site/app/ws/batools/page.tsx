@@ -109,7 +109,7 @@ export default function WSBAToolsPage() {
         </div>
       </div>
 
-      <AppletModal isOpen={active !== null} title={active?.label ?? ''} onClose={() => setActiveKey(null)} wide>
+      <AppletModal tone="tonatiuh" isOpen={active !== null} title={active?.label ?? ''} onClose={() => setActiveKey(null)} wide>
         {active?.content}
       </AppletModal>
     </div>

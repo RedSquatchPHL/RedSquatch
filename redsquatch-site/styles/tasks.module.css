@@ -346,13 +346,13 @@
 }
 
 .resizeHandle:hover {
-  background: rgba(166, 124, 82, 0.4);
+  background: rgba(217, 122, 56, 0.4);
 }
 
 .resizeHandle:focus-visible {
   outline: 2px solid var(--tk-copper);
   outline-offset: 1px;
-  background: rgba(166, 124, 82, 0.4);
+  background: rgba(217, 122, 56, 0.4);
 }
 
 .addColumnBtn {
@@ -373,7 +373,7 @@
 .addColumnBtn:hover {
   border-color: var(--tk-copper);
   color: var(--tk-onwall);
-  background: rgba(184, 115, 51, 0.14);
+  background: rgba(217, 122, 56, 0.14);
 }
 
 .addLaneBtn {
@@ -391,7 +391,7 @@
 .addLaneBtn:hover {
   border-color: var(--tk-copper);
   color: var(--tk-onwall);
-  background: rgba(184, 115, 51, 0.14);
+  background: rgba(217, 122, 56, 0.14);
 }
 
 /* ── Cards ─────────────────────────────────────────────────────────
@@ -719,7 +719,7 @@
 }
 
 .listTable tr:last-child td { border-bottom: none; }
-.listTable tr:hover td { background: rgba(184, 115, 51, 0.1); }
+.listTable tr:hover td { background: rgba(217, 122, 56, 0.1); }
 
 .listTitle {
   font-weight: 600;

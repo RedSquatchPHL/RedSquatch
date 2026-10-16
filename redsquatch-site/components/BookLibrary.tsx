@@ -43,7 +43,7 @@ export default function BookLibrary() {
   };
 
   if (manifest.length === 0) {
-    return <p className="text-xs" style={{ color: '#8a7a6e' }}>No books in the library yet.</p>;
+    return <p className="text-xs" style={{ color: '#93A4B8' }}>No books in the library yet.</p>;
   }
 
   return (
@@ -59,44 +59,44 @@ export default function BookLibrary() {
             <div
               className="p-3 h-full flex flex-col gap-2"
               style={{
-                background: '#fffdf9',
-                border: '1px solid #e8e2d6',
+                background: 'rgba(22,30,40,0.85)',
+                border: '1px solid rgba(255,255,255,0.1)',
                 boxShadow: '0 4px 14px rgba(44,36,32,0.08)',
               }}
               onMouseEnter={e => {
                 const el = e.currentTarget as HTMLDivElement;
-                el.style.borderColor = '#a67c52';
+                el.style.borderColor = '#D97A38';
                 el.style.boxShadow = '0 6px 20px rgba(44,36,32,0.14)';
                 el.style.transform = 'translateY(-2px)';
               }}
               onMouseLeave={e => {
                 const el = e.currentTarget as HTMLDivElement;
-                el.style.borderColor = '#e8e2d6';
+                el.style.borderColor = 'rgba(255,255,255,0.1)';
                 el.style.boxShadow = '0 4px 14px rgba(44,36,32,0.08)';
                 el.style.transform = 'translateY(0)';
               }}
             >
               <div
                 className="p-3 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform w-fit"
-                style={{ backgroundColor: 'rgba(166,124,82,0.12)' }}
+                style={{ backgroundColor: 'rgba(217,122,56,0.12)' }}
               >
-                <BookOpen size={24} style={{ color: '#a67c52' }} />
+                <BookOpen size={24} style={{ color: '#D97A38' }} />
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-sm" style={{ color: '#2c2420' }}>
+                <h3 className="font-semibold text-sm" style={{ color: '#E2E8F0' }}>
                   {entry.title}
                 </h3>
                 {entry.author && (
-                  <p className="text-[10px] mt-0.5 italic" style={{ color: '#8a7a6e' }}>
+                  <p className="text-[10px] mt-0.5 italic" style={{ color: '#93A4B8' }}>
                     {entry.author}
                   </p>
                 )}
                 {entry.description && (
-                  <p className="text-xs mt-0.5" style={{ color: '#6b635f' }}>
+                  <p className="text-xs mt-0.5" style={{ color: '#93A4B8' }}>
                     {entry.description}
                   </p>
                 )}
-                <p className="text-[10px] mt-1" style={{ color: '#a89a8e', fontFamily: "'JetBrains Mono', ui-monospace, monospace" }}>
+                <p className="text-[10px] mt-1" style={{ color: '#93A4B8', fontFamily: "'JetBrains Mono', ui-monospace, monospace" }}>
                   {entry.type === 'pdf' ? 'Opens as PDF' : `${entry.pageCount} pages`}
                 </p>
               </div>

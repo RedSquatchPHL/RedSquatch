@@ -19,16 +19,16 @@ export default function GlossaryReference() {
   return (
     <div className="flex flex-col gap-3">
       <div className="relative">
-        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: '#756558' }} />
+        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: '#93A4B8' }} />
         <input
           value={query}
           onChange={e => setQuery(e.target.value)}
           placeholder="Search terms and definitions..."
           className="w-full text-sm pl-9 pr-3 py-2 outline-none"
           style={{
-            background: 'rgba(44,36,32,0.04)',
-            border: '1px solid rgba(184,115,51,0.25)',
-            color: '#2c2420',
+            background: 'rgba(255,255,255,0.05)',
+            border: '1px solid rgba(217,122,56,0.25)',
+            color: '#E2E8F0',
           }}
         />
       </div>
@@ -38,9 +38,9 @@ export default function GlossaryReference() {
           onClick={() => setCategory(null)}
           className="text-xs px-2.5 py-1 transition-colors"
           style={{
-            border: '1px solid ' + (category === null ? 'rgba(184,115,51,0.6)' : 'rgba(44,36,32,0.15)'),
-            background: category === null ? 'rgba(184,115,51,0.18)' : 'transparent',
-            color: category === null ? '#8f6540' : '#6b635f',
+            border: '1px solid ' + (category === null ? 'rgba(217,122,56,0.6)' : 'rgba(44,36,32,0.15)'),
+            background: category === null ? 'rgba(217,122,56,0.18)' : 'transparent',
+            color: category === null ? '#E8935A' : '#93A4B8',
           }}
         >
           All ({GLOSSARY_TERMS.length})
@@ -54,9 +54,9 @@ export default function GlossaryReference() {
               onClick={() => setCategory(isSelected ? null : cat)}
               className="text-xs px-2.5 py-1 transition-colors"
               style={{
-                border: '1px solid ' + (isSelected ? 'rgba(184,115,51,0.6)' : 'rgba(44,36,32,0.15)'),
-                background: isSelected ? 'rgba(184,115,51,0.18)' : 'transparent',
-                color: isSelected ? '#8f6540' : '#6b635f',
+                border: '1px solid ' + (isSelected ? 'rgba(217,122,56,0.6)' : 'rgba(44,36,32,0.15)'),
+                background: isSelected ? 'rgba(217,122,56,0.18)' : 'transparent',
+                color: isSelected ? '#E8935A' : '#93A4B8',
               }}
             >
               {cat} ({count})
@@ -67,7 +67,7 @@ export default function GlossaryReference() {
 
       <div className="flex flex-col gap-2 max-h-[55vh] overflow-y-auto pr-1">
         {filtered.length === 0 && (
-          <div className="text-xs text-center py-6" style={{ color: '#756558' }}>
+          <div className="text-xs text-center py-6" style={{ color: '#93A4B8' }}>
             No terms match "{query}".
           </div>
         )}
@@ -75,18 +75,18 @@ export default function GlossaryReference() {
           <div
             key={t.term}
             className="p-3"
-            style={{ border: '1px solid rgba(184,115,51,0.2)', background: 'rgba(44,36,32,0.04)' }}
+            style={{ border: '1px solid rgba(217,122,56,0.2)', background: 'rgba(255,255,255,0.05)' }}
           >
             <div className="flex items-start justify-between gap-2 flex-wrap">
-              <span className="text-sm font-semibold" style={{ color: '#8f6540' }}>{t.term}</span>
+              <span className="text-sm font-semibold" style={{ color: '#E8935A' }}>{t.term}</span>
               <span
                 className="text-[10px] uppercase tracking-wide px-2 py-0.5 flex-shrink-0"
-                style={{ background: 'rgba(184,115,51,0.12)', color: '#8f6540' }}
+                style={{ background: 'rgba(217,122,56,0.12)', color: '#E8935A' }}
               >
                 {t.category}
               </span>
             </div>
-            <p className="text-xs mt-1.5" style={{ color: '#463a33' }}>{t.definition}</p>
+            <p className="text-xs mt-1.5" style={{ color: '#E2E8F0' }}>{t.definition}</p>
           </div>
         ))}
       </div>

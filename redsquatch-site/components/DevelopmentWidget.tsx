@@ -353,7 +353,7 @@ export default function DevelopmentWidget() {
       {/* Tab bar */}
       <div
         className="flex items-center gap-1 px-2 pt-2 overflow-x-auto"
-        style={{ borderBottom: '1px solid #e8e2d6' }}
+        style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}
       >
         {tabs.map((tab) => {
           const isActive = tab.id === activeId;
@@ -363,10 +363,10 @@ export default function DevelopmentWidget() {
               onClick={() => setActiveId(tab.id)}
               className="flex items-center gap-1.5 px-3 py-1.5 cursor-pointer transition-colors flex-shrink-0"
               style={{
-                background: isActive ? 'rgba(166,124,82,0.12)' : 'transparent',
-                borderTop: `1px solid ${isActive ? '#a67c52' : 'transparent'}`,
-                borderLeft: `1px solid ${isActive ? 'rgba(166,124,82,0.4)' : 'transparent'}`,
-                borderRight: `1px solid ${isActive ? 'rgba(166,124,82,0.4)' : 'transparent'}`,
+                background: isActive ? 'rgba(217,122,56,0.12)' : 'transparent',
+                borderTop: `1px solid ${isActive ? '#D97A38' : 'transparent'}`,
+                borderLeft: `1px solid ${isActive ? 'rgba(217,122,56,0.4)' : 'transparent'}`,
+                borderRight: `1px solid ${isActive ? 'rgba(217,122,56,0.4)' : 'transparent'}`,
               }}
             >
               {renamingId === tab.id ? (
@@ -381,7 +381,7 @@ export default function DevelopmentWidget() {
                     if (e.key === 'Escape') setRenamingId(null);
                   }}
                   className="text-xs px-1 py-0.5 w-24"
-                  style={{ background: '#fff', border: '1px solid #d8cdbc', color: '#2c2420' }}
+                  style={{ background: 'rgba(15,21,27,0.6)', border: '1px solid rgba(255,255,255,0.14)', color: '#E2E8F0' }}
                 />
               ) : (
                 <span
@@ -391,13 +391,13 @@ export default function DevelopmentWidget() {
                     setRenameValue(tab.title);
                   }}
                   className="text-xs whitespace-nowrap"
-                  style={{ color: isActive ? '#2c2420' : '#6b635f', fontWeight: isActive ? 600 : 400 }}
+                  style={{ color: isActive ? '#E2E8F0' : '#93A4B8', fontWeight: isActive ? 600 : 400 }}
                   title="Double-click to rename"
                 >
                   {tab.title}
                 </span>
               )}
-              {tab.dirty && <span style={{ color: '#a67c52' }} title="Unsaved changes">•</span>}
+              {tab.dirty && <span style={{ color: '#D97A38' }} title="Unsaved changes">•</span>}
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -406,28 +406,28 @@ export default function DevelopmentWidget() {
                 className="opacity-50 hover:opacity-100 transition-opacity"
                 title="Close tab"
               >
-                <X size={12} style={{ color: '#8a7a6e' }} />
+                <X size={12} style={{ color: '#93A4B8' }} />
               </button>
             </div>
           );
         })}
         <button
           onClick={newTab}
-          className="flex items-center justify-center p-1.5 hover:bg-black/5 transition-colors flex-shrink-0"
+          className="flex items-center justify-center p-1.5 hover:bg-white/10 transition-colors flex-shrink-0"
           title="New tab"
         >
-          <Plus size={16} style={{ color: '#a67c52' }} />
+          <Plus size={16} style={{ color: '#D97A38' }} />
         </button>
       </div>
 
       {loading ? (
-        <div className="p-8 text-center text-sm" style={{ color: '#a89a8e' }}>
+        <div className="p-8 text-center text-sm" style={{ color: '#93A4B8' }}>
           Loading…
         </div>
       ) : activeTab ? (
         <>
           {/* Toolbar */}
-          <div className="flex items-center gap-3 p-3" style={{ borderBottom: '1px solid #e8e2d6' }}>
+          <div className="flex items-center gap-3 p-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
             <Select value={activeTab.language} onValueChange={(value) => updateActive({ language: value })}>
               <SelectTrigger className="w-40 h-8">
                 <SelectValue />
@@ -445,34 +445,34 @@ export default function DevelopmentWidget() {
 
             <button
               onClick={() => setShowLegend((s) => !s)}
-              className="p-2 hover:bg-black/5 transition-colors"
+              className="p-2 hover:bg-white/10 transition-colors"
               title="Toggle syntax quick reference"
             >
-              <BookOpen size={14} style={{ color: showLegend ? '#a67c52' : '#a89a8e' }} />
+              <BookOpen size={14} style={{ color: showLegend ? '#D97A38' : '#93A4B8' }} />
             </button>
             <button
               onClick={() => {
                 setRenamingId(activeTab.id);
                 setRenameValue(activeTab.title);
               }}
-              className="p-2 hover:bg-black/5 transition-colors"
+              className="p-2 hover:bg-white/10 transition-colors"
               title="Rename tab"
             >
-              <Pencil size={14} style={{ color: '#a67c52' }} />
+              <Pencil size={14} style={{ color: '#D97A38' }} />
             </button>
             <button
               onClick={duplicateActive}
-              className="p-2 hover:bg-black/5 transition-colors"
+              className="p-2 hover:bg-white/10 transition-colors"
               title="Duplicate tab"
             >
-              <Copy size={14} style={{ color: '#a67c52' }} />
+              <Copy size={14} style={{ color: '#D97A38' }} />
             </button>
             <button
               onClick={() => deleteTab(activeTab.id)}
-              className="p-2 hover:bg-black/5 transition-colors"
+              className="p-2 hover:bg-white/10 transition-colors"
               title="Delete note"
             >
-              <Trash2 size={14} style={{ color: '#a67c52' }} />
+              <Trash2 size={14} style={{ color: '#D97A38' }} />
             </button>
           </div>
 
@@ -497,9 +497,9 @@ export default function DevelopmentWidget() {
             {showLegend && (
               <div
                 className="overflow-y-auto flex-shrink-0 p-3"
-                style={{ width: '220px', background: 'rgba(10,10,10,0.6)', borderLeft: '1px solid rgba(184,115,51,0.15)' }}
+                style={{ width: '220px', background: 'rgba(10,10,10,0.6)', borderLeft: '1px solid rgba(217,122,56,0.15)' }}
               >
-                <h4 className="text-xs font-semibold mb-2" style={{ color: '#d4a373' }}>
+                <h4 className="text-xs font-semibold mb-2" style={{ color: '#E8935A' }}>
                   {LANGUAGES.find((l) => l.value === activeTab.language)?.label || activeTab.language} reference
                 </h4>
                 {getLegend(activeTab.language) ? (
@@ -510,18 +510,18 @@ export default function DevelopmentWidget() {
                           className="block px-1.5 py-0.5 rounded mb-0.5 w-fit"
                           style={{
                             fontFamily: 'ui-monospace, "Courier New", monospace',
-                            background: 'rgba(184,115,51,0.12)',
-                            color: '#d4a373',
+                            background: 'rgba(217,122,56,0.12)',
+                            color: '#E8935A',
                           }}
                         >
                           {entry.symbol}
                         </code>
-                        <div style={{ color: 'rgba(255,255,255,0.5)' }}>{entry.description}</div>
+                        <div style={{ color: '#93A4B8' }}>{entry.description}</div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                  <p className="text-xs" style={{ color: '#93A4B8' }}>
                     No quick reference available for this language yet.
                   </p>
                 )}
@@ -532,7 +532,7 @@ export default function DevelopmentWidget() {
           {/* Footer */}
           <div
             className="flex items-center gap-2 px-3 py-2 text-xs"
-            style={{ borderTop: '1px solid #e8e2d6', color: '#a89a8e', fontFamily: "'JetBrains Mono', ui-monospace, monospace" }}
+            style={{ borderTop: '1px solid rgba(255,255,255,0.1)', color: '#93A4B8', fontFamily: "'JetBrains Mono', ui-monospace, monospace" }}
           >
             {activeTab.status === 'saving' && <span>Saving…</span>}
             {activeTab.status === 'saved' && (
@@ -540,13 +540,13 @@ export default function DevelopmentWidget() {
                 <Check size={12} /> Saved at {timeLabel(activeTab.lastSavedAt)}
               </span>
             )}
-            {activeTab.status === 'error' && <span style={{ color: '#c94c4c' }}>Save failed</span>}
+            {activeTab.status === 'error' && <span style={{ color: '#F0708F' }}>Save failed</span>}
             {activeTab.status === 'idle' && !activeTab.dirty && <span>No changes yet</span>}
             {activeTab.dirty && activeTab.status !== 'saving' && <span>Unsaved changes</span>}
           </div>
         </>
       ) : (
-        <div className="p-8 text-center text-sm" style={{ color: '#a89a8e' }}>
+        <div className="p-8 text-center text-sm" style={{ color: '#93A4B8' }}>
           No tabs open.
         </div>
       )}

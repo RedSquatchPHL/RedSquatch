@@ -115,15 +115,15 @@ export default function FileTransferPanel() {
         onClick={() => inputRef.current?.click()}
         className="flex flex-col items-center justify-center gap-2 p-6 m-3 cursor-pointer transition-colors"
         style={{
-          border: `1px dashed ${dragOver ? '#a67c52' : '#d8cdbc'}`,
-          background: dragOver ? 'rgba(166,124,82,0.08)' : 'transparent',
+          border: `1px dashed ${dragOver ? '#D97A38' : 'rgba(255,255,255,0.14)'}`,
+          background: dragOver ? 'rgba(217,122,56,0.08)' : 'transparent',
         }}
       >
-        <Upload size={20} style={{ color: '#a67c52' }} />
-        <span className="text-sm" style={{ color: '#6b635f' }}>
+        <Upload size={20} style={{ color: '#D97A38' }} />
+        <span className="text-sm" style={{ color: '#93A4B8' }}>
           Drag a file here, or click to browse
         </span>
-        <span style={{ color: '#a89a8e', fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: '0.68rem' }}>
+        <span style={{ color: '#93A4B8', fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: '0.68rem' }}>
           1GB MAX
         </span>
         <input
@@ -140,7 +140,7 @@ export default function FileTransferPanel() {
 
       {uploadPct !== null && (
         <div className="px-6 pb-3 space-y-1">
-          <div className="flex justify-between text-xs" style={{ color: '#6b635f', fontFamily: "'JetBrains Mono', ui-monospace, monospace" }}>
+          <div className="flex justify-between text-xs" style={{ color: '#93A4B8', fontFamily: "'JetBrains Mono', ui-monospace, monospace" }}>
             <span className="truncate">{uploadName}</span>
             <span>{uploadPct}%</span>
           </div>
@@ -149,18 +149,18 @@ export default function FileTransferPanel() {
       )}
 
       {error && (
-        <div className="px-6 pb-3 text-xs" style={{ color: '#c94c4c' }}>
+        <div className="px-6 pb-3 text-xs" style={{ color: '#F0708F' }}>
           {error}
         </div>
       )}
 
-      <div style={{ borderTop: '1px solid #e8e2d6' }}>
+      <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
         {loading ? (
-          <div className="p-8 text-center text-sm" style={{ color: '#a89a8e' }}>
+          <div className="p-8 text-center text-sm" style={{ color: '#93A4B8' }}>
             Loading…
           </div>
         ) : files.length === 0 ? (
-          <div className="p-8 text-center text-sm" style={{ color: '#a89a8e' }}>
+          <div className="p-8 text-center text-sm" style={{ color: '#93A4B8' }}>
             No files yet.
           </div>
         ) : (
@@ -169,14 +169,14 @@ export default function FileTransferPanel() {
               <li
                 key={f.id}
                 className="flex items-center gap-3 px-4 py-2.5"
-                style={{ borderBottom: '1px solid #e8e2d6' }}
+                style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}
               >
-                <FileIcon size={16} style={{ color: '#a67c52', flexShrink: 0 }} />
+                <FileIcon size={16} style={{ color: '#D97A38', flexShrink: 0 }} />
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm truncate" style={{ color: '#2c2420' }} title={f.original_name}>
+                  <div className="text-sm truncate" style={{ color: '#E2E8F0' }} title={f.original_name}>
                     {f.original_name}
                   </div>
-                  <div className="text-xs" style={{ color: '#a89a8e', fontFamily: "'JetBrains Mono', ui-monospace, monospace" }}>
+                  <div className="text-xs" style={{ color: '#93A4B8', fontFamily: "'JetBrains Mono', ui-monospace, monospace" }}>
                     {formatBytes(f.size_bytes)} · {new Date(f.created_at).toLocaleString()}
                   </div>
                 </div>
@@ -184,17 +184,17 @@ export default function FileTransferPanel() {
                   href={`${API}/api/client/files/${f.id}/download`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-2 hover:bg-black/5 transition-colors"
+                  className="p-2 hover:bg-white/10 transition-colors"
                   title="Download"
                 >
-                  <Download size={14} style={{ color: '#a67c52' }} />
+                  <Download size={14} style={{ color: '#D97A38' }} />
                 </a>
                 <button
                   onClick={() => deleteFile(f.id)}
-                  className="p-2 hover:bg-black/5 transition-colors"
+                  className="p-2 hover:bg-white/10 transition-colors"
                   title="Delete"
                 >
-                  <Trash2 size={14} style={{ color: '#a67c52' }} />
+                  <Trash2 size={14} style={{ color: '#D97A38' }} />
                 </button>
               </li>
             ))}

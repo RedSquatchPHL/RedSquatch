@@ -92,15 +92,15 @@ export default function WSToolsPage() {
         )}
       </div>
 
-      <AppletModal isOpen={activeApplet === 'scratchpad'} title="Bloc de Notas (Scratchpad)" onClose={() => setActiveApplet(null)} wide>
+      <AppletModal tone="tonatiuh" isOpen={activeApplet === 'scratchpad'} title="Bloc de Notas (Scratchpad)" onClose={() => setActiveApplet(null)} wide>
         <DevelopmentWidget />
       </AppletModal>
 
-      <AppletModal isOpen={activeApplet === 'files'} title="Archivos (Files)" onClose={() => setActiveApplet(null)} wide>
+      <AppletModal tone="tonatiuh" isOpen={activeApplet === 'files'} title="Archivos (Files)" onClose={() => setActiveApplet(null)} wide>
         <FileTransferPanel />
       </AppletModal>
 
-      <AppletModal isOpen={activeApplet === 'library'} title="Biblioteca (Library)" onClose={() => setActiveApplet(null)} wide>
+      <AppletModal tone="tonatiuh" isOpen={activeApplet === 'library'} title="Biblioteca (Library)" onClose={() => setActiveApplet(null)} wide>
         <BookLibrary />
       </AppletModal>
     </div>
