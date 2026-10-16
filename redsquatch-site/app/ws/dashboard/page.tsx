@@ -6,8 +6,7 @@ import Link from 'next/link';
 import { Target, ListChecks, TrendingUp, FileText, BookOpen, Lightbulb, SlidersHorizontal } from 'lucide-react';
 import { API } from '@/lib/api';
 import Bi from '@/components/tonatiuh/Bi';
-import { WS_NAV_ES, greetingEs } from '@/lib/bilingual';
-import { WS_NAV } from '@/lib/menuConfig';
+import { greetingEs } from '@/lib/bilingual';
 import s from './dashboard.module.css';
 
 interface Goal {
@@ -199,19 +198,6 @@ export default function WSDashboardPage() {
               <Link href="/ws/work" className={s.viewAllLink}><Bi es="Ver todos los elementos" en="View all work items" inline /> →</Link>
             </div>
           </div>
-        </div>
-
-        {/* Quick access row — the 6 real nav destinations, standing in for the
-            draft's Recent Apps row. */}
-        <div className={s.quickAccessRow}>
-          {WS_NAV.map(item => item.type === 'internal' ? (
-            <Link key={item.id} href={item.path} className={s.quickAccessTile}>
-              <div className={s.quickAccessIcon}>
-                <item.icon size={22} />
-              </div>
-              <span className={s.quickAccessLabel}><Bi es={WS_NAV_ES[item.id] ?? item.label} en={item.label} /></span>
-            </Link>
-          ) : null)}
         </div>
       </div>
     </div>

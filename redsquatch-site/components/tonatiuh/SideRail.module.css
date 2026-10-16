@@ -109,43 +109,26 @@
   opacity: 1;
 }
 
-/* Phone width: the rail becomes a bottom nav bar. */
+/* Phone width: a slimmer left rail — deliberately never a bottom bar. */
 @media (max-width: 767px) {
   .rail {
-    position: fixed;
-    top: auto;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
-    height: 56px;
-    flex-direction: row;
-    padding: 0;
-    border-right: none;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    width: 56px;
+    padding-top: 0.9rem;
   }
 
   .logo {
-    display: none;
+    width: 36px;
+    height: 36px;
+    margin-bottom: 1rem;
+    border-radius: 0.6rem;
   }
 
-  .items {
-    flex-direction: row;
-    gap: 0;
-    height: 100%;
-  }
-
-  .items li {
-    flex: 1;
+  .logoMark {
+    font-size: 1.1rem;
   }
 
   .item {
-    height: 100%;
-  }
-
-  .itemActive {
-    border-right: none;
-    border-top: 2px solid #D97A38;
+    height: 48px;
   }
 
   .tip {
