@@ -108,29 +108,6 @@ input[type="text"].searchInput:focus {
   flex-shrink: 0;
 }
 
-.bellLink {
-  position: relative;
-  color: #93A4B8;
-  display: flex;
-  align-items: center;
-  transition: color 0.15s ease;
-}
-
-.bellLink:hover {
-  color: #E2E8F0;
-}
-
-.bellDot {
-  position: absolute;
-  top: -2px;
-  right: -2px;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #E34C7A;
-  border: 2px solid #0F151B;
-}
-
 @media (max-width: 640px) {
   .searchForm { display: none; }
 }

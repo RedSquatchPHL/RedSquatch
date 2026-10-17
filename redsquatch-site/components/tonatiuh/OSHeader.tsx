@@ -3,9 +3,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Search, Bell } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { WS_NAV } from '@/lib/menuConfig';
 import ClockGateMenu from '@/components/ClockGateMenu';
+import LocationWidgets from './LocationWidgets';
 import { WS_NAV_ES, WS_SEARCH_ALIASES } from '@/lib/bilingual';
 import s from './OSHeader.module.css';
 
@@ -69,10 +70,7 @@ export default function OSHeader() {
       </form>
 
       <div className={s.actions}>
-        <Link href="/ws/jobsearch" className={s.bellLink} title="Job Search">
-          <Bell size={18} />
-          <span className={s.bellDot} />
-        </Link>
+        <LocationWidgets />
         <ClockGateMenu />
       </div>
     </header>

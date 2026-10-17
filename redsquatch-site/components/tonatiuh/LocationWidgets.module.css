@@ -1,0 +1,412 @@
+/* Header weather + world-clock chips (Tōnatiuh OS). Hardcoded hex like the
+   rest of components/tonatiuh. Every button selector is element-qualified and
+   state selectors repeat the qualifier so they out-specify the global
+   `button` / `button:hover` rules in styles/cenote-elements.css. */
+
+.wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.chipWrap {
+  position: relative;
+}
+
+/* ---- shared button reset ---- */
+button.chip,
+button.iconBtn,
+button.toggle,
+button.addBtn,
+button.result {
+  box-shadow: none;
+  text-transform: none;
+  letter-spacing: normal;
+  overflow: visible;
+  font-family: 'Satoshi', sans-serif;
+}
+
+button.chip {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  height: 36px;
+  padding: 0 0.7rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  background: rgba(15, 21, 27, 0.6);
+  color: #E2E8F0;
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+button.chip:hover,
+button.chip[aria-expanded='true'] {
+  border-color: rgba(217, 122, 56, 0.5);
+  background: rgba(15, 21, 27, 0.6);
+  color: #E2E8F0;
+  box-shadow: none;
+}
+
+button.chip:focus-visible,
+button.iconBtn:focus-visible,
+button.toggle:focus-visible,
+button.addBtn:focus-visible,
+button.result:focus-visible {
+  outline: 2px solid #D97A38;
+  outline-offset: 2px;
+}
+
+.chipText {
+  line-height: 1;
+}
+
+/* ---- hover cards (read-only; hidden on touch / narrow) ---- */
+.hover {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 290px;
+  padding: 0.9rem 1rem;
+  border-radius: 1rem;
+  background: rgba(22, 30, 40, 0.97);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  color: #E2E8F0;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  transition: opacity 0.12s ease, transform 0.12s ease, visibility 0.12s;
+  pointer-events: none;
+  z-index: 60;
+}
+
+.chipWrap:hover .hover,
+.chipWrap:focus-within .hover {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+}
+
+.hoverTitle {
+  font-family: 'Cabinet Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+  margin-bottom: 0.6rem;
+}
+
+.hoverNow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #D97A38;
+}
+
+.big {
+  font-family: 'Cabinet Grotesk', sans-serif;
+  font-weight: 800;
+  font-size: 1.6rem;
+  line-height: 1;
+  color: #E2E8F0;
+}
+
+.strip {
+  list-style: none;
+  margin: 0.8rem 0 0;
+  padding: 0.7rem 0 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.25rem;
+  color: #D97A38;
+}
+
+.day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.dayHi {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #E2E8F0;
+}
+
+.clockList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.clockRow {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: baseline;
+  gap: 0.6rem;
+}
+
+.hint {
+  margin: 0.7rem 0 0;
+  font-size: 0.68rem;
+  color: #93A4B8;
+}
+
+/* ---- manage panel ---- */
+.panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 380px;
+  max-width: calc(100vw - 2rem);
+  padding: 1rem;
+  border-radius: 1rem;
+  background: rgba(22, 30, 40, 0.97);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  color: #E2E8F0;
+  z-index: 60;
+}
+
+.panelHead {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.8rem;
+}
+
+.panelTitle {
+  flex: 1;
+  margin: 0;
+  font-family: 'Cabinet Grotesk', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #E2E8F0;
+}
+
+.toggles {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.toggleGap {
+  width: 0.35rem;
+}
+
+button.toggle {
+  padding: 0.2rem 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  background: transparent;
+  color: #93A4B8;
+  font-size: 0.7rem;
+}
+
+button.toggle:hover {
+  background: transparent;
+  color: #E2E8F0;
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow: none;
+}
+
+button.toggleOn,
+button.toggleOn:hover {
+  border-color: rgba(217, 122, 56, 0.6);
+  background: rgba(217, 122, 56, 0.15);
+  color: #E8935A;
+}
+
+button.iconBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: none;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: #93A4B8;
+}
+
+button.iconBtn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #E2E8F0;
+  border: none;
+  box-shadow: none;
+}
+
+button.iconBtnOn,
+button.iconBtnOn:hover {
+  color: #D4AF37;
+}
+
+button.iconBtn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.4rem;
+  border-radius: 0.6rem;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.rowMain {
+  min-width: 0;
+}
+
+.rowName {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #E2E8F0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rowSub {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-size: 0.72rem;
+  color: #93A4B8;
+}
+
+.rowMain .rowSub {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rowRight {
+  text-align: right;
+}
+
+.rowTime {
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: #E2E8F0;
+  white-space: nowrap;
+}
+
+/* ---- add a city ---- */
+.addForm {
+  position: relative;
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.9rem;
+}
+
+.addIcon {
+  position: absolute;
+  left: 0.8rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #93A4B8;
+  pointer-events: none;
+}
+
+input[type='text'].addInput {
+  flex: 1;
+  min-width: 0;
+  padding: 0.5rem 0.8rem 0.5rem 2.2rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  background: rgba(15, 21, 27, 0.6);
+  color: #E2E8F0;
+  font-family: 'Satoshi', sans-serif;
+  font-size: 0.8rem;
+}
+
+input[type='text'].addInput::placeholder {
+  color: #93A4B8;
+}
+
+input[type='text'].addInput:focus {
+  outline: none;
+  border: 1px solid rgba(217, 122, 56, 0.5);
+  box-shadow: none;
+}
+
+button.addBtn {
+  padding: 0 0.9rem;
+  border: none;
+  border-radius: 999px;
+  background: #D97A38;
+  color: #0F151B;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+button.addBtn:hover:not(:disabled) {
+  background: #E8935A;
+  color: #0F151B;
+  box-shadow: none;
+}
+
+button.addBtn:disabled {
+  opacity: 0.5;
+}
+
+.results {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+button.result {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  padding: 0.45rem 0.6rem;
+  border: none;
+  border-radius: 0.6rem;
+  background: transparent;
+  text-align: left;
+}
+
+button.result:hover {
+  background: rgba(217, 122, 56, 0.12);
+  border: none;
+  box-shadow: none;
+}
+
+.msg {
+  margin: 0.5rem 0 0;
+  font-size: 0.75rem;
+  color: #93A4B8;
+}
+
+@media (max-width: 640px) {
+  .hover { display: none; }
+  .chipText { display: none; }
+  button.chip { padding: 0; width: 36px; justify-content: center; }
+  .panel { position: fixed; top: 72px; right: 1rem; left: 1rem; width: auto; max-width: none; }
+}
