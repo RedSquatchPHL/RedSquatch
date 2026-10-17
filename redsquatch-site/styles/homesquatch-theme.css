@@ -289,15 +289,6 @@ html.homesquatch-theme .cenote-section {
    default; dusk/midnight use the extra .homesquatch-phase-* class for
    higher specificity so they safely override it. */
 
-html.homesquatch-theme .jungle-bg {
-  background-image:
-    radial-gradient(ellipse 1400px 500px at 50% 82%, rgba(226, 121, 92, 0.1), transparent 60%),
-    linear-gradient(180deg, rgba(12, 22, 32, 0.55) 0%, rgba(12, 22, 32, 0.22) 35%, rgba(12, 22, 32, 0.45) 100%),
-    url('/images/mayan-beach-night-bg.png');
-  background-size: cover;
-  background-position: center;
-}
-
 html.homesquatch-theme .stone-board {
   background: linear-gradient(180deg, rgba(51, 80, 92, 0.18), rgba(15, 27, 36, 0.4)),
               linear-gradient(135deg, #16242e, #0f1b24 45%, #18262f 100%);
@@ -322,15 +313,6 @@ html.homesquatch-theme .stone-tile {
   border: 1px solid rgba(92, 125, 132, 0.85);
 }
 
-html.homesquatch-theme.homesquatch-phase-dusk .jungle-bg {
-  background-image:
-    radial-gradient(ellipse 1400px 500px at 50% 78%, rgba(230, 150, 70, 0.16), transparent 60%),
-    linear-gradient(180deg, rgba(36, 29, 20, 0.4) 0%, rgba(36, 29, 20, 0.12) 35%, rgba(36, 29, 20, 0.38) 100%),
-    url('/images/evening-shift-5pm-bg.png');
-  background-size: cover;
-  background-position: center;
-}
-
 html.homesquatch-theme.homesquatch-phase-dusk .stone-board {
   background: linear-gradient(180deg, rgba(138, 114, 86, 0.18), rgba(36, 29, 20, 0.4)),
               linear-gradient(135deg, #2e2419, #241d14 45%, #362b1c 100%);
@@ -353,15 +335,6 @@ html.homesquatch-theme.homesquatch-phase-dusk .lit-tile {
 html.homesquatch-theme.homesquatch-phase-dusk .stone-tile {
   background: linear-gradient(180deg, #8a7256 0%, #5c4a35 30%, #2e2419 100%);
   border: 1px solid rgba(138, 114, 86, 0.85);
-}
-
-html.homesquatch-theme.homesquatch-phase-midnight .jungle-bg {
-  background-image:
-    radial-gradient(ellipse 1400px 500px at 50% 78%, rgba(130, 150, 210, 0.14), transparent 60%),
-    linear-gradient(180deg, rgba(8, 14, 28, 0.5) 0%, rgba(8, 14, 28, 0.2) 35%, rgba(8, 14, 28, 0.42) 100%),
-    url('/images/evening-shift-10pm-bg.png');
-  background-size: cover;
-  background-position: center;
 }
 
 html.homesquatch-theme.homesquatch-phase-midnight .stone-board {

@@ -178,15 +178,6 @@ button:disabled {
 /* 2026-07-11 (Cenote Update draft eeaff195): swapped the Mayan ruins photo
    for the draft's underground-cenote photo + lighter overlay, and dropped
    background-attachment: fixed to match the draft. */
-.jungle-bg {
-  background-image:
-    radial-gradient(circle at 50% 55%, rgba(85, 120, 90, 0.18), transparent 22%),
-    linear-gradient(rgba(6, 10, 8, 0.35), rgba(6, 10, 8, 0.55)),
-    url('/images/underground-cenote-bg.png');
-  background-size: cover;
-  background-position: center;
-}
-
 .stone-board {
   position: relative;
   background: linear-gradient(180deg, rgba(68, 54, 43, 0.18), rgba(12, 10, 9, 0.4)),
