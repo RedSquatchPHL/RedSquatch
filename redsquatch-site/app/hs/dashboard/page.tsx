@@ -1,13 +1,11 @@
 'use client';
 
-import BrandMark from '@/components/tonatiuh/BrandMark';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { API } from '@/lib/api';
 import { QuoteWidget } from '@/components/QuoteWidget';
 import { HistoryWidget } from '@/components/HistoryWidget';
 import { WeatherWidget } from '@/components/WeatherWidget';
-import ThemeToggle from '@/components/ThemeToggle';
 import CopperPanel from '@/components/cenote/CopperPanel';
 
 export default function HSDashboardPage() {
@@ -45,38 +43,14 @@ export default function HSDashboardPage() {
   );
 
   return (
-    <div className="min-h-screen">
-      {/* ── Glass header ──────────────────────────────────────────────────── */}
-      <header className="glass-header sticky top-0 z-20 px-6 py-3.5">
-        <div className="flex justify-between items-center gap-4">
-
-          {/* Title */}
-          <div>
-            <h1 className="sr-only">HomeSquatch Dashboard</h1>
-            <BrandMark side="home" />
-            {user && (
-              <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.38)' }}>
-                Dashboard · Welcome back, <span style={{ color: 'rgba(212,163,115,0.8)' }}>{user.displayName || user.username}</span>
-              </p>
-            )}
-          </div>
-
-          {/* Controls */}
-          <div className="flex items-center gap-3">
-            <ThemeToggle />
-            <button
-              onClick={() => router.push('/settings')}
-              className="glass-btn px-3.5 py-1.5 text-sm rounded-xl font-medium"
-              title="Settings"
-            >
-              ⚙ Settings
-            </button>
-          </div>
-        </div>
-      </header>
-
+    <div>
       {/* ── Widgets ───────────────────────────────────────────────────────── */}
       <main className="p-6 space-y-5">
+        {user && (
+          <p className="text-sm" style={{ color: 'rgba(255,255,255,0.45)' }}>
+            Welcome back, <span style={{ color: 'rgba(212,163,115,0.9)' }}>{user.displayName || user.username}</span>
+          </p>
+        )}
         <CopperPanel>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <QuoteWidget />

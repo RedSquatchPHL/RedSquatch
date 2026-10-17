@@ -77,7 +77,7 @@ export default function CocinaApp() {
     setView('recipe');
   }
 
-  const rootClass = `cocina-root ${fontCocinaDisplay.variable} ${fontCocinaSans.variable} min-h-screen p-4 md:p-8`;
+  const rootClass = `cocina-root ${fontCocinaDisplay.variable} ${fontCocinaSans.variable} min-h-[calc(100vh-4rem)] p-4 md:p-8`;
 
   if (loading) {
     return <div className={rootClass} />;

@@ -31,7 +31,7 @@ export default function HSHealthPage() {
   if (loading) return null;
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-6 space-y-8">
+    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] p-6 space-y-8">
       {/* Header */}
       <div className="w-full max-w-5xl">
         <CopperPanel>

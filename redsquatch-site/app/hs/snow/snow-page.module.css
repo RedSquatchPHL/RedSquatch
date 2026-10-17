@@ -8,7 +8,7 @@
    than a flat base with faint accents; the dot-grid is a nod to
    ServiceNow's own dashboard-y product UI. */
 .snowBg {
-  min-height: 100vh;
+  min-height: calc(100vh - 4rem);
   background-image:
     radial-gradient(ellipse 1100px 700px at 12% -5%, rgba(129, 181, 161, 0.28), transparent 60%),
     radial-gradient(ellipse 1000px 650px at 100% 105%, rgba(129, 181, 161, 0.22), transparent 62%),
