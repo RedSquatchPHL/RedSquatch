@@ -93,7 +93,7 @@
   pointer-events: none;
 }
 
-.searchInput {
+input[type="text"].searchInput {
   width: 100%;
   background: var(--panel-bg);
   border: 1px solid var(--panel-border);
@@ -108,7 +108,7 @@
   color: var(--ink-muted);
 }
 
-.searchInput:focus {
+input[type="text"].searchInput:focus {
   outline: none;
   border-color: rgba(217, 122, 56, 0.5);
 }
