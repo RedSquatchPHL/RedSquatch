@@ -6,6 +6,7 @@ import { ListChecks, CalendarClock, Flame, CheckCircle2 } from 'lucide-react';
 import { API } from '@/lib/api';
 import KanbanBoard, { Task, TaskColumn, TaskSwimlane } from '@/components/tasks/KanbanBoard';
 import TaskListView from '@/components/tasks/TaskListView';
+import CountUp from '@/components/tonatiuh/CountUp';
 import Bi from '@/components/tonatiuh/Bi';
 import styles from '@/styles/tasks.module.css';
 
@@ -186,7 +187,7 @@ export default function TasksPage() {
         {stats.map(({ label, en, value, Icon, tone }) => (
           <div key={label} className={`${styles.statCard} ${tone}`}>
             <Icon size={18} className={styles.statIcon} />
-            <span className={styles.statValue}>{value}</span>
+            <span className={styles.statValue}><CountUp value={value} /></span>
             <span className={styles.statLabel}><Bi es={label} en={en} inline /></span>
           </div>
         ))}

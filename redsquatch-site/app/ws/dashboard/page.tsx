@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Target, ListChecks, TrendingUp, FileText, BookOpen, Lightbulb, SlidersHorizontal } from 'lucide-react';
 import { API } from '@/lib/api';
+import CountUp from '@/components/tonatiuh/CountUp';
 import Bi from '@/components/tonatiuh/Bi';
 import { greetingEs } from '@/lib/bilingual';
 import s from './dashboard.module.css';
@@ -119,7 +120,7 @@ export default function WSDashboardPage() {
                   </div>
                 </div>
                 <p className={s.statLabel}><Bi es="Progreso de Metas" en="Goal Progress" /></p>
-                <p className={s.statValue}>{avgProgress}<span className={s.statUnit}>%</span></p>
+                <p className={s.statValue}><CountUp value={avgProgress} /><span className={s.statUnit}>%</span></p>
               </div>
 
               <div className={s.statCard}>
@@ -129,7 +130,7 @@ export default function WSDashboardPage() {
                   </div>
                 </div>
                 <p className={s.statLabel}><Bi es="Pendientes" en="Open Items" /></p>
-                <p className={s.statValue}>{openWorkItems.length}</p>
+                <p className={s.statValue}><CountUp value={openWorkItems.length} /></p>
               </div>
 
               <div className={s.statCard}>
@@ -139,7 +140,7 @@ export default function WSDashboardPage() {
                   </div>
                 </div>
                 <p className={s.statLabel}><Bi es="Metas Activas" en="Active Goals" /></p>
-                <p className={s.statValue}>{goals.length}</p>
+                <p className={s.statValue}><CountUp value={goals.length} /></p>
               </div>
             </div>
 

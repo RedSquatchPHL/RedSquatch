@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { API } from '@/lib/api';
+import CountUp from '@/components/tonatiuh/CountUp';
 import Bi from '@/components/tonatiuh/Bi';
 import s from './WSGoalsTimeline.module.css';
 
@@ -311,7 +312,7 @@ export function WSGoalsTimeline() {
               { label: 'Bloqueadas', en: 'Blocked', value: blockedCount, tone: 'var(--status-red)' },
             ].map(st => (
               <div key={st.label} className={s.statCard} style={{ ['--stat-tone' as string]: st.tone }}>
-                <span className={s.statValue}>{st.value}</span>
+                <span className={s.statValue}><CountUp value={st.value} /></span>
                 <span className={s.statLabel}><Bi es={st.label} en={st.en} inline /></span>
               </div>
             ))}

@@ -1,0 +1,96 @@
+/* /ws eye-candy pass: staggered entrances, hover depth, and a sun that follows
+   the Work / Downtime state. Global (not a module) because it targets every
+   page's own hashed module classes by their stable local-name segment, e.g.
+   [class*="_content__"]. Only transform/opacity animate. Everything is off
+   under prefers-reduced-motion. */
+
+/* ---- 1. Staggered entrance ------------------------------------------------ */
+@keyframes wsRise {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.ws-fx [class*="_content__"] > *,
+.ws-fx [class*="_page__"]:not(:has([class*="_content__"])) > :not([class*="wall"]) {
+  animation: wsRise 0.55s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+.ws-fx [class*="_content__"] > :nth-child(2),
+.ws-fx [class*="_page__"]:not(:has([class*="_content__"])) > :nth-child(2) { animation-delay: 0.06s; }
+.ws-fx [class*="_content__"] > :nth-child(3),
+.ws-fx [class*="_page__"]:not(:has([class*="_content__"])) > :nth-child(3) { animation-delay: 0.12s; }
+.ws-fx [class*="_content__"] > :nth-child(4),
+.ws-fx [class*="_page__"]:not(:has([class*="_content__"])) > :nth-child(4) { animation-delay: 0.18s; }
+.ws-fx [class*="_content__"] > :nth-child(5),
+.ws-fx [class*="_page__"]:not(:has([class*="_content__"])) > :nth-child(5) { animation-delay: 0.24s; }
+.ws-fx [class*="_content__"] > :nth-child(6),
+.ws-fx [class*="_page__"]:not(:has([class*="_content__"])) > :nth-child(6) { animation-delay: 0.3s; }
+.ws-fx [class*="_content__"] > :nth-child(n + 7),
+.ws-fx [class*="_page__"]:not(:has([class*="_content__"])) > :nth-child(n + 7) { animation-delay: 0.36s; }
+
+/* ---- 2. Hover depth (small cards only; big panels and boards stay put) ---- */
+.ws-fx :is(
+  [class*="_statCard__"], [class*="_launcherCard__"], [class*="_miniPanel__"],
+  [class*="_entryCard__"], [class*="_toggleCard__"], [class*="jobsearch_card__"]
+) {
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.22s ease, box-shadow 0.22s ease;
+}
+
+.ws-fx :is(
+  [class*="_statCard__"], [class*="_launcherCard__"], [class*="_miniPanel__"],
+  [class*="_entryCard__"], [class*="_toggleCard__"], [class*="jobsearch_card__"]
+):hover {
+  transform: translateY(-2px);
+  border-color: rgba(217, 122, 56, 0.45);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.38), 0 0 24px rgba(217, 122, 56, 0.12);
+  background-image: radial-gradient(260px circle at var(--mx, 50%) var(--my, 0%), rgba(217, 122, 56, 0.13), transparent 70%);
+}
+
+/* ---- 3. The sun: copper by day (Work), setting/moon/dawn in Downtime ------- */
+.ws-sun {
+  position: fixed;
+  inset: 0;
+  z-index: 5;            /* above page walls and cards, below header (40) and rail (45) */
+  pointer-events: none;
+  overflow: hidden;
+  mix-blend-mode: soft-light;
+}
+
+.ws-sun > span {
+  position: absolute;
+  inset: -12%;
+  opacity: 0;
+  transition: opacity 1.4s ease;
+  animation: wsSunDrift 48s ease-in-out infinite alternate;
+}
+
+@keyframes wsSunDrift {
+  from { transform: translate3d(-2%, -1%, 0) scale(1); }
+  to   { transform: translate3d(3%, 2%, 0) scale(1.06); }
+}
+
+.ws-sun-work  { background: radial-gradient(ellipse 55% 48% at 22% 12%, rgba(217, 122, 56, 0.34), transparent 68%); opacity: 1; }
+.ws-sun-dusk  { background: radial-gradient(ellipse 60% 42% at 62% 96%, rgba(212, 175, 55, 0.34), transparent 68%); }
+.ws-sun-night { background: radial-gradient(ellipse 50% 46% at 82% 10%, rgba(130, 150, 210, 0.3), transparent 68%); }
+.ws-sun-dawn  { background: radial-gradient(ellipse 60% 42% at 18% 94%, rgba(227, 76, 122, 0.3), transparent 68%); }
+
+html.homesquatch-theme .ws-sun-work { opacity: 0; }
+html.homesquatch-theme .ws-sun-dusk { opacity: 1; }                       /* downtime fallback */
+html.homesquatch-theme.homesquatch-phase-midnight .ws-sun-dusk { opacity: 0; }
+html.homesquatch-theme.homesquatch-phase-midnight .ws-sun-night { opacity: 1; }
+html.homesquatch-theme.homesquatch-phase-predawn .ws-sun-dusk { opacity: 0; }
+html.homesquatch-theme.homesquatch-phase-predawn .ws-sun-dawn { opacity: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ws-fx [class*="_content__"] > *,
+  .ws-fx [class*="_page__"]:not(:has([class*="_content__"])) > * { animation: none; }
+  .ws-fx :is(
+    [class*="_statCard__"], [class*="_launcherCard__"], [class*="_miniPanel__"],
+    [class*="_entryCard__"], [class*="_toggleCard__"], [class*="jobsearch_card__"]
+  ) { transition: none; }
+  .ws-fx :is(
+    [class*="_statCard__"], [class*="_launcherCard__"], [class*="_miniPanel__"],
+    [class*="_entryCard__"], [class*="_toggleCard__"], [class*="jobsearch_card__"]
+  ):hover { transform: none; }
+  .ws-sun > span { animation: none; transition: none; }
+}
