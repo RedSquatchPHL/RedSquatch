@@ -41,9 +41,60 @@
   [class*="_entryCard__"], [class*="_toggleCard__"], [class*="jobsearch_card__"]
 ):hover {
   transform: translateY(-2px);
-  border-color: rgba(217, 122, 56, 0.45);
+  border-color: rgba(217, 122, 56, 0.25);
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.38), 0 0 24px rgba(217, 122, 56, 0.12);
   background-image: radial-gradient(260px circle at var(--mx, 50%) var(--my, 0%), rgba(217, 122, 56, 0.13), transparent 70%);
+}
+
+/* ---- 2b. Orbiting ring: two comet pulses circle the card perimeter on hover ---- */
+@property --fx-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@keyframes wsOrbit {
+  to { --fx-angle: 360deg; }
+}
+
+.ws-fx :is(
+  [class*="_statCard__"], [class*="_launcherCard__"], [class*="_miniPanel__"],
+  [class*="_entryCard__"], [class*="_toggleCard__"], [class*="jobsearch_card__"]
+) {
+  position: relative;
+}
+
+.ws-fx :is(
+  [class*="_statCard__"], [class*="_launcherCard__"], [class*="_miniPanel__"],
+  [class*="_entryCard__"], [class*="_toggleCard__"], [class*="jobsearch_card__"]
+)::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 2px;                      /* ring thickness */
+  pointer-events: none;
+  /* two heads 180deg apart; each trails a tail that fades in behind it */
+  background: conic-gradient(from var(--fx-angle),
+    transparent 0deg, #E8935A 100deg, transparent 102deg,
+    transparent 180deg, #E8935A 280deg, transparent 282deg,
+    transparent 360deg);
+  /* punch out the middle so only the ring remains */
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  filter: drop-shadow(0 0 4px rgba(217, 122, 56, 0.8));
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  animation: wsOrbit 2.6s linear infinite;
+}
+
+.ws-fx :is(
+  [class*="_statCard__"], [class*="_launcherCard__"], [class*="_miniPanel__"],
+  [class*="_entryCard__"], [class*="_toggleCard__"], [class*="jobsearch_card__"]
+):hover::after {
+  opacity: 1;
 }
 
 /* ---- 3. The sun: copper by day (Work), setting/moon/dawn in Downtime ------- */
@@ -92,5 +143,9 @@ html.homesquatch-theme.homesquatch-phase-predawn .ws-sun-dawn { opacity: 1; }
     [class*="_statCard__"], [class*="_launcherCard__"], [class*="_miniPanel__"],
     [class*="_entryCard__"], [class*="_toggleCard__"], [class*="jobsearch_card__"]
   ):hover { transform: none; }
+  .ws-fx :is(
+    [class*="_statCard__"], [class*="_launcherCard__"], [class*="_miniPanel__"],
+  [class*="_entryCard__"], [class*="_toggleCard__"], [class*="jobsearch_card__"]
+  )::after { display: none; }
   .ws-sun > span { animation: none; transition: none; }
 }
