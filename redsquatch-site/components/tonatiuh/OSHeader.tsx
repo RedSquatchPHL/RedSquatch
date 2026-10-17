@@ -2,11 +2,11 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { Search } from 'lucide-react';
 import { WS_NAV } from '@/lib/menuConfig';
 import ClockGateMenu from '@/components/ClockGateMenu';
 import LocationWidgets from './LocationWidgets';
+import BrandMark from './BrandMark';
 import { WS_NAV_ES, WS_SEARCH_ALIASES } from '@/lib/bilingual';
 import s from './OSHeader.module.css';
 
@@ -50,11 +50,7 @@ export default function OSHeader() {
 
   return (
     <header className={s.bar}>
-      <Link href="/ws/dashboard" className={s.brand}>
-        <span className={s.brandWord}><span className={s.brandAccent}>Work</span>Squatch</span>
-        <span className={s.dot} />
-        <span className={s.brandTag}>OS</span>
-      </Link>
+      <BrandMark side="work" />
 
       <form className={s.searchForm} onSubmit={handleSubmit}>
         <Search size={14} className={s.searchIcon} />

@@ -1,5 +1,6 @@
 'use client';
 
+import BrandMark from '@/components/tonatiuh/BrandMark';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { API } from '@/lib/api';
@@ -51,15 +52,11 @@ export default function HSDashboardPage() {
 
           {/* Title */}
           <div>
-            <h1
-              className="text-xl font-bold leading-tight"
-              style={{ color: '#d4a373', textShadow: '0 0 20px rgba(184,115,51,0.35)' }}
-            >
-              HomeSquatch Dashboard
-            </h1>
+            <h1 className="sr-only">HomeSquatch Dashboard</h1>
+            <BrandMark side="home" />
             {user && (
-              <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.38)' }}>
-                Welcome back, <span style={{ color: 'rgba(212,163,115,0.8)' }}>{user.displayName || user.username}</span>
+              <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.38)' }}>
+                Dashboard · Welcome back, <span style={{ color: 'rgba(212,163,115,0.8)' }}>{user.displayName || user.username}</span>
               </p>
             )}
           </div>

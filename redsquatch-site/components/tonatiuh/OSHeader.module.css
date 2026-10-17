@@ -18,40 +18,6 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  flex-shrink: 0;
-  text-decoration: none;
-}
-
-.brandWord {
-  font-family: 'Cabinet Grotesk', sans-serif;
-  font-size: 1.1rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  color: #E2E8F0;
-  text-transform: uppercase;
-}
-
-.brandAccent {
-  color: #D97A38;
-}
-
-.dot {
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: #D4AF37;
-}
-
-.brandTag {
-  font-size: 0.72rem;
-  color: #93A4B8;
-  font-family: 'Satoshi', sans-serif;
-}
-
 .searchForm {
   flex: 1;
   max-width: 420px;

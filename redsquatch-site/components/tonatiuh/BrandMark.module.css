@@ -1,0 +1,63 @@
+/* Shared two-tone brand + OS switch. Hardcoded hex (used outside page modules):
+   work = Tōnatiuh copper, home = the HS tan (#d4a373) already used for HS titles. */
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-shrink: 0;
+}
+
+.work { --b-accent: #D97A38; --b-accent-hi: #E8935A; --b-ink: #E2E8F0; --b-dot: #D4AF37; }
+.home { --b-accent: #d4a373; --b-accent-hi: #e6bd90; --b-ink: #fdf6ea; --b-dot: #d4a373; }
+
+.word {
+  font-family: 'Cabinet Grotesk', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--b-ink);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.accent { color: var(--b-accent); }
+
+.dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--b-dot);
+}
+
+.switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.15rem 0.55rem;
+  border: 1px solid color-mix(in srgb, var(--b-accent) 45%, transparent);
+  border-radius: 999px;
+  font-family: 'Satoshi', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--b-accent-hi);
+  text-decoration: none;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.switch:hover {
+  background: color-mix(in srgb, var(--b-accent) 18%, transparent);
+  border-color: var(--b-accent);
+  color: var(--b-ink);
+}
+
+.switch:focus-visible {
+  outline: 2px solid var(--b-accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .switch { transition: none; }
+}
