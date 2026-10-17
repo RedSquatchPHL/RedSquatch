@@ -6,7 +6,7 @@ import { Waves } from 'lucide-react';
 import { HS_NAV } from '@/lib/menuConfig';
 import ThemeToggle from '@/components/ThemeToggle';
 import BrandMark from './BrandMark';
-import { SCENES, loadOverride, nextOverride, saveOverride, subscribeOverride, type Override } from '@/lib/oceanScene';
+import { PRESET_NAMES, loadOverride, nextOverride, saveOverride, subscribeOverride, type Override } from '@/lib/oceanScene';
 
 // Shared HomeSquatch top bar (mounted once in app/hs/layout.tsx): two-tone brand
 // + OS switch to WorkSquatch, current page name, theme toggle and settings.
@@ -19,7 +19,7 @@ export default function HSHeader() {
     setScene(loadOverride());
     return subscribeOverride(setScene);
   }, []);
-  const sceneLabel = scene === 'auto' ? 'Auto' : SCENES[scene];
+  const sceneLabel = scene === 'auto' ? 'Auto' : PRESET_NAMES[scene];
   const current = HS_NAV.find(i => i.type === 'internal' && (pathname === i.path || pathname.startsWith(i.path + '/')));
 
   return (
@@ -40,8 +40,8 @@ export default function HSHeader() {
         <button
           onClick={() => saveOverride(nextOverride(scene))}
           className="glass-btn px-3 py-1.5 text-sm rounded-xl font-medium flex items-center gap-1.5"
-          title={`Background scene: ${sceneLabel} (click to cycle: Auto, Dawn, Midday, Dusk, Storm, Night, Pre-dawn)`}
-          aria-label={`Background scene: ${sceneLabel}. Click to change.`}
+          title={`Background: ${sceneLabel} (click to cycle: Auto, Dawn, Morning, Midday, Golden hour, Sunset, Moonlit)`}
+          aria-label={`Background time of day: ${sceneLabel}. Click to change.`}
         >
           <Waves size={15} aria-hidden />
           <span className="hidden sm:inline">{sceneLabel}</span>
