@@ -59,14 +59,16 @@
 
 .ws-fx :is(
   [class*="_statCard__"], [class*="_launcherCard__"], [class*="_miniPanel__"],
-  [class*="_entryCard__"], [class*="_toggleCard__"], [class*="jobsearch_card__"]
+  [class*="_entryCard__"], [class*="_toggleCard__"], [class*="jobsearch_card__"],
+  [class*="_chartPanel__"], [class*="_section__"]
 ) {
-  position: relative;
+  position: relative;   /* .aside is already sticky, which also anchors the ring */
 }
 
 .ws-fx :is(
   [class*="_statCard__"], [class*="_launcherCard__"], [class*="_miniPanel__"],
-  [class*="_entryCard__"], [class*="_toggleCard__"], [class*="jobsearch_card__"]
+  [class*="_entryCard__"], [class*="_toggleCard__"], [class*="jobsearch_card__"],
+  [class*="_chartPanel__"], [class*="_section__"], [class*="_aside__"]
 )::after {
   content: "";
   position: absolute;
@@ -92,7 +94,8 @@
 
 .ws-fx :is(
   [class*="_statCard__"], [class*="_launcherCard__"], [class*="_miniPanel__"],
-  [class*="_entryCard__"], [class*="_toggleCard__"], [class*="jobsearch_card__"]
+  [class*="_entryCard__"], [class*="_toggleCard__"], [class*="jobsearch_card__"],
+  [class*="_chartPanel__"], [class*="_section__"], [class*="_aside__"]
 ):hover::after {
   opacity: 1;
 }
@@ -145,7 +148,8 @@ html.homesquatch-theme.homesquatch-phase-predawn .ws-sun-dawn { opacity: 1; }
   ):hover { transform: none; }
   .ws-fx :is(
     [class*="_statCard__"], [class*="_launcherCard__"], [class*="_miniPanel__"],
-  [class*="_entryCard__"], [class*="_toggleCard__"], [class*="jobsearch_card__"]
+    [class*="_entryCard__"], [class*="_toggleCard__"], [class*="jobsearch_card__"],
+    [class*="_chartPanel__"], [class*="_section__"], [class*="_aside__"]
   )::after { display: none; }
   .ws-sun > span { animation: none; transition: none; }
 }
