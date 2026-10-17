@@ -1,142 +1,139 @@
-/* ═══════════════════════════════════════════════════════════════════════════
-   Patio — the post-login courtyard. One decision, two archways:
-   Casa (left → /hs) or Oficina (right → /ws). The signs are carved into the
-   photo, so the only controls are two small transparent hotspots sitting
-   over the carved "Casa" / "Oficina" wall plaques, lit by a warm bloom on
-   hover/focus.
-
-   The photo lives in `.frame`, an element with the image's exact aspect ratio
-   that is letterboxed inside the viewport. Every overlay is a child of
-   `.frame` and positioned in percentages of the *image*, so the hotspots
-   stay locked to the archways at any screen size.
-   Scoped module; nothing here touches the global theme.
-   ═══════════════════════════════════════════════════════════════════════════ */
+/* Interceptor — Tōnatiuh OS dark glass. Two door cards over the diamond wall.
+   Scoped module; button selectors are element-qualified to beat the old
+   global `button` / `button:hover` rules in styles/cenote-elements.css. */
 
 .patio {
   position: fixed;
   inset: 0;
-  overflow: hidden;
+  overflow: auto;
   isolation: isolate;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #b5895f;   /* warm adobe fills the letterbox around the pano */
-  font-family: Georgia, "Times New Roman", serif;
+  padding: 1.5rem;
+  background-color: #0F151B;
+  font-family: 'Satoshi', system-ui, sans-serif;
+  color: #E2E8F0;
 }
 
-.frame {
+.wall {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 0l20 20-20 20L0 20 20 0zm0 10l10 10-10 10L10 20l10-10z' fill='%231a3a52' fill-opacity='0.4' fill-rule='evenodd'/%3E%3C/svg%3E");
+}
+
+.sun {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse 55% 45% at 50% 38%, rgba(217, 122, 56, 0.16), transparent 70%);
+}
+
+.content {
   position: relative;
-  width: 100%;
-  max-height: 100%;
-  aspect-ratio: 1586 / 672;    /* the courtyard photo's true ratio */
-  background: url("/images/patio-courtyard-2.jpg") center / cover no-repeat;
-}
-
-/* Warmth + legibility wash — light touch; the photo is already bright */
-.warmth {
-  position: absolute;
-  inset: 0;
   z-index: 1;
-  pointer-events: none;
-  background:
-    linear-gradient(rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.15)),
-    radial-gradient(ellipse 60% 38% at 50% 90%, rgba(40, 26, 16, 0.3), transparent 72%),
-    linear-gradient(180deg, rgba(40, 28, 18, 0.14) 0%, transparent 22%, transparent 74%, rgba(30, 20, 12, 0.28) 100%);
+  width: 100%;
+  max-width: 44rem;
+  animation: rise 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
-/* Dappled light drifting through the pergola (top of frame) */
-.dapple {
-  position: absolute;
-  inset: -8% -8% 40%;
-  z-index: 2;
-  pointer-events: none;
-  mix-blend-mode: soft-light;
-  background:
-    radial-gradient(circle at 22% 20%, rgba(255, 226, 160, 0.45) 0 3%, transparent 9%),
-    radial-gradient(circle at 44% 12%, rgba(255, 226, 160, 0.35) 0 2%, transparent 8%),
-    radial-gradient(circle at 62% 24%, rgba(255, 226, 160, 0.4) 0 3%, transparent 9%),
-    radial-gradient(circle at 80% 14%, rgba(255, 226, 160, 0.35) 0 2%, transparent 7%);
-  animation: dappleDrift 26s ease-in-out infinite alternate;
-}
-@keyframes dappleDrift {
-  from { transform: translate3d(0, 0, 0); }
-  to   { transform: translate3d(2%, 1.2%, 0); }
+@keyframes rise {
+  from { transform: translateY(16px); opacity: 0; }
+  to   { transform: none; opacity: 1; }
 }
 
-/* Fountain shimmer — over the round basin, lower-centre of frame */
-.fountain {
-  position: absolute;
-  z-index: 3;
-  top: 82%;
-  left: 50%;
-  width: 15%;
-  height: 14%;
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  pointer-events: none;
-  background: radial-gradient(ellipse at center, rgba(185, 212, 220, 0.32), transparent 66%);
-  mix-blend-mode: screen;
-  animation: shimmer 5s ease-in-out infinite;
-}
-@keyframes shimmer {
-  0%, 100% { opacity: 0.4; transform: translate(-50%, -50%) scale(0.97); }
-  50%      { opacity: 0.8; transform: translate(-50%, -50%) scale(1.03); }
+.title {
+  margin: 0 0 1.75rem;
+  text-align: center;
+  font-family: 'Cabinet Grotesk', sans-serif;
+  font-size: 2rem;
+  font-weight: 800;
+  color: #E2E8F0;
 }
 
-/* ═══ The two hotspots — over the carved SIGNS, not the doorframes ═════════ */
-.arch {
-  position: absolute;
-  z-index: 5;
-  width: 7%;
-  height: 11%;
-  transform: translate(-50%, -50%);
-  padding: 0;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  border-radius: 10px 10px 7px 7px;   /* the wall placard */
-  -webkit-tap-highlight-color: transparent;
-}
-/* Centred on the "Casa" / "Oficina" plaques in the courtyard photo (1586×672) */
-.archCasa    { left: 22%;   top: 21%; }
-.archOficina { left: 80.5%; top: 23%; }
-
-/* warm light pooling on the plaque */
-.arch::before {
-  content: "";
-  position: absolute;
-  inset: -22% -28%;
-  border-radius: inherit;
-  mix-blend-mode: screen;
-  opacity: 0.16;
-  transition: opacity 0.4s ease, transform 0.4s ease;
-  pointer-events: none;
-}
-.archCasa::before {
-  background: radial-gradient(ellipse at center, rgba(255, 168, 104, 0.6), transparent 68%);
-}
-.archOficina::before {
-  background: radial-gradient(ellipse at center, rgba(255, 206, 150, 0.6), transparent 68%);
-}
-.arch:hover::before,
-.arch:focus-visible::before { opacity: 0.85; transform: scale(1.06); }
-.arch:active { transform: translate(-50%, -50%) scale(0.99); }
-.archChosen::before { opacity: 0.98 !important; transform: scale(1.12) !important; }
-
-.arch:focus-visible { outline: none; }
-.arch:focus-visible::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border: 1px solid rgba(255, 235, 205, 0.6);
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35);
-  border-radius: inherit;
-  mix-blend-mode: overlay;
-  pointer-events: none;
+.doors {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
 }
 
-/* ---- Reduced motion ----------------------------------------------------- */
+button.door {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 2.25rem 1.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 1rem;
+  background: rgba(22, 30, 40, 0.72);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  color: #E2E8F0;
+  font-family: 'Satoshi', system-ui, sans-serif;
+  letter-spacing: normal;
+  text-transform: none;
+  overflow: visible;
+  text-align: center;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+button.door:hover,
+button.door:focus-visible {
+  transform: translateY(-3px);
+  border-color: rgba(217, 122, 56, 0.6);
+  background: rgba(22, 30, 40, 0.72);
+  color: #E2E8F0;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35), 0 0 28px rgba(217, 122, 56, 0.2);
+}
+
+button.door:focus-visible {
+  outline: 2px solid #D97A38;
+  outline-offset: 3px;
+}
+
+button.door:active { transform: translateY(0); }
+
+button.doorChosen,
+button.doorChosen:hover {
+  transform: scale(1.02);
+  border-color: #D97A38;
+  box-shadow: 0 0 36px rgba(217, 122, 56, 0.4);
+}
+
+.doorIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 1rem;
+  background: rgba(217, 122, 56, 0.14);
+  color: #D97A38;
+}
+
+.doorName {
+  font-family: 'Cabinet Grotesk', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #E2E8F0;
+}
+
+.doorDesc {
+  font-size: 0.85rem;
+  color: #93A4B8;
+}
+
+@media (max-width: 560px) {
+  .doors { grid-template-columns: 1fr; }
+  button.door { padding: 1.5rem 1rem; }
+  .title { font-size: 1.6rem; }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .dapple, .fountain { animation: none; }
-  .arch::before { transition: none; }
+  .content { animation: none; }
+  button.door { transition: none; }
 }

@@ -3,18 +3,16 @@
 import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { API } from '@/lib/api';
+import Bi from '@/components/tonatiuh/Bi';
 import s from './gates.module.css';
 
-/* Gates — the login threshold.
-   Arrive to the compound; click the carved RS shield; the login panel slides
-   up over the scene. Auth logic (login → optional OTP → interceptor) is
-   unchanged from the previous version — only the skin and the reveal are new. */
+/* Gates — the login. Tōnatiuh OS dark-glass; the form is shown straight away.
+   Auth logic (login → optional OTP → interceptor) is unchanged. */
 function GatesInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const nextPath = searchParams.get('next');
 
-  const [revealed,    setRevealed]    = useState(false);
   const [username,    setUsername]    = useState('');
   const [password,    setPassword]    = useState('');
   const [otp,         setOtp]         = useState('');
@@ -67,99 +65,72 @@ function GatesInner() {
 
   return (
     <main className={s.gates}>
-      <div className={s.backdrop} />
-      <div className={s.warmth} />
-      <span className={`${s.lantern} ${s.lanternL}`} aria-hidden />
-      <span className={`${s.lantern} ${s.lanternR}`} aria-hidden />
+      <div className={s.wall} aria-hidden />
+      <div className={s.sun} aria-hidden />
 
-      {!revealed && (
-        <button
-          className={s.mark}
-          onClick={() => setRevealed(true)}
-          aria-label="Enter RedSquatch"
-        />
-      )}
-
-      {revealed && (
-        <div className={s.panelWrap}>
-          <div className={s.panel}>
-            <div className={s.brand}>
-              <div className={s.brandName}>RedSquatch</div>
-              <div className={s.brandSub}>Command center</div>
-            </div>
-            <hr className={s.rule} />
-
-            {!awaitingOtp ? (
-              <form onSubmit={handleLogin}>
-                <div className={s.field}>
-                  <label className={s.label} htmlFor="username">Username</label>
-                  <input
-                    id="username"
-                    className={s.input}
-                    type="text"
-                    autoComplete="username"
-                    placeholder="acme_client"
-                    value={username}
-                    onChange={e => setUsername(e.target.value)}
-                    disabled={loading}
-                    autoFocus
-                  />
-                </div>
-                <div className={s.field}>
-                  <label className={s.label} htmlFor="password">Password</label>
-                  <input
-                    id="password"
-                    className={s.input}
-                    type="password"
-                    autoComplete="current-password"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={e => setPassword(e.target.value)}
-                    disabled={loading}
-                  />
-                </div>
-                {error && <p className={s.error}>{error}</p>}
-                <button type="submit" className={s.submit} disabled={loading}>
-                  {loading ? 'Signing in…' : 'Sign In'}
-                </button>
-              </form>
-            ) : (
-              <form onSubmit={handleOtpSubmit}>
-                <div className={s.field}>
-                  <label className={s.label} htmlFor="otp">Authenticator Code</label>
-                  <input
-                    id="otp"
-                    className={`${s.input} ${s.inputOtp}`}
-                    type="text"
-                    inputMode="numeric"
-                    autoComplete="one-time-code"
-                    placeholder="123456"
-                    maxLength={6}
-                    value={otp}
-                    onChange={e => setOtp(e.target.value)}
-                    disabled={loading}
-                    autoFocus
-                  />
-                </div>
-                {error && <p className={s.error}>{error}</p>}
-                <button type="submit" className={s.submit} disabled={loading}>
-                  {loading ? 'Verifying…' : 'Verify'}
-                </button>
-              </form>
-            )}
-
-            {!awaitingOtp && (
-              <button
-                type="button"
-                className={s.back}
-                onClick={() => { setRevealed(false); setError(''); }}
-              >
-                ← Back to the gate
-              </button>
-            )}
-          </div>
+      <div className={s.panel}>
+        <div className={s.brand}>
+          <div className={s.brandName}><span className={s.brandAccent}>Red</span>Squatch</div>
+          <div className={s.brandSub}><Bi es="Centro de mando" en="Command center" inline /></div>
         </div>
-      )}
+
+        {!awaitingOtp ? (
+          <form onSubmit={handleLogin}>
+            <div className={s.field}>
+              <label className={s.label} htmlFor="username"><Bi es="Usuario" en="Username" inline /></label>
+              <input
+                id="username"
+                className={s.input}
+                type="text"
+                autoComplete="username"
+                value={username}
+                onChange={e => setUsername(e.target.value)}
+                disabled={loading}
+                autoFocus
+              />
+            </div>
+            <div className={s.field}>
+              <label className={s.label} htmlFor="password"><Bi es="Contraseña" en="Password" inline /></label>
+              <input
+                id="password"
+                className={s.input}
+                type="password"
+                autoComplete="current-password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                disabled={loading}
+              />
+            </div>
+            {error && <p className={s.error} role="alert">{error}</p>}
+            <button type="submit" className={s.submit} disabled={loading}>
+              {loading ? 'Entrando… (Signing in)' : 'Entrar (Sign in)'}
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={handleOtpSubmit}>
+            <div className={s.field}>
+              <label className={s.label} htmlFor="otp"><Bi es="Código del autenticador" en="Authenticator code" inline /></label>
+              <input
+                id="otp"
+                className={`${s.input} ${s.inputOtp}`}
+                type="text"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                placeholder="123456"
+                maxLength={6}
+                value={otp}
+                onChange={e => setOtp(e.target.value)}
+                disabled={loading}
+                autoFocus
+              />
+            </div>
+            {error && <p className={s.error} role="alert">{error}</p>}
+            <button type="submit" className={s.submit} disabled={loading}>
+              {loading ? 'Verificando… (Verifying)' : 'Verificar (Verify)'}
+            </button>
+          </form>
+        )}
+      </div>
     </main>
   );
 }
