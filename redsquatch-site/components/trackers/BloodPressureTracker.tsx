@@ -184,9 +184,40 @@ type ChartType = 'line' | 'bar';
 
 interface ChartPoint {
   label: string;
+  fullLabel: string;
   systolic: number;
   diastolic: number;
   heart_rate: number | null;
+}
+
+interface TooltipEntry {
+  name: string;
+  value: number;
+  color: string;
+  payload: ChartPoint;
+}
+
+function BPTooltip({ active, payload }: { active?: boolean; payload?: TooltipEntry[] }) {
+  if (!active || !payload?.length) return null;
+  const point = payload[0].payload;
+  return (
+    <div style={{
+      backgroundColor: 'rgba(20,18,16,0.95)',
+      border: '1px solid rgba(184,115,51,0.3)',
+      borderRadius: '6px',
+      color: 'var(--copper-tan)',
+      fontSize: '12px',
+      padding: '8px 12px',
+    }}>
+      <div style={{ color: 'rgba(212,163,115,0.7)', marginBottom: 6, fontSize: '11px' }}>{point.fullLabel}</div>
+      {payload.map(entry => (
+        <div key={entry.name} style={{ color: entry.color, lineHeight: '1.6' }}>
+          {entry.name}: <strong>{entry.value}</strong>
+          {entry.name === 'Heart Rate' ? ' bpm' : ' mmHg'}
+        </div>
+      ))}
+    </div>
+  );
 }
 
 function BPChart({ readings }: { readings: Reading[] }) {
@@ -200,6 +231,7 @@ function BPChart({ readings }: { readings: Reading[] }) {
         .sort((a, b) => new Date(a.reading_at).getTime() - new Date(b.reading_at).getTime())
         .map(r => ({
           label: formatDateShort(r.reading_at),
+          fullLabel: formatDateTime(r.reading_at),
           systolic: r.systolic,
           diastolic: r.diastolic,
           heart_rate: r.heart_rate,
@@ -223,14 +255,6 @@ function BPChart({ readings }: { readings: Reading[] }) {
     background: 'transparent',
     borderColor: 'rgba(var(--copper-bold-rgb),0.3)',
     color: 'var(--copper-tan)',
-  };
-
-  const tooltipStyle = {
-    backgroundColor: 'rgba(20,18,16,0.95)',
-    border: '1px solid rgba(184,115,51,0.3)',
-    borderRadius: '6px',
-    color: 'var(--copper-tan)',
-    fontSize: '12px',
   };
 
   const axisStyle = { fill: 'rgba(212,163,115,0.5)', fontSize: 11 };
@@ -271,18 +295,18 @@ function BPChart({ readings }: { readings: Reading[] }) {
               <CartesianGrid strokeDasharray="3 3" {...gridStyle} />
               <XAxis dataKey="label" tick={axisStyle} axisLine={false} tickLine={false} />
               <YAxis tick={axisStyle} axisLine={false} tickLine={false} width={32} domain={['auto', 'auto']} />
-              <Tooltip contentStyle={tooltipStyle} labelStyle={{ color: 'rgba(212,163,115,0.7)', marginBottom: 4 }} />
+              <Tooltip content={<BPTooltip />} cursor={{ stroke: 'rgba(184,115,51,0.25)', strokeWidth: 1 }} />
               <Legend wrapperStyle={{ fontSize: 11, color: 'rgba(212,163,115,0.7)' }} />
-              <Line type="monotone" dataKey="systolic" stroke="#c85050" strokeWidth={2} dot={{ r: 3, fill: '#c85050' }} activeDot={{ r: 5 }} name="Systolic" />
-              <Line type="monotone" dataKey="diastolic" stroke="#b87333" strokeWidth={2} dot={{ r: 3, fill: '#b87333' }} activeDot={{ r: 5 }} name="Diastolic" />
-              {showHR && <Line type="monotone" dataKey="heart_rate" stroke="#4caf50" strokeWidth={2} dot={{ r: 3, fill: '#4caf50' }} activeDot={{ r: 5 }} name="Heart Rate" connectNulls />}
+              <Line type="monotone" dataKey="systolic" stroke="#c85050" strokeWidth={2} dot={{ r: 3, fill: '#c85050' }} activeDot={{ r: 6 }} name="Systolic" />
+              <Line type="monotone" dataKey="diastolic" stroke="#b87333" strokeWidth={2} dot={{ r: 3, fill: '#b87333' }} activeDot={{ r: 6 }} name="Diastolic" />
+              {showHR && <Line type="monotone" dataKey="heart_rate" stroke="#4caf50" strokeWidth={2} dot={{ r: 3, fill: '#4caf50' }} activeDot={{ r: 6 }} name="Heart Rate" connectNulls />}
             </LineChart>
           ) : (
             <BarChart {...sharedProps} barCategoryGap="30%">
               <CartesianGrid strokeDasharray="3 3" {...gridStyle} />
               <XAxis dataKey="label" tick={axisStyle} axisLine={false} tickLine={false} />
               <YAxis tick={axisStyle} axisLine={false} tickLine={false} width={32} domain={['auto', 'auto']} />
-              <Tooltip contentStyle={tooltipStyle} labelStyle={{ color: 'rgba(212,163,115,0.7)', marginBottom: 4 }} />
+              <Tooltip content={<BPTooltip />} cursor={{ fill: 'rgba(184,115,51,0.08)' }} />
               <Legend wrapperStyle={{ fontSize: 11, color: 'rgba(212,163,115,0.7)' }} />
               <Bar dataKey="systolic" fill="#c85050" radius={[3, 3, 0, 0]} name="Systolic" />
               <Bar dataKey="diastolic" fill="#b87333" radius={[3, 3, 0, 0]} name="Diastolic" />
