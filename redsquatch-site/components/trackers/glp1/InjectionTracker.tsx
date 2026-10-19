@@ -8,7 +8,7 @@ import {
 } from '@/lib/glp1';
 import {
   useEntries, num, toLocalInput, fmtDateTime,
-  inputStyle, panelStyle, primaryBtn, ghostBtn, Field, ModuleHeader, Loading,
+  inputStyle, panelStyle, primaryBtn, ghostBtn, Field, ModuleHeader, Loading, GroupedRows, LockToggle,
 } from './shared';
 import BodyMap from './BodyMap';
 
@@ -29,6 +29,8 @@ export default function InjectionTracker() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState<{ medication: Medication; dose_mg: string; site: Site | ''; injected_at: string; notes: string } | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
+  const [locked, setLocked] = useState(true);
+  const [reveal, setReveal] = useState<{ t: number; nonce: number } | null>(null);
 
   const history = useMemo(
     () => entries.map(e => ({ site: e.site, t: new Date(e.injected_at).getTime() })),
@@ -62,6 +64,11 @@ export default function InjectionTracker() {
     setFormError(null);
   }
 
+  function toggleLock() {
+    if (!locked) { setForm(null); setEditingId(null); }
+    setLocked(l => !l);
+  }
+
   async function submit() {
     if (!form) return;
     const dose = Number(form.dose_mg);
@@ -73,6 +80,7 @@ export default function InjectionTracker() {
     };
     try {
       if (editingId !== null) await update(editingId, body); else await add(body);
+      setReveal({ t: new Date(form.injected_at).getTime(), nonce: Date.now() });
       setForm(null);
       setEditingId(null);
       setFormError(null);
@@ -100,33 +108,6 @@ export default function InjectionTracker() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
-        {/* Site guide */}
-        <div className="rounded-md p-4" style={panelStyle}>
-          <h3 className="text-sm font-bold mb-2">Site rotation guide</h3>
-          <BodyMap
-            statuses={statuses}
-            recommended={recommended}
-            selected={form?.site || null}
-            onSelect={site => { if (!form) { setEditingId(null); setForm({ ...blankForm(), site }); setFormError(null); } else setForm(f => f && ({ ...f, site })); }}
-          />
-          <div className="flex flex-wrap gap-x-3 gap-y-1 justify-center text-[10px] mt-2" style={{ color: 'rgba(var(--copper-tan-rgb),0.65)' }}>
-            <span><i className="inline-block w-2 h-2 rounded-sm mr-1" style={{ background: '#c85050' }} />&lt; 7 d</span>
-            <span><i className="inline-block w-2 h-2 rounded-sm mr-1" style={{ background: '#d9a036' }} />7–14 d</span>
-            <span><i className="inline-block w-2 h-2 rounded-sm mr-1" style={{ background: '#4caf50' }} />14 d+ / never</span>
-            <span>dashed = suggested next</span>
-          </div>
-          <ul className="mt-3 space-y-1 text-xs">
-            {statuses.map(s => (
-              <li key={s.site} className="flex justify-between" style={{ borderBottom: '1px solid rgba(var(--copper-bold-rgb),0.1)', paddingBottom: 2 }}>
-                <span>{SITE_LABEL[s.site]}{s.site === recommended && <span style={{ color: '#d4a373' }}> ← next</span>}</span>
-                <span style={{ color: 'rgba(var(--copper-tan-rgb),0.6)' }}>
-                  {s.lastUsed ? new Date(s.lastUsed).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'never'} · {s.uses}×
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-
         {/* Log form */}
         <div className="rounded-md p-4 space-y-3" style={panelStyle}>
           {form ? (
@@ -169,10 +150,40 @@ export default function InjectionTracker() {
             </div>
           )}
         </div>
+        {/* Site guide */}
+        <div className="rounded-md p-4" style={panelStyle}>
+          <h3 className="text-sm font-bold mb-2">Site rotation guide</h3>
+          <BodyMap
+            statuses={statuses}
+            recommended={recommended}
+            selected={form?.site || null}
+            onSelect={site => { if (!form) { setEditingId(null); setForm({ ...blankForm(), site }); setFormError(null); } else setForm(f => f && ({ ...f, site })); }}
+          />
+          <div className="flex flex-wrap gap-x-3 gap-y-1 justify-center text-[10px] mt-2" style={{ color: 'rgba(var(--copper-tan-rgb),0.65)' }}>
+            <span><i className="inline-block w-2 h-2 rounded-sm mr-1" style={{ background: '#c85050' }} />&lt; 7 d</span>
+            <span><i className="inline-block w-2 h-2 rounded-sm mr-1" style={{ background: '#d9a036' }} />7–14 d</span>
+            <span><i className="inline-block w-2 h-2 rounded-sm mr-1" style={{ background: '#4caf50' }} />14 d+ / never</span>
+            <span>dashed = suggested next</span>
+          </div>
+          <ul className="mt-3 space-y-1 text-xs">
+            {statuses.map(s => (
+              <li key={s.site} className="flex justify-between" style={{ borderBottom: '1px solid rgba(var(--copper-bold-rgb),0.1)', paddingBottom: 2 }}>
+                <span>{SITE_LABEL[s.site]}{s.site === recommended && <span style={{ color: '#d4a373' }}> ← next</span>}</span>
+                <span style={{ color: 'rgba(var(--copper-tan-rgb),0.6)' }}>
+                  {s.lastUsed ? new Date(s.lastUsed).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'never'} · {s.uses}×
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
       </div>
 
       {/* History */}
-      <h3 className="text-sm font-bold mb-2">History</h3>
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="text-sm font-bold">History</h3>
+        {entries.length > 0 && <LockToggle locked={locked} onToggle={toggleLock} noun="injections" />}
+      </div>
       {entries.length === 0 ? (
         <div className="text-center py-8 text-sm" style={{ color: 'rgba(var(--copper-tan-rgb),0.55)' }}>No injections logged yet.</div>
       ) : (
@@ -185,24 +196,33 @@ export default function InjectionTracker() {
                 <th className="text-left px-3 py-2">Dose</th>
                 <th className="text-left px-3 py-2">Site</th>
                 <th className="text-left px-3 py-2">Notes</th>
-                <th className="text-right px-3 py-2">Actions</th>
+                {!locked && <th className="text-right px-3 py-2">Actions</th>}
               </tr>
             </thead>
             <tbody>
-              {entries.map(r => (
-                <tr key={r.id} style={{ borderBottom: '1px solid rgba(var(--copper-bold-rgb),0.1)' }}>
-                  <td className="px-3 py-2">{fmtDateTime(r.injected_at)}</td>
-                  <td className="px-3 py-2">{DRUGS[r.medication]?.label ?? r.medication}</td>
-                  <td className="px-3 py-2 font-semibold">{num(r.dose_mg)} mg</td>
-                  <td className="px-3 py-2">{SITE_LABEL[r.site] ?? r.site}</td>
-                  <td className="px-3 py-2" style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }}>{r.notes ?? ''}</td>
-                  <td className="px-3 py-2 text-right whitespace-nowrap">
-                    <button type="button" aria-label="Edit" onClick={() => openEdit(r)} className="p-1"><Pencil size={13} /></button>
-                    <button type="button" aria-label="Delete" className="p-1 ml-1"
-                      onClick={() => { if (confirm('Delete this injection?')) remove(r.id).catch(() => setFormError('Failed to delete.')); }}><Trash2 size={13} /></button>
-                  </td>
-                </tr>
-              ))}
+              <GroupedRows
+                rows={entries}
+                getTime={r => new Date(r.injected_at).getTime()}
+                colSpan={locked ? 5 : 6}
+                noun="injection"
+                reveal={reveal}
+                renderRow={r => (
+                  <tr key={r.id} style={{ borderBottom: '1px solid rgba(var(--copper-bold-rgb),0.1)' }}>
+                    <td className="px-3 py-2 pl-10">{fmtDateTime(r.injected_at)}</td>
+                    <td className="px-3 py-2">{DRUGS[r.medication]?.label ?? r.medication}</td>
+                    <td className="px-3 py-2 font-semibold">{num(r.dose_mg)} mg</td>
+                    <td className="px-3 py-2">{SITE_LABEL[r.site] ?? r.site}</td>
+                    <td className="px-3 py-2" style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }}>{r.notes ?? ''}</td>
+                    {!locked && (
+                      <td className="px-3 py-2 text-right whitespace-nowrap">
+                        <button type="button" aria-label="Edit" onClick={() => openEdit(r)} className="p-1"><Pencil size={13} /></button>
+                        <button type="button" aria-label="Delete" className="p-1 ml-1"
+                          onClick={() => { if (confirm('Delete this injection?')) remove(r.id).catch(() => setFormError('Failed to delete.')); }}><Trash2 size={13} /></button>
+                      </td>
+                    )}
+                  </tr>
+                )}
+              />
             </tbody>
           </table>
         </div>

@@ -1,6 +1,7 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
+import { ChevronDown, ChevronRight, Lock, Unlock } from 'lucide-react';
 import { API } from '@/lib/api';
 
 const BASE = `${API}/api/client/glp1`;
@@ -191,4 +192,142 @@ export function ModuleHeader({ title, blurb, error }: { title: string; blurb: st
 
 export function Loading() {
   return <div className="py-12 text-center" style={{ color: 'var(--copper-tan)' }}>Loading…</div>;
+}
+
+// ── Lock / grouped history (same behaviour as BloodPressureTracker) ───────────
+
+export function LockToggle({ locked, onToggle, noun }: { locked: boolean; onToggle: () => void; noun: string }) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      title={locked ? `Unlock to edit or delete ${noun}` : 'Lock editing'}
+      className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold border"
+      style={{
+        borderColor: locked ? 'rgba(var(--copper-bold-rgb),0.3)' : 'rgba(76,175,80,0.5)',
+        color: locked ? 'var(--copper-tan)' : '#4caf50',
+      }}
+    >
+      {locked ? <Lock size={14} /> : <Unlock size={14} />}
+      {locked ? 'Locked' : 'Unlocked'}
+    </button>
+  );
+}
+
+const monthKeyOf = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}`;
+
+// Weeks start on Sunday, matching the BP tracker.
+const weekKeyOf = (d: Date) => {
+  const start = new Date(d.getFullYear(), d.getMonth(), d.getDate() - d.getDay());
+  return `${start.getFullYear()}-${pad(start.getMonth() + 1)}-${pad(start.getDate())}`;
+};
+
+interface Group<T> { key: string; label: string; weeks: { key: string; label: string; rows: T[] }[] }
+
+function groupRows<T>(rows: T[], getTime: (r: T) => number): Group<T>[] {
+  const months = new Map<string, Map<string, T[]>>();
+  for (const r of rows) {
+    const d = new Date(getTime(r));
+    const m = monthKeyOf(d);
+    const w = weekKeyOf(d);
+    if (!months.has(m)) months.set(m, new Map());
+    const weeks = months.get(m)!;
+    if (!weeks.has(w)) weeks.set(w, []);
+    weeks.get(w)!.push(r);
+  }
+  return Array.from(months.entries()).map(([m, weeks]) => {
+    const [y, mo] = m.split('-').map(Number);
+    return {
+      key: m,
+      label: new Date(y, mo - 1, 1).toLocaleDateString(undefined, { month: 'long', year: 'numeric' }),
+      weeks: Array.from(weeks.entries()).map(([w, rs]) => {
+        const [wy, wm, wd] = w.split('-').map(Number);
+        return {
+          key: w,
+          label: `Week of ${new Date(wy, wm - 1, wd).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`,
+          rows: rs,
+        };
+      }),
+    };
+  });
+}
+
+// <tbody> contents: collapsible Month → Week headers with the caller's rows inside.
+// `rows` must already be newest-first. Only the newest month starts expanded.
+// `reveal` re-expands the month/week holding an entry that was just saved, so a
+// backfilled entry in an older (collapsed) month doesn't appear to vanish.
+export function GroupedRows<T>({
+  rows, getTime, colSpan, noun, renderRow, reveal,
+}: {
+  rows: T[];
+  getTime: (r: T) => number;
+  colSpan: number;
+  noun: string;
+  renderRow: (r: T) => React.ReactNode;
+  reveal?: { t: number; nonce: number } | null;
+}) {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const groups = useMemo(() => groupRows(rows, getTime), [rows]);
+  const [collapsedMonths, setCollapsedMonths] = useState<Set<string>>(() => new Set(groups.slice(1).map(g => g.key)));
+  const [collapsedWeeks, setCollapsedWeeks] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (!reveal) return;
+    const d = new Date(reveal.t);
+    const drop = (key: string) => (prev: Set<string>) => {
+      if (!prev.has(key)) return prev;
+      const next = new Set(prev);
+      next.delete(key);
+      return next;
+    };
+    setCollapsedMonths(drop(monthKeyOf(d)));
+    setCollapsedWeeks(drop(weekKeyOf(d)));
+  }, [reveal]);
+
+  const toggle = (set: Set<string>, setter: (s: Set<string>) => void, key: string) => {
+    const next = new Set(set);
+    if (next.has(key)) next.delete(key); else next.add(key);
+    setter(next);
+  };
+
+  return (
+    <>
+      {groups.map(month => {
+        const mCollapsed = collapsedMonths.has(month.key);
+        const count = month.weeks.reduce((n, w) => n + w.rows.length, 0);
+        return (
+          <Fragment key={month.key}>
+            <tr style={{ borderBottom: '1px solid rgba(var(--copper-bold-rgb),0.15)' }}>
+              <td colSpan={colSpan} className="px-3 py-1.5">
+                <button type="button" onClick={() => toggle(collapsedMonths, setCollapsedMonths, month.key)}
+                  className="flex items-center gap-1.5 w-full text-left font-semibold text-sm" style={{ color: 'var(--copper-tan)' }}>
+                  {mCollapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}
+                  {month.label}
+                  <span className="text-xs font-normal" style={{ color: 'rgba(var(--copper-tan-rgb),0.5)' }}>({count} {noun}{count === 1 ? '' : 's'})</span>
+                </button>
+              </td>
+            </tr>
+            {!mCollapsed && month.weeks.map(week => {
+              const wCollapsed = collapsedWeeks.has(week.key);
+              return (
+                <Fragment key={week.key}>
+                  <tr style={{ borderBottom: '1px solid rgba(var(--copper-bold-rgb),0.08)' }}>
+                    <td colSpan={colSpan} className="pl-8 pr-3 py-1">
+                      <button type="button" onClick={() => toggle(collapsedWeeks, setCollapsedWeeks, week.key)}
+                        className="flex items-center gap-1.5 w-full text-left text-xs" style={{ color: 'rgba(var(--copper-tan-rgb),0.75)' }}>
+                        {wCollapsed ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
+                        {week.label}
+                        <span style={{ color: 'rgba(var(--copper-tan-rgb),0.45)' }}>({week.rows.length})</span>
+                      </button>
+                    </td>
+                  </tr>
+                  {!wCollapsed && week.rows.map(renderRow)}
+                </Fragment>
+              );
+            })}
+          </Fragment>
+        );
+      })}
+    </>
+  );
 }

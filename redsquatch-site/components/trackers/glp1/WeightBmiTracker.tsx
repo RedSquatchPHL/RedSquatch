@@ -5,12 +5,15 @@ import { Plus, Pencil, Trash2, Check, X } from 'lucide-react';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ReferenceLine, ResponsiveContainer,
 } from 'recharts';
-import { bmi, bmiCategory, movingAverage, weightSlopePerDay } from '@/lib/glp1';
+import { DRUGS, bmi, bmiCategory, levelAt, movingAverage, weightSlopePerDay, type DoseEvent } from '@/lib/glp1';
 import {
   useEntries, useProfile, num, toLocalInput, fmtDateTime, fmtShort,
   inputStyle, panelStyle, primaryBtn, ghostBtn, axisStyle, gridStyle, tooltipBox,
-  Field, Stat, ModuleHeader, Loading,
+  Field, Stat, ModuleHeader, Loading, GroupedRows, LockToggle,
 } from './shared';
+import type { InjectionRow } from './InjectionTracker';
+
+const DAY = 86400000;
 
 interface WeightRow { id: number; measured_at: string; weight_lb: string | number; notes: string | null }
 
@@ -18,12 +21,15 @@ const emptyForm = () => ({ weight_lb: '', measured_at: toLocalInput(new Date()),
 
 export default function WeightBmiTracker() {
   const { entries, loading, error, add, update, remove } = useEntries<WeightRow>('/weight');
+  const injections = useEntries<InjectionRow>('/injections');
   const { profile, save: saveProfile } = useProfile();
 
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState(emptyForm());
   const [formError, setFormError] = useState<string | null>(null);
+  const [locked, setLocked] = useState(true);
+  const [reveal, setReveal] = useState<{ t: number; nonce: number } | null>(null);
   const [profileDraft, setProfileDraft] = useState<{ height_in: string; target_weight_lb: string } | null>(null);
 
   // Oldest-first for charting and trend math.
@@ -44,7 +50,28 @@ export default function WeightBmiTracker() {
     }));
   }, [points]);
 
-  if (loading || !profile) return <Loading />;
+  const doses: DoseEvent[] = useMemo(
+    () => injections.entries
+      .map(e => ({ t: new Date(e.injected_at).getTime(), mg: num(e.dose_mg) ?? 0, medication: e.medication }))
+      .filter(d => d.mg > 0)
+      .sort((a, b) => a.t - b.t),
+    [injections.entries]
+  );
+
+  // For each weigh-in: the most recent injection before it, and the estimated
+  // drug level at that moment (all earlier doses summed, same model as Drug Levels).
+  const linkById = useMemo(() => {
+    const map = new Map<number, { last: DoseEvent | null; level: number | null }>();
+    for (const e of entries) {
+      const t = new Date(e.measured_at).getTime();
+      let last: DoseEvent | null = null;
+      for (const d of doses) { if (d.t <= t) last = d; else break; }
+      map.set(e.id, { last, level: last ? levelAt(doses, t) : null });
+    }
+    return map;
+  }, [entries, doses]);
+
+  if (loading || injections.loading || !profile) return <Loading />;
 
   const current = points.length ? points[points.length - 1].lb : null;
   const start = points.length ? points[0].lb : null;
@@ -67,12 +94,18 @@ export default function WeightBmiTracker() {
     setFormError(null);
   }
 
+  function toggleLock() {
+    if (!locked) { setShowForm(false); setEditingId(null); setForm(emptyForm()); }
+    setLocked(l => !l);
+  }
+
   async function submit() {
     const w = Number(form.weight_lb);
     if (!form.weight_lb.trim() || !Number.isFinite(w)) { setFormError('Enter a weight in pounds.'); return; }
     const body = { weight_lb: w, measured_at: new Date(form.measured_at).toISOString(), notes: form.notes.trim() || null };
     try {
       if (editingId !== null) await update(editingId, body); else await add(body);
+      setReveal({ t: new Date(form.measured_at).getTime(), nonce: Date.now() });
       setShowForm(false);
       setEditingId(null);
       setForm(emptyForm());
@@ -202,9 +235,12 @@ export default function WeightBmiTracker() {
           <button type="button" onClick={submit} className="flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-semibold" style={primaryBtn}><Check size={14} /> {editingId !== null ? 'Save changes' : 'Add'}</button>
         </div>
       ) : (
-        <button type="button" onClick={() => setShowForm(true)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold mb-4" style={primaryBtn}>
-          <Plus size={14} /> Log weigh-in
-        </button>
+        <div className="flex items-center gap-2 mb-4">
+          <button type="button" onClick={() => setShowForm(true)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold" style={primaryBtn}>
+            <Plus size={14} /> Log weigh-in
+          </button>
+          {entries.length > 0 && <LockToggle locked={locked} onToggle={toggleLock} noun="weigh-ins" />}
+        </div>
       )}
 
       {entries.length === 0 ? (
@@ -217,31 +253,53 @@ export default function WeightBmiTracker() {
                 <th className="text-left px-3 py-2">Date/Time</th>
                 <th className="text-left px-3 py-2">Weight</th>
                 <th className="text-left px-3 py-2">BMI</th>
+                <th className="text-left px-3 py-2">Last injection</th>
+                <th className="text-left px-3 py-2">Est. GLP-1 level</th>
                 <th className="text-left px-3 py-2">Notes</th>
-                <th className="text-right px-3 py-2">Actions</th>
+                {!locked && <th className="text-right px-3 py-2">Actions</th>}
               </tr>
             </thead>
             <tbody>
-              {entries.map(r => {
-                const lb = num(r.weight_lb);
-                const b = lb !== null && profile.height_in ? bmi(lb, profile.height_in) : null;
-                return (
-                  <tr key={r.id} style={{ borderBottom: '1px solid rgba(var(--copper-bold-rgb),0.1)' }}>
-                    <td className="px-3 py-2">{fmtDateTime(r.measured_at)}</td>
-                    <td className="px-3 py-2 font-semibold">{lb?.toFixed(1)} lb</td>
-                    <td className="px-3 py-2">{b !== null ? b.toFixed(1) : '—'}</td>
-                    <td className="px-3 py-2" style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }}>{r.notes ?? ''}</td>
-                    <td className="px-3 py-2 text-right whitespace-nowrap">
-                      <button type="button" onClick={() => startEdit(r)} className="p-1" aria-label="Edit"><Pencil size={13} /></button>
-                      <button
-                        type="button"
-                        onClick={() => { if (confirm('Delete this weigh-in?')) remove(r.id).catch(() => setFormError('Failed to delete.')); }}
-                        className="p-1 ml-1" aria-label="Delete"
-                      ><Trash2 size={13} /></button>
-                    </td>
-                  </tr>
-                );
-              })}
+              <GroupedRows
+                rows={entries}
+                getTime={r => new Date(r.measured_at).getTime()}
+                colSpan={locked ? 6 : 7}
+                noun="weigh-in"
+                reveal={reveal}
+                renderRow={r => {
+                  const lb = num(r.weight_lb);
+                  const b = lb !== null && profile.height_in ? bmi(lb, profile.height_in) : null;
+                  const link = linkById.get(r.id);
+                  const days = link?.last ? Math.floor((new Date(r.measured_at).getTime() - link.last.t) / DAY) : null;
+                  return (
+                    <tr key={r.id} style={{ borderBottom: '1px solid rgba(var(--copper-bold-rgb),0.1)' }}>
+                      <td className="px-3 py-2 pl-10">{fmtDateTime(r.measured_at)}</td>
+                      <td className="px-3 py-2 font-semibold">{lb?.toFixed(1)} lb</td>
+                      <td className="px-3 py-2">{b !== null ? b.toFixed(1) : '—'}</td>
+                      <td className="px-3 py-2">
+                        {link?.last ? (
+                          <>
+                            {fmtShort(link.last.t)} · {link.last.mg} mg {DRUGS[link.last.medication].label}
+                            <span style={{ color: 'rgba(var(--copper-tan-rgb),0.55)' }}> ({days === 0 ? 'same day' : `${days}d before`})</span>
+                          </>
+                        ) : '—'}
+                      </td>
+                      <td className="px-3 py-2">{link?.level != null ? `${link.level.toFixed(2)} mg` : '—'}</td>
+                      <td className="px-3 py-2" style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }}>{r.notes ?? ''}</td>
+                      {!locked && (
+                        <td className="px-3 py-2 text-right whitespace-nowrap">
+                          <button type="button" onClick={() => startEdit(r)} className="p-1" aria-label="Edit"><Pencil size={13} /></button>
+                          <button
+                            type="button"
+                            onClick={() => { if (confirm('Delete this weigh-in?')) remove(r.id).catch(() => setFormError('Failed to delete.')); }}
+                            className="p-1 ml-1" aria-label="Delete"
+                          ><Trash2 size={13} /></button>
+                        </td>
+                      )}
+                    </tr>
+                  );
+                }}
+              />
             </tbody>
           </table>
         </div>
