@@ -49,16 +49,22 @@ function Logger<T extends { id: number; logged_at: string; notes: string | null 
   onRemove: (id: number) => Promise<void>;
 }) {
   const [custom, setCustom] = useState('');
+  // HH:MM for the entry's time of day; empty means "auto" (see stampFor).
+  const [time, setTime] = useState('');
   const [editing, setEditing] = useState<{ id: number; amount: string; at: string } | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
   const dayRows = rows.filter(r => dayKey(r.logged_at) === day);
   const total = dayRows.reduce((s, r) => s + amountOf(r), 0);
 
-  // Entries for a past day are stamped at noon of that day; today's use "now".
+  // An explicit time wins. Otherwise a past day is stamped at noon and today at "now".
   const stampFor = () => {
-    if (day === dayKey(new Date())) return new Date();
     const [y, m, d] = day.split('-').map(Number);
+    if (time) {
+      const [hh, mm] = time.split(':').map(Number);
+      return new Date(y, m - 1, d, hh, mm);
+    }
+    if (day === dayKey(new Date())) return new Date();
     return new Date(y, m - 1, d, 12, 0);
   };
 
@@ -79,6 +85,12 @@ function Logger<T extends { id: number; logged_at: string; notes: string | null 
       <ProgressBar value={total} goal={goal} color={color} />
 
       <div className="flex flex-wrap items-center gap-2 mt-3">
+        <label className="flex items-center gap-1 text-xs" style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }}>
+          Time
+          <input type="time" value={time} onChange={e => setTime(e.target.value)} aria-label={`${title} entry time`}
+            className="border px-1.5 py-1 text-xs rounded" style={inputStyle} />
+          {time && <button type="button" onClick={() => setTime('')} className="underline" style={{ color: 'var(--copper-tan)' }}>{day === dayKey(new Date()) ? 'now' : 'noon'}</button>}
+        </label>
         {quick.map(q => (
           <button key={q} type="button" onClick={() => run(() => onAdd(q, stampFor()))}
             className="px-2.5 py-1 rounded-md text-xs font-semibold border" style={ghostBtn}>+{q} {unit}</button>
@@ -211,6 +223,7 @@ export default function NutritionTracker() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
         <Logger
+          key={`h-${day}`}
           title="Hydration" unit="oz" color="#7fb3d5" icon={Droplets} quick={HYDRATION_QUICK} goal={profile.hydration_goal_oz}
           rows={hydration.entries} day={day} amountOf={r => num(r.ounces) ?? 0}
           onAdd={(ounces, at) => hydration.add({ ounces, logged_at: at.toISOString(), notes: null })}
@@ -218,6 +231,7 @@ export default function NutritionTracker() {
           onRemove={hydration.remove}
         />
         <Logger
+          key={`p-${day}`}
           title="Protein" unit="g" color="#d4a373" icon={Drumstick} quick={PROTEIN_QUICK} goal={profile.protein_goal_g}
           rows={protein.entries} day={day} amountOf={r => num(r.grams) ?? 0}
           onAdd={(grams, at) => protein.add({ grams, logged_at: at.toISOString(), notes: null })}
