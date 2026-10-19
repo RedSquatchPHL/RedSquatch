@@ -26,6 +26,7 @@ const { runMigrations: runSnowCareerMigrations, makeRouter: makeSnowCareerRouter
 const { runMigrations: runTirzepatideMigrations, makeRouter: makeTirzepatideRouter } = require('./routes/tirzepatide');
 const { runMigrations: runTaskBoardMigrations, makeRouter: makeTaskBoardRouter } = require('./routes/task-board');
 const { runMigrations: runBloodPressureMigrations, makeRouter: makeBloodPressureRouter } = require('./routes/blood-pressure');
+const { runMigrations: runGlp1Migrations, makeRouter: makeGlp1Router } = require('./routes/glp1');
 
 const SPORTS_FILE = path.join(__dirname, 'public', 'sports.json');
 
@@ -1061,6 +1062,7 @@ app.use('/api/client/snow-career', makeSnowCareerRouter(db));
 app.use('/api/client/tirzepatide', makeTirzepatideRouter(db));
 app.use('/api/client/task-board', makeTaskBoardRouter(db));
 app.use('/api/client/blood-pressure', makeBloodPressureRouter(db));
+app.use('/api/client/glp1', makeGlp1Router(db));
 app.use('/api/client', makeIntakeRouter(db));
 
 // ============ TOOLS ============
@@ -1128,6 +1130,7 @@ async function initializeApp() {
     await runTirzepatideMigrations(db);
     await runTaskBoardMigrations(db);
     await runBloodPressureMigrations(db);
+    await runGlp1Migrations(db);
 
     app.listen(PORT, () => {
       console.log(`✓ RedSquatch API running on port ${PORT}`);

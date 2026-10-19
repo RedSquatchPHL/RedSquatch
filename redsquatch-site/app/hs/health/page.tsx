@@ -3,12 +3,16 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { API } from '@/lib/api';
-import { HeartPulse } from 'lucide-react';
+import { HeartPulse, Scale, Droplets, Syringe, Activity } from 'lucide-react';
 import AppletModal from '@/components/AppletModal';
 import BloodPressureTracker from '@/components/trackers/BloodPressureTracker';
+import WeightBmiTracker from '@/components/trackers/glp1/WeightBmiTracker';
+import NutritionTracker from '@/components/trackers/glp1/NutritionTracker';
+import InjectionTracker from '@/components/trackers/glp1/InjectionTracker';
+import DrugLevelTracker from '@/components/trackers/glp1/DrugLevelTracker';
 import CopperPanel from '@/components/cenote/CopperPanel';
 
-type Applet = 'blood_pressure' | null;
+type Applet = 'blood_pressure' | 'weight' | 'nutrition' | 'injections' | 'drug_levels' | null;
 
 export default function HSHealthPage() {
   const [loading, setLoading] = useState(true);
@@ -46,6 +50,10 @@ export default function HSHealthPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {([
             { key: 'blood_pressure' as const, label: 'Blood Pressure Log', description: 'Track systolic/diastolic, heart rate, position, and arm — export to PDF', icon: HeartPulse },
+            { key: 'weight' as const, label: 'Weight & BMI', description: 'Weigh-ins in lb, BMI from your height, and the trend toward your target', icon: Scale },
+            { key: 'nutrition' as const, label: 'Hydration & Protein', description: 'Daily water and protein totals against your goals, with 14-day trends', icon: Droplets },
+            { key: 'injections' as const, label: 'Injections', description: 'Dose log, body-map site rotation guide, and injection history', icon: Syringe },
+            { key: 'drug_levels' as const, label: 'Drug Levels', description: 'Estimated active medication in your body from your logged doses', icon: Activity },
           ]).map((t) => (
             <button
               key={t.key}
@@ -97,6 +105,22 @@ export default function HSHealthPage() {
 
       <AppletModal isOpen={activeApplet === 'blood_pressure'} title="Blood Pressure Log" onClose={() => setActiveApplet(null)} wide>
         <BloodPressureTracker />
+      </AppletModal>
+
+      <AppletModal isOpen={activeApplet === 'weight'} title="Weight & BMI" onClose={() => setActiveApplet(null)} wide>
+        <WeightBmiTracker />
+      </AppletModal>
+
+      <AppletModal isOpen={activeApplet === 'nutrition'} title="Hydration & Protein" onClose={() => setActiveApplet(null)} wide>
+        <NutritionTracker />
+      </AppletModal>
+
+      <AppletModal isOpen={activeApplet === 'injections'} title="Injections" onClose={() => setActiveApplet(null)} wide>
+        <InjectionTracker />
+      </AppletModal>
+
+      <AppletModal isOpen={activeApplet === 'drug_levels'} title="Drug Levels" onClose={() => setActiveApplet(null)} wide>
+        <DrugLevelTracker />
       </AppletModal>
     </div>
   );
