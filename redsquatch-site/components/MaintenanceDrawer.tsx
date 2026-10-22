@@ -78,7 +78,7 @@ export function MaintenanceDrawer({ task, onClose }: Props) {
       />
 
       {/* Drawer panel */}
-      <aside className="fixed right-0 top-0 h-full w-80 z-50 flex flex-col drawer-enter" style={{ background: 'rgba(8,8,8,0.80)', backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)', borderLeft: '1px solid rgba(184,115,51,0.25)' }}>
+      <aside className="fixed right-0 top-0 h-full w-80 z-50 flex flex-col drawer-enter" style={{ background: 'var(--rs-surface)', backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)', borderLeft: '1px solid rgba(var(--rs-edge-rgb),0.25)' }}>
         <div className="flex items-center justify-between p-4 border-b border-primary/20">
           <div>
             <h2 className="font-semibold text-base" style={{ color: 'hsl(var(--secondary))' }}>

@@ -221,7 +221,7 @@ function TaskSection({
                     <p className="text-sm text-foreground leading-snug flex-1">{task.title}</p>
                     <button
                       onClick={() => onDelete(task.id)}
-                      className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-300 text-xs leading-none ml-1 transition-opacity"
+                      className="opacity-0 group-hover:opacity-100 text-[color:var(--rs-bad)] hover:opacity-80 text-xs leading-none ml-1 transition-opacity"
                     >
                       ✕
                     </button>

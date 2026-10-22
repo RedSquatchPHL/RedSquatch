@@ -30,7 +30,7 @@ export default function HSGoalsPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <h1
             className="text-2xl font-bold"
-            style={{ color: '#d4a373', textShadow: '0 0 16px rgba(184,115,51,0.3)' }}
+            style={{ color: 'var(--rs-accent)', textShadow: '0 0 16px rgba(var(--rs-accent-rgb),0.3)' }}
           >
             HomeSquatch Goals &amp; Tasks
           </h1>
@@ -50,7 +50,7 @@ export default function HSGoalsPage() {
       <CopperPanel>
         <h2
           className="text-lg font-bold mb-5"
-          style={{ color: '#d4a373' }}
+          style={{ color: 'var(--rs-accent)' }}
         >
           Task Board
         </h2>

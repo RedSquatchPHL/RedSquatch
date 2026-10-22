@@ -45,11 +45,12 @@ interface SportsData {
 
 const TEAM_ORDER = ['LAD', 'LAL', 'LAK', 'SF'];
 
-const SPORT_BADGE: Record<string, string> = {
-  MLB: 'bg-blue-900/40 text-blue-300',
-  NBA: 'bg-purple-900/40 text-purple-300',
-  NHL: 'bg-slate-700/60 text-slate-300',
-  NFL: 'bg-red-900/40 text-red-300',
+// League chips: a tint of the shared status/ink colours so they read on every band.
+const SPORT_BADGE: Record<string, React.CSSProperties> = {
+  MLB: { background: 'color-mix(in srgb, var(--rs-info) 20%, transparent)', color: 'var(--rs-ink)' },
+  NBA: { background: 'rgba(var(--rs-accent-rgb), 0.16)', color: 'var(--rs-ink)' },
+  NHL: { background: 'var(--rs-row)', color: 'var(--rs-ink-muted)' },
+  NFL: { background: 'color-mix(in srgb, var(--rs-bad) 18%, transparent)', color: 'var(--rs-ink)' },
 };
 
 function relDate(dateStr: string): string {
@@ -95,28 +96,34 @@ function fmtDate(dateStr: string): string {
   });
 }
 
+// Team colours are CSS colours (hex from the API, or a var() fallback), so tint with color-mix
+// rather than appending hex alpha.
+const mix = (c: string, pct: number) => `color-mix(in srgb, ${c} ${pct}%, transparent)`;
+
 // ─── TeamWidget ───────────────────────────────────────────────────────────────
 
 function TeamWidget({ team, now, updated }: { team: TeamData; now: Date; updated: string | null }) {
   const [expanded, setExpanded] = useState(false);
-  const color = team.color ?? '#b87333';
+  const color = team.color ?? 'var(--rs-accent)';
 
-  const resultBadge = (r: string | undefined) =>
-    r === 'W'
-      ? 'bg-green-900/50 text-green-400 border-green-700/50'
-      : r === 'L'
-      ? 'bg-red-900/50 text-red-400 border-red-700/50'
-      : 'bg-muted/50 text-muted-foreground border-primary/20';
+  const resultBadge = (r: string | undefined): React.CSSProperties => {
+    const tint = (c: string) => ({
+      background: `color-mix(in srgb, ${c} 16%, transparent)`,
+      color: c,
+      borderColor: `color-mix(in srgb, ${c} 45%, transparent)`,
+    });
+    return r === 'W' ? tint('var(--rs-ok)') : r === 'L' ? tint('var(--rs-bad)') : { background: 'var(--rs-row)', color: 'var(--rs-ink-muted)', borderColor: 'var(--rs-border)' };
+  };
 
   return (
     <div
       className="glass-surface rounded-xl overflow-hidden flex flex-col"
-      style={{ borderColor: `${color}40` }}
+      style={{ borderColor: mix(color, 25) }}
     >
       {/* Team header bar */}
       <div
         className="flex items-center gap-3 px-4 py-3"
-        style={{ background: `linear-gradient(135deg, ${color}22 0%, transparent 70%)` }}
+        style={{ background: `linear-gradient(135deg, ${mix(color, 13)} 0%, transparent 70%)` }}
       >
         {team.logo && (
           <img
@@ -131,7 +138,7 @@ function TeamWidget({ team, now, updated }: { team: TeamData; now: Date; updated
             <h3 className="font-bold text-base leading-tight" style={{ color: 'hsl(var(--secondary))' }}>
               {team.name}
             </h3>
-            <span className={`text-[10px] px-1.5 py-0.5 rounded font-semibold ${SPORT_BADGE[team.sport] ?? ''}`}>
+            <span className="text-[10px] px-1.5 py-0.5 rounded font-semibold" style={SPORT_BADGE[team.sport]}>
               {team.sport}
             </span>
           </div>
@@ -149,7 +156,7 @@ function TeamWidget({ team, now, updated }: { team: TeamData; now: Date; updated
         {team.lastGame ? (
           <div className="flex items-center gap-2 text-sm">
             <span className="text-muted-foreground text-xs w-10 shrink-0">Last</span>
-            <span className={`text-[11px] px-1.5 py-0.5 rounded border font-bold ${resultBadge(team.lastGame.result)}`}>
+            <span className="text-[11px] px-1.5 py-0.5 rounded border font-bold" style={resultBadge(team.lastGame.result)}>
               {team.lastGame.result}
             </span>
             <span className="text-foreground">
@@ -180,7 +187,7 @@ function TeamWidget({ team, now, updated }: { team: TeamData; now: Date; updated
             {isCountdownWorthy(team.nextGame.dateTime) && (
               <span
                 className="ml-auto text-xs font-mono px-1.5 py-0.5 rounded"
-                style={{ backgroundColor: `${color}20`, color }}
+                style={{ backgroundColor: mix(color, 13), color }}
               >
                 {countdown(team.nextGame.dateTime, now)}
               </span>
@@ -202,7 +209,7 @@ function TeamWidget({ team, now, updated }: { team: TeamData; now: Date; updated
           onClick={() => setExpanded(e => !e)}
           className="w-full text-xs py-1.5 rounded border transition-colors"
           style={{
-            borderColor: `${color}50`,
+            borderColor: mix(color, 31),
             color: expanded ? '#0f0f0f' : color,
             backgroundColor: expanded ? color : 'transparent',
           }}
@@ -221,7 +228,7 @@ function TeamWidget({ team, now, updated }: { team: TeamData; now: Date; updated
 
       {/* Expanded panel */}
       {expanded && (
-        <div className="border-t px-4 py-4 space-y-5" style={{ borderColor: `${color}30` }}>
+        <div className="border-t px-4 py-4 space-y-5" style={{ borderColor: mix(color, 19) }}>
           {/* Recent games */}
           {team.recentGames.length > 0 && (
             <div>
@@ -232,7 +239,7 @@ function TeamWidget({ team, now, updated }: { team: TeamData; now: Date; updated
                 {team.recentGames.map((g, i) => (
                   <div key={i} className="flex items-center gap-2 text-xs">
                     <span className="text-muted-foreground w-20 shrink-0">{fmtDate(g.date)}</span>
-                    <span className={`px-1.5 py-0.5 rounded border font-bold text-[10px] ${resultBadge(g.result)}`}>
+                    <span className="px-1.5 py-0.5 rounded border font-bold text-[10px]" style={resultBadge(g.result)}>
                       {g.result}
                     </span>
                     <span className="text-foreground">
@@ -348,7 +355,7 @@ export default function SportsPage() {
     <div className="p-6 space-y-6">
       {/* Header */}
       <CopperPanel>
-        <h1 className="text-2xl font-bold" style={{ color: '#d4a373', textShadow: '0 0 16px rgba(184,115,51,0.3)' }}>
+        <h1 className="text-2xl font-bold" style={{ color: 'var(--rs-accent)', textShadow: '0 0 16px rgba(var(--rs-accent-rgb),0.3)' }}>
           Sports Hub
         </h1>
       </CopperPanel>
@@ -363,7 +370,7 @@ export default function SportsPage() {
       )}
 
       {!loading && error && (
-        <div className="rounded-lg border border-red-900/40 bg-red-950/20 p-4 text-red-400 text-sm">
+        <div className="rounded-lg border p-4 text-sm" style={{ color: 'var(--rs-bad)', background: 'color-mix(in srgb, var(--rs-bad) 10%, transparent)', borderColor: 'color-mix(in srgb, var(--rs-bad) 40%, transparent)' }}>
           {error}
         </div>
       )}

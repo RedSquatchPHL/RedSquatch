@@ -172,7 +172,7 @@ export function GoalsPanel({ context }: Props) {
   }
 
   if (loading) return <div className="text-muted-foreground text-sm p-4">Loading goals…</div>;
-  if (error)   return <div className="text-red-400 text-sm p-4">Error: {error}</div>;
+  if (error)   return <div className="text-[color:var(--rs-bad)] text-sm p-4">Error: {error}</div>;
 
   return (
     <div className="space-y-4">
@@ -296,7 +296,7 @@ export function GoalsPanel({ context }: Props) {
                 </button>
                 <button
                   onClick={() => deleteGoal(goal.id)}
-                  className="text-xs px-2 py-1 rounded border border-red-900/40 text-red-400 hover:border-red-500/60 transition-colors"
+                  className="text-xs px-2 py-1 rounded border border-[color:color-mix(in_srgb,var(--rs-bad)_40%,transparent)] text-[color:var(--rs-bad)] hover:border-[color:var(--rs-bad)] transition-colors"
                 >
                   Del
                 </button>
@@ -351,7 +351,7 @@ export function GoalsPanel({ context }: Props) {
                     </span>
                     <button
                       onClick={() => deleteMilestone(ms.id)}
-                      className="opacity-0 group-hover:opacity-100 text-red-400 text-xs hover:text-red-300 transition-opacity"
+                      className="opacity-0 group-hover:opacity-100 text-[color:var(--rs-bad)] text-xs hover:opacity-80 transition-opacity"
                     >
                       ✕
                     </button>
