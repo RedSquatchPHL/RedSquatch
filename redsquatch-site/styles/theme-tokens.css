@@ -182,3 +182,20 @@
 @media (prefers-reduced-motion: reduce) {
   .rs-orbit::after { display: none; }
 }
+
+/* Spotlight: while one card in a group is hovered or keyboard-focused, its siblings ease
+   back by 15% opacity so the highlighted one stands out. Put .rs-spotlight on the grid/list
+   and .rs-applet-trigger (or any direct child with .rs-spot) on the items. Pointer devices
+   only, so touch screens never get stuck half-dimmed after a tap. */
+.rs-applet-trigger, .rs-spot { transition: opacity 0.25s ease; }
+
+@media (hover: hover) {
+  .rs-spotlight:has(.rs-applet-trigger:hover, .rs-applet-trigger:focus-visible, .rs-spot:hover, .rs-spot:focus-visible)
+    > :is(.rs-applet-trigger, .rs-spot):not(:hover, :focus-visible) {
+    opacity: 0.85;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rs-applet-trigger, .rs-spot { transition: none; }
+}

@@ -48,7 +48,7 @@ export default function HSHealthPage() {
 
       {/* Tool cards */}
       <div className="w-full max-w-5xl">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="rs-spotlight grid grid-cols-1 md:grid-cols-2 gap-4">
           {([
             { key: 'blood_pressure' as const, label: 'Blood Pressure Log', description: 'Track systolic/diastolic, heart rate, position, and arm — export to PDF', icon: HeartPulse },
             { key: 'weight' as const, label: 'Weight & BMI', description: 'Weigh-ins in lb, BMI from your height, and the trend toward your target', icon: Scale },

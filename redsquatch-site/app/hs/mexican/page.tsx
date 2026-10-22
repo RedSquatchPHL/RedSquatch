@@ -46,7 +46,7 @@ export default function HSMexicanPage() {
 
       {/* Tool cards */}
       <div className="w-full max-w-5xl">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="rs-spotlight grid grid-cols-1 md:grid-cols-2 gap-4">
           {([
             { key: 'spanishtutor' as const,label: 'Spanish Tutor',      description: 'Daily drills with spaced repetition',    },
             { key: 'citizenship' as const, label: 'Citizenship Tracker',description: 'Mexico citizenship document checklist',  },
