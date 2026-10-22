@@ -5,6 +5,7 @@ import { Settings, Sunset, Briefcase, X, ArrowLeftRight, LogOut, Waves } from 'l
 import { useHomeSquatchGate } from './HomeSquatchGate';
 import { logout } from '@/lib/api';
 import { saveBeach, useHsBeach } from '@/lib/hsBand';
+import { PRESET_NAMES, loadOverride, nextOverride, saveOverride, subscribeOverride, type Override } from '@/lib/oceanScene';
 import { WS_NAV, HS_NAV, QUICK_LINKS_SUBMENU, type MenuLeaf } from '@/lib/menuConfig';
 import BranchedMenu, { type BranchedMenuSection } from './BranchedMenu';
 import wsDock from './ClockGateMenu.ws.module.css';
@@ -44,6 +45,12 @@ export default function ClockGateMenu({ placement = 'floating' }: { placement?: 
   const inHeaderSlot = placement === 'header';
   const inDock = inWS || inHeaderSlot;
   const beach = useHsBeach();
+  const [scene, setScene] = useState<Override>('auto');
+  useEffect(() => {
+    if (!inHeaderSlot) return;
+    setScene(loadOverride());
+    return subscribeOverride(setScene);
+  }, [inHeaderSlot]);
   const navItems = inHS ? HS_NAV : WS_NAV;
   const [open, setOpen] = useState(false);
   const [remaining, setRemaining] = useState('');
@@ -133,6 +140,8 @@ export default function ClockGateMenu({ placement = 'floating' }: { placement?: 
       children: [
         { value: 'switch', label: 'Switch', icon: ArrowLeftRight },
         // Preview flag for the light HomeSquatch theme; only offered from the /hs header.
+        // Ocean scene override (was the header's Waves button): cycles Auto, Dawn ... Moonlit.
+        ...(inHeaderSlot ? [{ value: 'scene', label: `Scene: ${scene === 'auto' ? 'Auto' : PRESET_NAMES[scene]}`, icon: Waves }] : []),
         ...(inHeaderSlot ? [{ value: 'beach', label: beach ? 'Beach theme: on' : 'Beach theme: off', icon: Waves }] : []),
         { value: '/settings', label: 'Settings', icon: Settings },
         { value: 'logout', label: 'Log out', icon: LogOut },
@@ -142,6 +151,7 @@ export default function ClockGateMenu({ placement = 'floating' }: { placement?: 
 
   function handleBranchSelect(value: string) {
     if (value === 'switch') { handleSwitch(); return; }
+    if (value === 'scene') { saveOverride(nextOverride(scene)); return; }
     if (value === 'beach') { saveBeach(!beach); closeAll(); return; }
     if (value === 'logout') { handleLogout(); return; }
     if (value === '/settings') { router.push('/settings'); closeAll(); return; }

@@ -1,5 +1,5 @@
-/* Header weather + world-clock chips (Tōnatiuh OS). Hardcoded hex like the
-   rest of components/tonatiuh. Every button selector is element-qualified and
+/* Header weather + world-clock chips (Tōnatiuh OS). Reads the shared --rs-*
+   tokens so the same widget works on /ws (slate) and /hs (beach tones). Every button selector is element-qualified and
    state selectors repeat the qualifier so they out-specify the global
    `button` / `button:hover` rules in styles/cenote-elements.css. */
 
@@ -33,10 +33,10 @@ button.chip {
   gap: 0.4rem;
   height: 36px;
   padding: 0 0.7rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid color-mix(in srgb, var(--rs-ink) 14%, transparent);
   border-radius: 999px;
-  background: rgba(15, 21, 27, 0.6);
-  color: #E2E8F0;
+  background: var(--rs-surface);
+  color: var(--rs-ink);
   font-size: 0.8rem;
   font-variant-numeric: tabular-nums;
   transition: border-color 0.15s ease, background 0.15s ease;
@@ -44,9 +44,9 @@ button.chip {
 
 button.chip:hover,
 button.chip[aria-expanded='true'] {
-  border-color: rgba(217, 122, 56, 0.5);
-  background: rgba(15, 21, 27, 0.6);
-  color: #E2E8F0;
+  border-color: rgba(var(--rs-accent-rgb), 0.5);
+  background: var(--rs-surface);
+  color: var(--rs-ink);
   box-shadow: none;
 }
 
@@ -55,7 +55,7 @@ button.iconBtn:focus-visible,
 button.toggle:focus-visible,
 button.addBtn:focus-visible,
 button.result:focus-visible {
-  outline: 2px solid #D97A38;
+  outline: 2px solid var(--rs-accent);
   outline-offset: 2px;
 }
 
@@ -71,10 +71,10 @@ button.result:focus-visible {
   width: 290px;
   padding: 0.9rem 1rem;
   border-radius: 1rem;
-  background: rgba(22, 30, 40, 0.97);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-  color: #E2E8F0;
+  background: var(--rs-well-solid);
+  border: 1px solid color-mix(in srgb, var(--rs-ink) 14%, transparent);
+  box-shadow: var(--rs-shadow, 0 8px 24px rgba(0, 0, 0, 0.3));
+  color: var(--rs-ink);
   opacity: 0;
   visibility: hidden;
   transform: translateY(-4px);
@@ -101,7 +101,7 @@ button.result:focus-visible {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  color: #D97A38;
+  color: var(--rs-accent);
 }
 
 .big {
@@ -109,18 +109,18 @@ button.result:focus-visible {
   font-weight: 800;
   font-size: 1.6rem;
   line-height: 1;
-  color: #E2E8F0;
+  color: var(--rs-ink);
 }
 
 .strip {
   list-style: none;
   margin: 0.8rem 0 0;
   padding: 0.7rem 0 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid color-mix(in srgb, var(--rs-ink) 10%, transparent);
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 0.25rem;
-  color: #D97A38;
+  color: var(--rs-accent);
 }
 
 .day {
@@ -133,7 +133,7 @@ button.result:focus-visible {
 .dayHi {
   font-size: 0.8rem;
   font-weight: 600;
-  color: #E2E8F0;
+  color: var(--rs-ink);
 }
 
 .clockList {
@@ -155,7 +155,7 @@ button.result:focus-visible {
 .hint {
   margin: 0.7rem 0 0;
   font-size: 0.68rem;
-  color: #93A4B8;
+  color: var(--rs-ink-muted);
 }
 
 /* ---- manage panel ---- */
@@ -167,10 +167,10 @@ button.result:focus-visible {
   max-width: calc(100vw - 2rem);
   padding: 1rem;
   border-radius: 1rem;
-  background: rgba(22, 30, 40, 0.97);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-  color: #E2E8F0;
+  background: var(--rs-well-solid);
+  border: 1px solid color-mix(in srgb, var(--rs-ink) 14%, transparent);
+  box-shadow: var(--rs-shadow, 0 8px 24px rgba(0, 0, 0, 0.3));
+  color: var(--rs-ink);
   z-index: 60;
 }
 
@@ -187,7 +187,7 @@ button.result:focus-visible {
   font-family: 'Cabinet Grotesk', sans-serif;
   font-size: 1rem;
   font-weight: 700;
-  color: #E2E8F0;
+  color: var(--rs-ink);
 }
 
 .toggles {
@@ -202,25 +202,25 @@ button.result:focus-visible {
 
 button.toggle {
   padding: 0.2rem 0.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid color-mix(in srgb, var(--rs-ink) 14%, transparent);
   border-radius: 999px;
   background: transparent;
-  color: #93A4B8;
+  color: var(--rs-ink-muted);
   font-size: 0.7rem;
 }
 
 button.toggle:hover {
   background: transparent;
-  color: #E2E8F0;
-  border-color: rgba(255, 255, 255, 0.25);
+  color: var(--rs-ink);
+  border-color: color-mix(in srgb, var(--rs-ink) 30%, transparent);
   box-shadow: none;
 }
 
 button.toggleOn,
 button.toggleOn:hover {
-  border-color: rgba(217, 122, 56, 0.6);
-  background: rgba(217, 122, 56, 0.15);
-  color: #E8935A;
+  border-color: rgba(var(--rs-accent-rgb), 0.6);
+  background: rgba(var(--rs-accent-rgb), 0.15);
+  color: var(--rs-accent-hi);
 }
 
 button.iconBtn {
@@ -233,19 +233,19 @@ button.iconBtn {
   border: none;
   border-radius: 0.5rem;
   background: transparent;
-  color: #93A4B8;
+  color: var(--rs-ink-muted);
 }
 
 button.iconBtn:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: #E2E8F0;
+  background: color-mix(in srgb, var(--rs-ink) 10%, transparent);
+  color: var(--rs-ink);
   border: none;
   box-shadow: none;
 }
 
 button.iconBtnOn,
 button.iconBtnOn:hover {
-  color: #D4AF37;
+  color: var(--rs-warn);
 }
 
 button.iconBtn:disabled {
@@ -269,7 +269,7 @@ button.iconBtn:disabled {
   gap: 0.5rem;
   padding: 0.45rem 0.4rem;
   border-radius: 0.6rem;
-  background: rgba(255, 255, 255, 0.03);
+  background: color-mix(in srgb, var(--rs-ink) 6%, transparent);
 }
 
 .rowMain {
@@ -279,7 +279,7 @@ button.iconBtn:disabled {
 .rowName {
   font-size: 0.85rem;
   font-weight: 600;
-  color: #E2E8F0;
+  color: var(--rs-ink);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -290,7 +290,7 @@ button.iconBtn:disabled {
   align-items: center;
   gap: 0.2rem;
   font-size: 0.72rem;
-  color: #93A4B8;
+  color: var(--rs-ink-muted);
 }
 
 .rowMain .rowSub {
@@ -308,7 +308,7 @@ button.iconBtn:disabled {
   font-size: 0.85rem;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
-  color: #E2E8F0;
+  color: var(--rs-ink);
   white-space: nowrap;
 }
 
@@ -325,7 +325,7 @@ button.iconBtn:disabled {
   left: 0.8rem;
   top: 50%;
   transform: translateY(-50%);
-  color: #93A4B8;
+  color: var(--rs-ink-muted);
   pointer-events: none;
 }
 
@@ -333,21 +333,21 @@ input[type='text'].addInput {
   flex: 1;
   min-width: 0;
   padding: 0.5rem 0.8rem 0.5rem 2.2rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid color-mix(in srgb, var(--rs-ink) 14%, transparent);
   border-radius: 999px;
-  background: rgba(15, 21, 27, 0.6);
-  color: #E2E8F0;
+  background: var(--rs-surface);
+  color: var(--rs-ink);
   font-family: 'Satoshi', sans-serif;
   font-size: 0.8rem;
 }
 
 input[type='text'].addInput::placeholder {
-  color: #93A4B8;
+  color: var(--rs-ink-muted);
 }
 
 input[type='text'].addInput:focus {
   outline: none;
-  border: 1px solid rgba(217, 122, 56, 0.5);
+  border: 1px solid rgba(var(--rs-accent-rgb), 0.5);
   box-shadow: none;
 }
 
@@ -355,15 +355,15 @@ button.addBtn {
   padding: 0 0.9rem;
   border: none;
   border-radius: 999px;
-  background: #D97A38;
-  color: #0F151B;
+  background: var(--rs-btn);
+  color: var(--rs-btn-ink);
   font-size: 0.78rem;
   font-weight: 600;
 }
 
 button.addBtn:hover:not(:disabled) {
-  background: #E8935A;
-  color: #0F151B;
+  background: var(--rs-accent-hi);
+  color: var(--rs-btn-ink);
   box-shadow: none;
 }
 
@@ -393,7 +393,7 @@ button.result {
 }
 
 button.result:hover {
-  background: rgba(217, 122, 56, 0.12);
+  background: rgba(var(--rs-accent-rgb), 0.12);
   border: none;
   box-shadow: none;
 }
@@ -401,7 +401,7 @@ button.result:hover {
 .msg {
   margin: 0.5rem 0 0;
   font-size: 0.75rem;
-  color: #93A4B8;
+  color: var(--rs-ink-muted);
 }
 
 @media (max-width: 640px) {
