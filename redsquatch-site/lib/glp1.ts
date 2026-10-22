@@ -77,9 +77,9 @@ export const BMI_BANDS = [
   { label: 'Underweight', short: 'Under', bmiLo: 0, bmiHi: 18.5, color: 'var(--rs-info)', alpha: 14 },
   { label: 'Normal', short: 'Normal', bmiLo: 18.5, bmiHi: 25, color: 'var(--rs-ok)', alpha: 14 },
   { label: 'Overweight', short: 'Over', bmiLo: 25, bmiHi: 30, color: 'var(--rs-warn)', alpha: 14 },
-  { label: 'Obese Class 1', short: 'Obese I', bmiLo: 30, bmiHi: 35, color: 'var(--rs-bad)', alpha: 10 },
-  { label: 'Obese Class 2', short: 'Obese II', bmiLo: 35, bmiHi: 40, color: 'var(--rs-bad)', alpha: 17 },
-  { label: 'Obese Class 3', short: 'Obese III', bmiLo: 40, bmiHi: Infinity, color: 'var(--rs-bad)', alpha: 24 },
+  { label: 'Obese Class 1', short: 'Obese I', bmiLo: 30, bmiHi: 35, color: 'color-mix(in srgb, var(--rs-warn) 45%, var(--rs-bad))', alpha: 18 },
+  { label: 'Obese Class 2', short: 'Obese II', bmiLo: 35, bmiHi: 40, color: 'var(--rs-bad)', alpha: 18 },
+  { label: 'Obese Class 3', short: 'Obese III', bmiLo: 40, bmiHi: Infinity, color: 'color-mix(in srgb, var(--rs-bad) 65%, black)', alpha: 30 },
 ] as const;
 
 export function weightAtBmi(b: number, heightIn: number): number {

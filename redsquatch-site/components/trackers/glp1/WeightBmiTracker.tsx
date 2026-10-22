@@ -207,7 +207,19 @@ export default function WeightBmiTracker() {
                   ifOverflow="hidden"
                   fill={`color-mix(in srgb, ${b.color} ${b.alpha}%, transparent)`}
                   stroke="none"
+                  shapeRendering="crispEdges"
                   label={{ value: b.short, position: 'insideTopLeft', fill: 'var(--rs-ink-faint)', fontSize: 10 }}
+                />
+              ))}
+              {/* A crisp line at every category limit, so neighbouring lanes never blend into each other */}
+              {lanes?.bands.filter(b => b.bmiLo > 0 && b.y1 > lanes.lo).map(b => (
+                <ReferenceLine
+                  key={`cut-${b.bmiLo}`}
+                  y={b.y1}
+                  stroke="var(--rs-ink-faint)"
+                  strokeDasharray="2 3"
+                  strokeWidth={1}
+                  label={{ value: `BMI ${b.bmiLo}`, position: 'insideTopRight', fill: 'var(--rs-ink-faint)', fontSize: 9 }}
                 />
               ))}
               <Legend wrapperStyle={{ fontSize: 11, color: 'rgba(var(--rs-accent-rgb),0.7)' }} />
