@@ -8,6 +8,7 @@ import "@/styles/cenote-tokens.css";
 import "@/styles/theme-tokens.css";
 import "@/styles/cenote-elements.css";
 import "@/styles/homesquatch-theme.css";
+import "@/styles/hs-beach.css";
 import { ThemeProvider } from "@/components/ThemeContext";
 import { HomeSquatchGateProvider } from "@/components/HomeSquatchGate";
 import GlobalEffects from "@/components/effects/GlobalEffects";

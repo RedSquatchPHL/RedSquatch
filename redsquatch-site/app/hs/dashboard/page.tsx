@@ -35,8 +35,8 @@ export default function HSDashboardPage() {
       {/* ── Widgets ───────────────────────────────────────────────────────── */}
       <main className="p-6 space-y-5">
         {user && (
-          <p className="text-sm" style={{ color: 'rgba(255,255,255,0.78)', textShadow: '0 1px 8px rgba(0,0,0,0.6)' }}>
-            Welcome back, <span style={{ color: 'rgba(212,163,115,0.9)' }}>{user.displayName || user.username}</span>
+          <p className="text-sm" style={{ color: 'var(--rs-ink)', textShadow: 'var(--rs-text-shadow, 0 1px 8px rgba(0,0,0,0.6))' }}>
+            Welcome back, <span style={{ color: 'var(--rs-accent)' }}>{user.displayName || user.username}</span>
           </p>
         )}
         <CopperPanel>

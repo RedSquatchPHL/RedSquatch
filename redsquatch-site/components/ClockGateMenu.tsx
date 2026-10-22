@@ -1,9 +1,10 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { Settings, Sunset, Briefcase, X, ArrowLeftRight, LogOut } from 'lucide-react';
+import { Settings, Sunset, Briefcase, X, ArrowLeftRight, LogOut, Waves } from 'lucide-react';
 import { useHomeSquatchGate } from './HomeSquatchGate';
 import { logout } from '@/lib/api';
+import { saveBeach, useHsBeach } from '@/lib/hsBand';
 import { WS_NAV, HS_NAV, QUICK_LINKS_SUBMENU, type MenuLeaf } from '@/lib/menuConfig';
 import BranchedMenu, { type BranchedMenuSection } from './BranchedMenu';
 import wsDock from './ClockGateMenu.ws.module.css';
@@ -42,6 +43,7 @@ export default function ClockGateMenu({ placement = 'floating' }: { placement?: 
   // the panel drops down from it, reusing the same dock/panel positioning as /ws.
   const inHeaderSlot = placement === 'header';
   const inDock = inWS || inHeaderSlot;
+  const beach = useHsBeach();
   const navItems = inHS ? HS_NAV : WS_NAV;
   const [open, setOpen] = useState(false);
   const [remaining, setRemaining] = useState('');
@@ -130,6 +132,8 @@ export default function ClockGateMenu({ placement = 'floating' }: { placement?: 
       label: 'Account',
       children: [
         { value: 'switch', label: 'Switch', icon: ArrowLeftRight },
+        // Preview flag for the light HomeSquatch theme; only offered from the /hs header.
+        ...(inHeaderSlot ? [{ value: 'beach', label: beach ? 'Beach theme: on' : 'Beach theme (preview)', icon: Waves }] : []),
         { value: '/settings', label: 'Settings', icon: Settings },
         { value: 'logout', label: 'Log out', icon: LogOut },
       ],
@@ -138,6 +142,7 @@ export default function ClockGateMenu({ placement = 'floating' }: { placement?: 
 
   function handleBranchSelect(value: string) {
     if (value === 'switch') { handleSwitch(); return; }
+    if (value === 'beach') { saveBeach(!beach); closeAll(); return; }
     if (value === 'logout') { handleLogout(); return; }
     if (value === '/settings') { router.push('/settings'); closeAll(); return; }
     const navMatch = navItems.find(i => (i.type === 'internal' ? i.path : i.id) === value);
@@ -168,6 +173,7 @@ export default function ClockGateMenu({ placement = 'floating' }: { placement?: 
       {open && (
         <div
           className={inDock ? wsDock.panel : undefined}
+          data-hs-legacy=""
           style={{
             position: 'absolute',
             bottom: 'calc(100% + 6px)',

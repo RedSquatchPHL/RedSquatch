@@ -39,7 +39,7 @@ export function blend(a: Pal, b: Pal, k: number): Pal {
 
 // Same sunrise/sunset approximation as ThemeContext (~40°N, ±30 min), so the
 // background and the app's day/night logic agree.
-function getSunTimes(date: Date) {
+export function getSunTimes(date: Date) {
   const start = new Date(date.getFullYear(), 0, 0);
   const day = Math.floor((date.getTime() - start.getTime()) / 86_400_000);
   const offset = Math.cos((2 * Math.PI * (day - 172)) / 365);

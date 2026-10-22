@@ -2,10 +2,14 @@
 
 import HSHeader from '@/components/tonatiuh/HSHeader';
 import OceanBackground from '@/components/hs/OceanBackground';
+import { useHsBand, useHsBeach } from '@/lib/hsBand';
 
 export default function HSLayout({ children }: { children: React.ReactNode }) {
+  // Beach theme is opt-in (Settings menu or ?beach=1) until the tracker interiors are migrated.
+  const beach = useHsBeach();
+  const band = useHsBand();
   return (
-    <div className="hs-root min-h-screen" style={{ position: 'relative', background: '#0a0a0f' }}>
+    <div className="hs-root min-h-screen" data-hs-theme={beach ? 'beach' : undefined} data-band={band} style={{ position: 'relative', background: '#0a0a0f' }}>
       <OceanBackground />
       <div style={{ position: 'relative', zIndex: 2 }}>
         <HSHeader />

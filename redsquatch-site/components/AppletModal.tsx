@@ -51,6 +51,7 @@ export default function AppletModal({ isOpen, title, onClose, children, wide, to
       />
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
         <div
+          data-hs-legacy={tone === 'tonatiuh' ? undefined : ''}
           className={`rounded-2xl w-full ${wide ? (tone === 'tonatiuh' ? 'max-w-6xl' : 'max-w-[1040px]') : 'max-w-4xl'} max-h-[85vh] flex flex-col pointer-events-auto overflow-hidden`}
           style={{
             border: t.border,

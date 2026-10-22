@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 import {
   KEYS, loadOverride, subscribeOverride, targetPalette, type Override, type Pal, type RGB,
 } from '@/lib/oceanScene';
+import { loadBeach } from '@/lib/hsBand';
 
 // HomeSquatch background: a painted 2D-canvas ocean, fixed behind everything.
 // Port of "TIDES – A Cinematic Canvas Ocean" by Chathura-Jayasanka
@@ -34,10 +35,16 @@ function easePal(cur: Pal, tgt: Pal, f: number) {
 export default function OceanBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const overrideRef = useRef<Override>('auto');
+  // Beach theme is light, so it needs far less of the dark readability scrim by day.
+  const beachRef = useRef(false);
 
   useEffect(() => {
     overrideRef.current = loadOverride();
-    return subscribeOverride(o => { overrideRef.current = o; });
+    beachRef.current = loadBeach();
+    const onBeach = (e: Event) => { beachRef.current = (e as CustomEvent<boolean>).detail; };
+    window.addEventListener('rs-hs-beach', onBeach);
+    const unsub = subscribeOverride(o => { overrideRef.current = o; });
+    return () => { unsub(); window.removeEventListener('rs-hs-beach', onBeach); };
   }, []);
 
   useEffect(() => {
@@ -194,9 +201,11 @@ export default function OceanBackground() {
 
       // vignette + readability scrim (UI text sits on top of this)
       const vig = ctx.createRadialGradient(W / 2, H * 0.55, H * 0.25, W / 2, H * 0.55, H * 0.9);
-      vig.addColorStop(0, 'rgba(0,0,0,0)'); vig.addColorStop(1, 'rgba(0,0,8,0.34)');
+      // Beach theme: keep the scene bright by day (k -> 0.25), full scrim once the stars are out.
+      const k = beachRef.current ? 0.25 + 0.75 * Math.min(1, P.star) : 1;
+      vig.addColorStop(0, 'rgba(0,0,0,0)'); vig.addColorStop(1, `rgba(0,0,8,${0.34 * k})`);
       ctx.fillStyle = vig; ctx.fillRect(0, 0, W, H);
-      ctx.fillStyle = `rgba(0,0,8,${P.scrim})`; ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = `rgba(0,0,8,${P.scrim * k})`; ctx.fillRect(0, 0, W, H);
     };
 
     resize();

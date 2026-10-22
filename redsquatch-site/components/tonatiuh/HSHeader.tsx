@@ -6,6 +6,7 @@ import { Waves } from 'lucide-react';
 import { HS_NAV } from '@/lib/menuConfig';
 import ThemeToggle from '@/components/ThemeToggle';
 import ClockGateMenu from '@/components/ClockGateMenu';
+import { useHsBeach } from '@/lib/hsBand';
 import BrandMark from './BrandMark';
 import { PRESET_NAMES, loadOverride, nextOverride, saveOverride, subscribeOverride, type Override } from '@/lib/oceanScene';
 
@@ -15,6 +16,7 @@ import { PRESET_NAMES, loadOverride, nextOverride, saveOverride, subscribeOverri
 // Fixed 64px (h-16) so full-height pages can subtract it: calc(100vh - 4rem).
 export default function HSHeader() {
   const pathname = usePathname() ?? '';
+  const beach = useHsBeach();
   const [scene, setScene] = useState<Override>('auto');
   useEffect(() => {
     setScene(loadOverride());
@@ -30,7 +32,7 @@ export default function HSHeader() {
         {current && (
           <span
             className="hidden sm:inline text-sm truncate"
-            style={{ color: 'rgba(255,255,255,0.6)' }}
+            style={{ color: 'var(--rs-crumb, rgba(255,255,255,0.6))' }}
           >
             / {current.label}
           </span>
@@ -47,7 +49,8 @@ export default function HSHeader() {
           <Waves size={15} aria-hidden />
           <span className="hidden sm:inline">{sceneLabel}</span>
         </button>
-        <ThemeToggle />
+        {/* Beach theme follows the scene button, so the separate Auto/Day/Night switch goes away. */}
+        {!beach && <ThemeToggle />}
         <ClockGateMenu placement="header" />
       </div>
     </header>

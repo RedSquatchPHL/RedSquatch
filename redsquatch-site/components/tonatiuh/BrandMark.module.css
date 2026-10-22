@@ -11,6 +11,8 @@
 .work { --b-accent: #D97A38; --b-accent-hi: #E8935A; --b-ink: #E2E8F0; --b-dot: #D4AF37; }
 .home { --b-accent: #d4a373; --b-accent-hi: #e6bd90; --b-ink: #fdf6ea; --b-dot: #d4a373; }
 
+:global(.hs-root[data-hs-theme="beach"]) .home { --b-accent: var(--rs-accent); --b-accent-hi: var(--rs-accent-hi); --b-ink: var(--rs-ink); --b-dot: var(--rs-accent); }
+
 .word {
   font-family: 'Cabinet Grotesk', sans-serif;
   font-size: 1.1rem;

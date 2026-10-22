@@ -1,0 +1,135 @@
+/* HomeSquatch "beach" theme — light, rounded, airy, in three tones that follow the ocean scene
+   (lib/hsBand.ts decides the band; app/hs/layout.tsx sets data-hs-theme + data-band).
+   Everything is scoped under .hs-root[data-hs-theme="beach"], so with the flag off (the
+   default) nothing here applies and /ws is never touched.
+
+   Panels are translucent sea-glass; ink/accent pairs were picked for >=4.5:1 on their own
+   panel. Legacy tokens (--copper-*, --stone-*, --color-copper-*) are re-pointed too, so
+   components that read those instead of --rs-* follow the band. Components with hardcoded
+   dark-theme colours (most tracker interiors) are NOT fixed by this file — they are migrated
+   separately, which is why the theme is opt-in for now. */
+
+/* ── Tone 1 · day (morning / midday): light sea-glass, coral accent ───────── */
+.hs-root[data-hs-theme="beach"][data-band="day"] {
+  --rs-accent: #b83f25;  --rs-accent-hi: #e0623f;  --rs-accent-rgb: 184, 63, 37;
+  --rs-surface: rgba(255, 255, 255, 0.74);
+  --rs-border: rgba(255, 255, 255, 0.9);
+  --rs-ink: #0f3a46;  --rs-ink-muted: #3a6370;  --rs-ink-faint: #5a7f8a;
+  --rs-field: rgba(255, 255, 255, 0.9);  --rs-field-edge: rgba(15, 58, 70, 0.22);
+  --rs-row: rgba(15, 58, 70, 0.07);
+  --rs-btn: #b83f25;  --rs-btn-ink: #ffffff;
+  --rs-shadow: 0 10px 30px rgba(10, 60, 90, 0.18);
+  --rs-ok: #1c7a4f;  --rs-warn: #8a5a00;  --rs-bad: #b3263a;
+  --stone-0: #eaf3f5;  --stone-1: #dcebef;  --stone-2: #b9d3da;  --stone-3: #7fa3ad;
+  --copper-0: #b83f25;  --copper-1: #3a6370;  --copper-2: #0f3a46;
+}
+
+/* ── Tone 2 · warm (dawn / golden hour / sunset): warm light glass, brick accent ── */
+.hs-root[data-hs-theme="beach"][data-band="warm"] {
+  --rs-accent: #a8372a;  --rs-accent-hi: #d4573f;  --rs-accent-rgb: 168, 55, 42;
+  --rs-surface: rgba(255, 245, 234, 0.82);
+  --rs-border: rgba(255, 236, 214, 0.95);
+  --rs-ink: #3a2230;  --rs-ink-muted: #6b4a52;  --rs-ink-faint: #85666c;
+  --rs-field: rgba(255, 248, 240, 0.92);  --rs-field-edge: rgba(58, 34, 48, 0.24);
+  --rs-row: rgba(58, 34, 48, 0.07);
+  --rs-btn: #a8372a;  --rs-btn-ink: #ffffff;
+  --rs-shadow: 0 10px 30px rgba(40, 16, 50, 0.28);
+  --rs-ok: #1c7a4f;  --rs-warn: #8a5a00;  --rs-bad: #b3263a;
+  --stone-0: #f6e6d8;  --stone-1: #efd9c8;  --stone-2: #d9b9a4;  --stone-3: #a8806f;
+  --copper-0: #a8372a;  --copper-1: #6b4a52;  --copper-2: #3a2230;
+}
+
+/* ── Tone 3 · night (moonlit): dark glass, sand-gold accent ──────────────── */
+.hs-root[data-hs-theme="beach"][data-band="night"] {
+  --rs-accent: #f0b27a;  --rs-accent-hi: #f6c797;  --rs-accent-rgb: 240, 178, 122;
+  --rs-surface: rgba(10, 18, 40, 0.70);
+  --rs-border: rgba(160, 180, 230, 0.28);
+  --rs-ink: #e6ecfa;  --rs-ink-muted: #aab6d4;  --rs-ink-faint: #8d9abc;
+  --rs-field: rgba(14, 24, 52, 0.82);  --rs-field-edge: rgba(160, 180, 230, 0.30);
+  --rs-row: rgba(230, 236, 250, 0.07);
+  --rs-btn: #f0b27a;  --rs-btn-ink: #1a1410;
+  --rs-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  --rs-ok: #5fd6a0;  --rs-warn: #e6c25a;  --rs-bad: #ff8aa0;
+  --stone-0: #0b1220;  --stone-1: #131f33;  --stone-2: #2b3f5c;  --stone-3: #55719a;
+  --copper-0: #c98f5e;  --copper-1: #f0b27a;  --copper-2: #e6ecfa;
+}
+
+/* ── Shared across all three tones ───────────────────────────────────────── */
+.hs-root[data-hs-theme="beach"] {
+  --rs-crumb: var(--rs-ink-muted);
+  --copper-glow-rgb: var(--rs-accent-rgb);
+  --copper-tan: var(--rs-accent);  --copper-tan-rgb: var(--rs-accent-rgb);
+  --copper-bold: var(--rs-accent); --copper-bold-rgb: var(--rs-accent-rgb);
+  --color-copper: var(--rs-accent);  --color-copper-light: var(--rs-accent-hi);
+  --color-copper-bright: var(--rs-accent);
+  /* CopperPanel: carved-stone corners become a rounded glass card */
+  --rs-panel-bg: var(--rs-surface);
+  --rs-panel-clip: none;
+  --rs-panel-radius: 22px;
+  --rs-panel-inner: none;
+}
+
+.hs-root[data-hs-theme="beach"] :is(.glass-surface, .glass-card, .glass-panel, .glass-header) {
+  background: var(--rs-surface);
+  border-color: var(--rs-border);
+  box-shadow: var(--rs-shadow);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+}
+
+.hs-root[data-hs-theme="beach"] .glass-card:hover {
+  background: var(--rs-surface);
+  border-color: var(--rs-accent);
+  box-shadow: var(--rs-shadow), 0 0 0 3px rgba(var(--rs-accent-rgb), 0.14);
+}
+
+.hs-root[data-hs-theme="beach"] .glass-header { border-bottom: 1px solid var(--rs-border); }
+
+.hs-root[data-hs-theme="beach"] .glass-btn {
+  background: var(--rs-field);
+  border-color: var(--rs-field-edge);
+  color: var(--rs-ink);
+}
+.hs-root[data-hs-theme="beach"] .glass-btn:hover:not(:disabled) {
+  background: var(--rs-field);
+  border-color: var(--rs-accent);
+  box-shadow: 0 0 0 3px rgba(var(--rs-accent-rgb), 0.14);
+}
+
+.hs-root[data-hs-theme="beach"] :is(.glass-input, .glass-tabs) {
+  background: var(--rs-field);
+  border-color: var(--rs-field-edge);
+  color: var(--rs-ink);
+}
+.hs-root[data-hs-theme="beach"] .glass-input::placeholder { color: var(--rs-ink-faint); }
+
+/* The ocean glitter was lit for a dark scrim; panels now carry the contrast instead. */
+.hs-root[data-hs-theme="beach"] .rs-applet-card { box-shadow: var(--rs-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.4); }
+
+/* Text sitting straight on the scene (no panel behind it) */
+.hs-root[data-hs-theme="beach"][data-band="day"],
+.hs-root[data-hs-theme="beach"][data-band="warm"] { --rs-text-shadow: 0 1px 8px rgba(255, 255, 255, 0.55); }
+.hs-root[data-hs-theme="beach"][data-band="night"] { --rs-text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6); }
+
+/* Legacy-dark islands. Tracker/applet interiors still hardcode dark-theme colours, so the modal
+   and the Settings dropdown restore the original dark tokens inside themselves (instead of
+   inheriting the light-band remap above). Delete this block, and the data-hs-legacy attributes,
+   once the interiors are migrated to --rs-* tokens. */
+.hs-root[data-hs-theme="beach"] [data-hs-legacy] {
+  --stone-0: #0f1b24;  --stone-1: #16242e;  --stone-2: #33505c;  --stone-3: #5c7d84;
+  --copper-0: #c98a5e;  --copper-1: #e2a672;  --copper-2: #f2d9b8;
+  --copper-glow-rgb: 226, 121, 92;
+  --copper-tan: #d4a373;  --copper-tan-rgb: 212, 163, 115;
+  --copper-bold: #b87333;  --copper-bold-rgb: 184, 115, 51;
+  --color-copper: #c98a5e;  --color-copper-light: #e2a672;  --color-copper-bright: #f2d9b8;
+  --rs-accent: #d4a373;  --rs-accent-hi: #e6bd90;  --rs-accent-rgb: 212, 163, 115;
+  --rs-surface: rgba(15, 27, 36, 0.72);  --rs-border: rgba(226, 121, 92, 0.28);
+  --rs-ink: #f2d9b8;  --rs-ink-muted: rgba(242, 217, 184, 0.68);  --rs-ink-faint: rgba(242, 217, 184, 0.62);
+  --rs-field: rgba(255, 255, 255, 0.06);  --rs-field-edge: rgba(212, 163, 115, 0.3);
+  --rs-row: rgba(255, 255, 255, 0.05);
+  --rs-btn: #b87333;  --rs-btn-ink: #ffffff;
+  --rs-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  --rs-ok: #5fbf8f;  --rs-warn: #d4af37;  --rs-bad: #e34c7a;
+  --rs-text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6);
+  color: var(--rs-ink);
+}

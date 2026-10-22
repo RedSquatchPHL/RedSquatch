@@ -32,7 +32,7 @@ export default function HSDowntimePage() {
       {/* Header */}
       <div className="w-full max-w-5xl">
         <CopperPanel>
-          <h1 className="text-3xl font-bold" style={{ color: '#d4a373', textShadow: '0 0 16px rgba(184,115,51,0.3)' }}>
+          <h1 className="text-3xl font-bold" style={{ color: 'var(--rs-accent)', textShadow: '0 0 16px rgba(var(--rs-accent-rgb),0.3)' }}>
             Downtime
           </h1>
         </CopperPanel>
