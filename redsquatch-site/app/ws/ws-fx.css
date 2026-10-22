@@ -65,11 +65,10 @@
   position: relative;   /* .aside is already sticky, which also anchors the ring */
 }
 
-.ws-fx :is(
-  [class*="_statCard__"], [class*="_launcherCard__"], [class*="_miniPanel__"],
-  [class*="_entryCard__"], [class*="_toggleCard__"], [class*="jobsearch_card__"],
-  [class*="_chartPanel__"], [class*="_section__"], [class*="_aside__"]
-)::after {
+/* Orbiting ring is reserved for the launcher cards (the hero tiles); every other card
+   keeps the lift + glow above. The animation only runs while hovered, so idle pages
+   aren't animating a conic gradient on dozens of hidden pseudo-elements. */
+.ws-fx [class*="_launcherCard__"]::after {
   content: "";
   position: absolute;
   inset: -1px;
@@ -89,15 +88,11 @@
   filter: drop-shadow(0 0 4px rgba(217, 122, 56, 0.8));
   opacity: 0;
   transition: opacity 0.25s ease;
-  animation: wsOrbit 2.6s linear infinite;
 }
 
-.ws-fx :is(
-  [class*="_statCard__"], [class*="_launcherCard__"], [class*="_miniPanel__"],
-  [class*="_entryCard__"], [class*="_toggleCard__"], [class*="jobsearch_card__"],
-  [class*="_chartPanel__"], [class*="_section__"], [class*="_aside__"]
-):hover::after {
+.ws-fx [class*="_launcherCard__"]:hover::after {
   opacity: 1;
+  animation: wsOrbit 2.6s linear infinite;
 }
 
 /* ---- 3. The sun: copper by day (Work), setting/moon/dawn in Downtime ------- */
@@ -146,10 +141,6 @@ html.homesquatch-theme.homesquatch-phase-predawn .ws-sun-dawn { opacity: 1; }
     [class*="_statCard__"], [class*="_launcherCard__"], [class*="_miniPanel__"],
     [class*="_entryCard__"], [class*="_toggleCard__"], [class*="jobsearch_card__"]
   ):hover { transform: none; }
-  .ws-fx :is(
-    [class*="_statCard__"], [class*="_launcherCard__"], [class*="_miniPanel__"],
-    [class*="_entryCard__"], [class*="_toggleCard__"], [class*="jobsearch_card__"],
-    [class*="_chartPanel__"], [class*="_section__"], [class*="_aside__"]
-  )::after { display: none; }
+  .ws-fx [class*="_launcherCard__"]::after { display: none; }
   .ws-sun > span { animation: none; transition: none; }
 }

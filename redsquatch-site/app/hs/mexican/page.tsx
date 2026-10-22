@@ -9,6 +9,7 @@ import SpanishTutor from '@/components/trackers/SpanishTutor';
 import MexicoCitizenshipTracker from '@/components/trackers/MexicoCitizenshipTracker';
 import PedroFanTracker from '@/components/trackers/PedroFanTracker';
 import CopperPanel from '@/components/cenote/CopperPanel';
+import PageLoader from '@/components/ui/PageLoader';
 
 type Applet = 'spanishtutor' | 'citizenship' | 'fantracker' | null;
 
@@ -30,7 +31,7 @@ export default function HSMexicanPage() {
     })();
   }, [router]);
 
-  if (loading) return null;
+  if (loading) return <PageLoader />;
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] p-6 space-y-8">

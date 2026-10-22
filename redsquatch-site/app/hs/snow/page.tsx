@@ -6,6 +6,7 @@ import { CheckCircle2, Circle, Clock, Compass, Code2, Award, Layers, RefreshCw, 
 import { API } from '@/lib/api';
 import SnowPanel from './SnowPanel';
 import pageStyles from './snow-page.module.css';
+import PageLoader from '@/components/ui/PageLoader';
 
 // ServiceNow's actual brand palette (confirmed 2026-08-29, not the site-wide
 // copper/tan) — dark green #293E40 + sea-glass mint #81B5A1. SNOW_BRIGHT is a
@@ -159,7 +160,7 @@ export default function HSSnowPage() {
 
   const totalCompleted = useMemo(() => items.filter(i => i.status === 'completed').length, [items]);
 
-  if (loading) return null;
+  if (loading) return <PageLoader />;
 
   return (
     <div className={`${pageStyles.snowBg} flex flex-col items-center justify-center p-6 space-y-6`}>

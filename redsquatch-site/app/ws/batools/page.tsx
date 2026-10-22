@@ -13,6 +13,7 @@ import MoscowGame from '@/components/ba-tools/MoscowGame';
 import GlossaryReference from '@/components/ba-tools/GlossaryReference';
 import Bi from '@/components/tonatiuh/Bi';
 import s from './batools.module.css';
+import PageLoader from '@/components/ui/PageLoader';
 
 type Applet = 'babok' | 'glossary' | 'userstory' | 'acceptancecriteria' | 'elicitation' | 'moscow';
 type Group = 'all' | 'reference' | 'practice';
@@ -60,7 +61,7 @@ export default function WSBAToolsPage() {
       <div className={s.page}>
         <div className={s.wallTexture} /><div className={s.wallColor} /><div className={s.wallGlow} />
         <div className={s.content} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
-          <div style={{ color: 'rgba(255,250,240,0.7)' }}>Loading…</div>
+          <PageLoader fill={false} />
         </div>
       </div>
     );

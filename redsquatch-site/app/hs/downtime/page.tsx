@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { API } from '@/lib/api';
 import GamesModal from '@/components/games/GamesModal';
 import CopperPanel from '@/components/cenote/CopperPanel';
+import PageLoader from '@/components/ui/PageLoader';
 
 export default function HSDowntimePage() {
   const [loading, setLoading] = useState(true);
@@ -24,7 +25,7 @@ export default function HSDowntimePage() {
     })();
   }, [router]);
 
-  if (loading) return null;
+  if (loading) return <PageLoader />;
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] p-6 space-y-8">

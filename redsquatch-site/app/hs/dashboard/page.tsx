@@ -7,6 +7,7 @@ import { QuoteWidget } from '@/components/QuoteWidget';
 import { HistoryWidget } from '@/components/HistoryWidget';
 import { WeatherWidget } from '@/components/WeatherWidget';
 import CopperPanel from '@/components/cenote/CopperPanel';
+import PageLoader from '@/components/ui/PageLoader';
 
 export default function HSDashboardPage() {
   const [user,    setUser]    = useState<{ username: string; displayName?: string } | null>(null);
@@ -27,20 +28,7 @@ export default function HSDashboardPage() {
     })();
   }, [router]);
 
-  if (loading) return (
-    <div className="flex items-center justify-center h-screen">
-      <div
-        className="glass-surface rounded-2xl px-10 py-8 text-center"
-        style={{ minWidth: 220 }}
-      >
-        <div
-          className="w-8 h-8 rounded-full border-2 mx-auto mb-4 animate-spin"
-          style={{ borderColor: 'rgba(184,115,51,0.2)', borderTopColor: '#b87333' }}
-        />
-        <p className="text-sm" style={{ color: 'rgba(255,255,255,0.6)' }}>Loading dashboard…</p>
-      </div>
-    </div>
-  );
+  if (loading) return <PageLoader label="Loading dashboard…" />;
 
   return (
     <div>

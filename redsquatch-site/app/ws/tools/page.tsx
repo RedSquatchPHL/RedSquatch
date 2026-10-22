@@ -10,6 +10,7 @@ import FileTransferPanel from '@/components/FileTransferPanel';
 import BookLibrary from '@/components/BookLibrary';
 import Bi from '@/components/tonatiuh/Bi';
 import s from './tools.module.css';
+import PageLoader from '@/components/ui/PageLoader';
 
 type AppletKey = 'scratchpad' | 'files' | 'library' | null;
 
@@ -49,7 +50,7 @@ export default function WSToolsPage() {
       <div className={s.page}>
         <div className={s.wallTexture} /><div className={s.wallColor} /><div className={s.wallGlow} />
         <div className={s.content} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
-          <div style={{ color: 'rgba(255,250,240,0.7)' }}>Loading…</div>
+          <PageLoader fill={false} />
         </div>
       </div>
     );

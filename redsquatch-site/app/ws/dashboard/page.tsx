@@ -9,6 +9,7 @@ import CountUp from '@/components/tonatiuh/CountUp';
 import Bi from '@/components/tonatiuh/Bi';
 import { greetingEs } from '@/lib/bilingual';
 import s from './dashboard.module.css';
+import PageLoader from '@/components/ui/PageLoader';
 
 interface Goal {
   id: number;
@@ -80,7 +81,7 @@ export default function WSDashboardPage() {
       <div className={s.page}>
         <div className={s.wallTexture} /><div className={s.wallColor} /><div className={s.wallGlow} />
         <div className={s.content} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
-          <div style={{ color: 'rgba(255,250,240,0.7)' }}>Loading…</div>
+          <PageLoader fill={false} />
         </div>
       </div>
     );

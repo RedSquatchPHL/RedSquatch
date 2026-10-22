@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { API } from '@/lib/api';
 import CocinaApp from '@/components/cocina/CocinaApp';
+import PageLoader from '@/components/ui/PageLoader';
 
 export default function HSCocinaPage() {
   const [loading, setLoading] = useState(true);
@@ -22,7 +23,7 @@ export default function HSCocinaPage() {
     })();
   }, [router]);
 
-  if (loading) return null;
+  if (loading) return <PageLoader />;
 
   return <CocinaApp />;
 }

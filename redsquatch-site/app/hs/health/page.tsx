@@ -11,6 +11,7 @@ import NutritionTracker from '@/components/trackers/glp1/NutritionTracker';
 import InjectionTracker from '@/components/trackers/glp1/InjectionTracker';
 import DrugLevelTracker from '@/components/trackers/glp1/DrugLevelTracker';
 import CopperPanel from '@/components/cenote/CopperPanel';
+import PageLoader from '@/components/ui/PageLoader';
 
 type Applet = 'blood_pressure' | 'weight' | 'nutrition' | 'injections' | 'drug_levels' | null;
 
@@ -32,7 +33,7 @@ export default function HSHealthPage() {
     })();
   }, [router]);
 
-  if (loading) return null;
+  if (loading) return <PageLoader />;
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] p-6 space-y-8">
