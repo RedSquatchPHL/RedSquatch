@@ -188,6 +188,8 @@ export default function ClockGateMenu({ placement = 'floating' }: { placement?: 
             bottom: 'calc(100% + 6px)',
             left: 0,
             ...pillBase,
+            // Near-opaque so page text behind the dropdown can't bleed through and overlap the items.
+            background: 'color-mix(in srgb, var(--stone-0) 96%, transparent)',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'stretch',
