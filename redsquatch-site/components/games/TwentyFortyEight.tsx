@@ -188,7 +188,7 @@ export default function TwentyFortyEight({ onBack }: Game2048Props) {
       <button
         onClick={onBack}
         className="self-start flex items-center gap-2 text-sm hover:opacity-70 transition-opacity"
-        style={{ color: '#d4a373' }}
+        style={{ color: 'var(--rs-accent)' }}
       >
         <ChevronLeft size={16} />
         Back
@@ -196,10 +196,10 @@ export default function TwentyFortyEight({ onBack }: Game2048Props) {
 
       {/* Score */}
       <div className="text-center">
-        <p className="text-sm" style={{ color: 'rgba(212,163,115,0.7)' }}>
+        <p className="text-sm" style={{ color: 'rgba(var(--rs-accent-rgb),0.7)' }}>
           Score
         </p>
-        <p className="text-3xl font-bold" style={{ color: '#d4a373' }}>
+        <p className="text-3xl font-bold" style={{ color: 'var(--rs-accent)' }}>
           {state.score}
         </p>
       </div>
@@ -207,7 +207,7 @@ export default function TwentyFortyEight({ onBack }: Game2048Props) {
       {/* Game Board */}
       <div
         className="grid grid-cols-4 gap-2 p-4 rounded-lg"
-        style={{ background: 'rgba(184,115,51,0.1)', width: 'fit-content' }}
+        style={{ background: 'rgba(var(--rs-edge-rgb),0.1)', width: 'fit-content' }}
       >
         {state.board.map((row, i) =>
           row.map((cell, j) => (
@@ -215,7 +215,7 @@ export default function TwentyFortyEight({ onBack }: Game2048Props) {
               key={`${i}-${j}`}
               className="w-16 h-16 flex items-center justify-center rounded font-bold text-xl transition-all"
               style={{
-                background: cell === 0 ? 'rgba(184,115,51,0.05)' : getTileColor(cell),
+                background: cell === 0 ? 'rgba(var(--rs-edge-rgb),0.05)' : getTileColor(cell),
                 color: cell > 4 ? 'white' : '#3c3c3c',
               }}
             >
@@ -230,28 +230,28 @@ export default function TwentyFortyEight({ onBack }: Game2048Props) {
         <button
           onClick={() => move('up')}
           className="px-4 py-2 rounded border text-sm font-semibold transition-all"
-          style={{ borderColor: 'rgba(184,115,51,0.3)', color: '#d4a373' }}
+          style={{ borderColor: 'rgba(var(--rs-edge-rgb),0.3)', color: 'var(--rs-accent)' }}
         >
           ↑
         </button>
         <button
           onClick={() => move('left')}
           className="px-4 py-2 rounded border text-sm font-semibold transition-all"
-          style={{ borderColor: 'rgba(184,115,51,0.3)', color: '#d4a373' }}
+          style={{ borderColor: 'rgba(var(--rs-edge-rgb),0.3)', color: 'var(--rs-accent)' }}
         >
           ←
         </button>
         <button
           onClick={() => move('down')}
           className="px-4 py-2 rounded border text-sm font-semibold transition-all"
-          style={{ borderColor: 'rgba(184,115,51,0.3)', color: '#d4a373' }}
+          style={{ borderColor: 'rgba(var(--rs-edge-rgb),0.3)', color: 'var(--rs-accent)' }}
         >
           ↓
         </button>
         <button
           onClick={() => move('right')}
           className="px-4 py-2 rounded border text-sm font-semibold transition-all"
-          style={{ borderColor: 'rgba(184,115,51,0.3)', color: '#d4a373' }}
+          style={{ borderColor: 'rgba(var(--rs-edge-rgb),0.3)', color: 'var(--rs-accent)' }}
         >
           →
         </button>
@@ -259,16 +259,16 @@ export default function TwentyFortyEight({ onBack }: Game2048Props) {
 
       {/* Status */}
       {(state.gameOver || state.won) && (
-        <div className="mt-4 p-4 rounded-lg text-center" style={{ background: 'rgba(184,115,51,0.1)' }}>
-          <p className="font-bold mb-2" style={{ color: state.won ? '#22c55e' : '#ef4444' }}>
+        <div className="mt-4 p-4 rounded-lg text-center" style={{ background: 'rgba(var(--rs-edge-rgb),0.1)' }}>
+          <p className="font-bold mb-2" style={{ color: state.won ? 'var(--rs-ok)' : 'var(--rs-bad)' }}>
             {state.gameOver ? '💥 Game Over!' : '🎉 You Reached 2048!'}
           </p>
           <button
             onClick={() => initializeGame()}
             className="px-4 py-2 rounded border transition-all text-sm font-medium"
             style={{
-              borderColor: 'rgba(184,115,51,0.4)',
-              color: '#d4a373',
+              borderColor: 'rgba(var(--rs-edge-rgb),0.4)',
+              color: 'var(--rs-accent)',
             }}
           >
             New Game

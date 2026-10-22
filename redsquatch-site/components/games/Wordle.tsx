@@ -134,7 +134,7 @@ export default function Wordle({ onBack }: WordleProps) {
       <button
         onClick={onBack}
         className="self-start flex items-center gap-2 text-sm hover:opacity-70 transition-opacity"
-        style={{ color: '#d4a373' }}
+        style={{ color: 'var(--rs-accent)' }}
       >
         <ChevronLeft size={16} />
         Back
@@ -162,12 +162,12 @@ export default function Wordle({ onBack }: WordleProps) {
                         borderColor: guess
                           ? 'transparent'
                           : isCurrent
-                            ? 'rgba(184,115,51,0.5)'
-                            : 'rgba(184,115,51,0.2)',
+                            ? 'rgba(var(--rs-edge-rgb),0.5)'
+                            : 'rgba(var(--rs-edge-rgb),0.2)',
                         background: guess
                           ? getLetterColor(letter, col, guess)
                           : 'transparent',
-                        color: guess ? 'white' : 'rgba(212,163,115,0.9)',
+                        color: guess ? 'white' : 'rgba(var(--rs-accent-rgb),0.9)',
                       }}
                     >
                       {letter || currentLetter}
@@ -191,8 +191,8 @@ export default function Wordle({ onBack }: WordleProps) {
                 onClick={() => handleKeyPress('Backspace')}
                 className="px-3 py-2 rounded text-xs border transition-all"
                 style={{
-                  borderColor: 'rgba(184,115,51,0.3)',
-                  color: '#d4a373',
+                  borderColor: 'rgba(var(--rs-edge-rgb),0.3)',
+                  color: 'var(--rs-accent)',
                 }}
               >
                 ⌫
@@ -204,9 +204,9 @@ export default function Wordle({ onBack }: WordleProps) {
                 onClick={() => handleKeyPress(letter)}
                 className="px-2.5 py-1.5 rounded text-xs font-semibold border transition-all"
                 style={{
-                  borderColor: 'rgba(184,115,51,0.3)',
-                  color: '#d4a373',
-                  background: state.guesses.flat().includes(letter) ? 'rgba(184,115,51,0.1)' : 'transparent',
+                  borderColor: 'rgba(var(--rs-edge-rgb),0.3)',
+                  color: 'var(--rs-accent)',
+                  background: state.guesses.flat().includes(letter) ? 'rgba(var(--rs-edge-rgb),0.1)' : 'transparent',
                 }}
               >
                 {letter}
@@ -217,8 +217,8 @@ export default function Wordle({ onBack }: WordleProps) {
                 onClick={() => submitGuess()}
                 className="px-3 py-2 rounded text-xs border font-semibold transition-all"
                 style={{
-                  borderColor: 'rgba(184,115,51,0.3)',
-                  color: '#d4a373',
+                  borderColor: 'rgba(var(--rs-edge-rgb),0.3)',
+                  color: 'var(--rs-accent)',
                 }}
               >
                 Enter
@@ -230,16 +230,16 @@ export default function Wordle({ onBack }: WordleProps) {
 
       {/* Status */}
       {state.gameStatus !== 'playing' && (
-        <div className="mt-4 p-4 rounded-lg text-center" style={{ background: 'rgba(184,115,51,0.1)' }}>
-          <p className="font-bold mb-2" style={{ color: state.gameStatus === 'won' ? '#22c55e' : '#ef4444' }}>
+        <div className="mt-4 p-4 rounded-lg text-center" style={{ background: 'rgba(var(--rs-edge-rgb),0.1)' }}>
+          <p className="font-bold mb-2" style={{ color: state.gameStatus === 'won' ? 'var(--rs-ok)' : 'var(--rs-bad)' }}>
             {state.gameStatus === 'won' ? '🎉 You Won!' : `😢 Game Over! Word: ${state.todayWord}`}
           </p>
           <button
             onClick={resetGame}
             className="px-4 py-2 rounded border transition-all text-sm font-medium"
             style={{
-              borderColor: 'rgba(184,115,51,0.4)',
-              color: '#d4a373',
+              borderColor: 'rgba(var(--rs-edge-rgb),0.4)',
+              color: 'var(--rs-accent)',
             }}
           >
             New Game

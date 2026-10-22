@@ -18,7 +18,12 @@ export default function GamesModal({ isOpen, onClose }: GamesModalProps) {
   return (
     <>
       <div
-        className="fixed inset-0 z-40 bg-black/50"
+        className="fixed inset-0 z-40"
+        style={{
+          background: 'color-mix(in srgb, var(--stone-0) 38%, transparent)',
+          backdropFilter: 'blur(6px)',
+          WebkitBackdropFilter: 'blur(6px)',
+        }}
         onClick={onClose}
       />
       <div
@@ -27,21 +32,21 @@ export default function GamesModal({ isOpen, onClose }: GamesModalProps) {
         <div
           className="glass-surface rounded-2xl p-8 max-w-2xl w-full pointer-events-auto overflow-y-auto max-h-[90vh]"
           style={{
-            border: '1px solid rgba(184,115,51,0.4)',
-            background: 'rgba(15,12,8,0.85)',
+            border: '1px solid rgba(var(--rs-accent-rgb),0.4)',
+            background: 'color-mix(in srgb, var(--stone-0) 96%, black)',
           }}
           onClick={e => e.stopPropagation()}
         >
           {/* Header */}
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold" style={{ color: '#d4a373' }}>
+            <h2 className="text-2xl font-bold" style={{ color: 'var(--rs-accent)' }}>
               Games
             </h2>
             <button
               onClick={onClose}
-              className="p-1 hover:bg-copper/10 rounded transition-colors"
+              className="p-1 hover:bg-[rgba(var(--rs-accent-rgb),0.12)] rounded transition-colors"
               title="Close"
-              style={{ color: '#d4a373' }}
+              style={{ color: 'var(--rs-accent)' }}
             >
               <X size={24} />
             </button>
@@ -54,21 +59,21 @@ export default function GamesModal({ isOpen, onClose }: GamesModalProps) {
                 onClick={() => setActiveGame('wordle')}
                 className="p-6 rounded-xl border-2 transition-all duration-300 text-center"
                 style={{
-                  borderColor: 'rgba(184,115,51,0.3)',
-                  color: '#d4a373',
+                  borderColor: 'rgba(var(--rs-edge-rgb),0.3)',
+                  color: 'var(--rs-accent)',
                 }}
                 onMouseEnter={e => {
-                  (e.currentTarget as HTMLElement).style.borderColor = '#b87333';
-                  (e.currentTarget as HTMLElement).style.background = 'rgba(184,115,51,0.1)';
+                  (e.currentTarget as HTMLElement).style.borderColor = 'var(--rs-accent)';
+                  (e.currentTarget as HTMLElement).style.background = 'rgba(var(--rs-edge-rgb),0.1)';
                 }}
                 onMouseLeave={e => {
-                  (e.currentTarget as HTMLElement).style.borderColor = 'rgba(184,115,51,0.3)';
+                  (e.currentTarget as HTMLElement).style.borderColor = 'rgba(var(--rs-edge-rgb),0.3)';
                   (e.currentTarget as HTMLElement).style.background = 'transparent';
                 }}
               >
                 <div className="text-4xl mb-2">📝</div>
                 <h3 className="font-semibold">Wordle</h3>
-                <p className="text-xs mt-2" style={{ color: 'rgba(212,163,115,0.7)' }}>
+                <p className="text-xs mt-2" style={{ color: 'rgba(var(--rs-accent-rgb),0.7)' }}>
                   Guess the word in 6 tries
                 </p>
               </button>
@@ -77,21 +82,21 @@ export default function GamesModal({ isOpen, onClose }: GamesModalProps) {
                 onClick={() => setActiveGame('2048')}
                 className="p-6 rounded-xl border-2 transition-all duration-300 text-center"
                 style={{
-                  borderColor: 'rgba(184,115,51,0.3)',
-                  color: '#d4a373',
+                  borderColor: 'rgba(var(--rs-edge-rgb),0.3)',
+                  color: 'var(--rs-accent)',
                 }}
                 onMouseEnter={e => {
-                  (e.currentTarget as HTMLElement).style.borderColor = '#b87333';
-                  (e.currentTarget as HTMLElement).style.background = 'rgba(184,115,51,0.1)';
+                  (e.currentTarget as HTMLElement).style.borderColor = 'var(--rs-accent)';
+                  (e.currentTarget as HTMLElement).style.background = 'rgba(var(--rs-edge-rgb),0.1)';
                 }}
                 onMouseLeave={e => {
-                  (e.currentTarget as HTMLElement).style.borderColor = 'rgba(184,115,51,0.3)';
+                  (e.currentTarget as HTMLElement).style.borderColor = 'rgba(var(--rs-edge-rgb),0.3)';
                   (e.currentTarget as HTMLElement).style.background = 'transparent';
                 }}
               >
                 <div className="text-4xl mb-2">🎮</div>
                 <h3 className="font-semibold">2048</h3>
-                <p className="text-xs mt-2" style={{ color: 'rgba(212,163,115,0.7)' }}>
+                <p className="text-xs mt-2" style={{ color: 'rgba(var(--rs-accent-rgb),0.7)' }}>
                   Slide tiles to reach 2048
                 </p>
               </button>
