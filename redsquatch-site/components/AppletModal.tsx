@@ -9,7 +9,7 @@ interface AppletModalProps {
   children: React.ReactNode;
   wide?: boolean;
   // 'tonatiuh' = the /ws dark-glass look. Default keeps the original copper-on-black
-  // modal, which /hs/mexican and /hs/health still use.
+  // modal, now driven by the --rs-* tokens so it follows the HS time-of-day phase.
   tone?: 'default' | 'tonatiuh';
 }
 
@@ -27,12 +27,12 @@ export default function AppletModal({ isOpen, title, onClose, children, wide, to
         font: "'Cabinet Grotesk', sans-serif",
       }
     : {
-        border: '1px solid rgba(184,115,51,0.4)',
-        background: 'rgba(10,8,6,0.95)',
-        shadow: '0 8px 40px rgba(0,0,0,0.6), 0 0 24px rgba(184,115,51,0.15)',
-        divider: '1px solid rgba(184,115,51,0.25)',
-        title: '#d4a373',
-        close: '#d4a373',
+        border: '1px solid rgba(var(--rs-accent-rgb),0.4)',
+        background: 'color-mix(in srgb, var(--stone-0) 96%, black)',
+        shadow: '0 8px 40px rgba(0,0,0,0.6), 0 0 24px rgba(var(--rs-accent-rgb),0.15)',
+        divider: '1px solid rgba(var(--rs-accent-rgb),0.25)',
+        title: 'var(--rs-accent)',
+        close: 'var(--rs-accent)',
         font: undefined,
       };
 

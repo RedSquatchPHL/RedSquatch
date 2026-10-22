@@ -40,3 +40,63 @@
   --rs-ink-muted: color-mix(in srgb, var(--copper-2) 68%, transparent);
   --rs-ink-faint: color-mix(in srgb, var(--copper-2) 45%, transparent);
 }
+
+/* Applet launcher card — the Health / Mexican tool cards. Hover and focus live in
+   CSS (not inline JS) so they follow the phase tokens and work for keyboard users. */
+.rs-applet-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  height: 100%;
+  padding: 0.75rem;
+  border-radius: 0.75rem;
+  background: var(--rs-surface);
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+  border: 1px solid var(--rs-border);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.rs-applet-trigger { cursor: pointer; text-align: left; border-radius: 0.75rem; }
+
+.rs-applet-trigger:hover .rs-applet-card,
+.rs-applet-trigger:focus-visible .rs-applet-card {
+  transform: translateY(-2px);
+  border-color: var(--rs-accent);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5), 0 0 24px rgba(var(--rs-accent-rgb), 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.rs-applet-trigger:focus-visible { outline: 2px solid var(--rs-accent); outline-offset: 3px; }
+
+.rs-applet-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  color: var(--rs-accent);
+  background: rgba(var(--rs-accent-rgb), 0.14);
+  transition: transform 0.25s ease;
+}
+.rs-applet-trigger:hover .rs-applet-icon { transform: scale(1.1); }
+
+.rs-applet-title { font-weight: 600; font-size: 0.875rem; color: var(--rs-accent); }
+.rs-applet-desc { margin-top: 0.125rem; font-size: 0.75rem; color: var(--rs-ink-muted); }
+
+.rs-applet-bar {
+  height: 2px;
+  border-radius: 999px;
+  opacity: 0;
+  background: linear-gradient(to right, transparent, var(--rs-accent), transparent);
+  transition: opacity 0.25s ease;
+}
+.rs-applet-trigger:hover .rs-applet-bar,
+.rs-applet-trigger:focus-visible .rs-applet-bar { opacity: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .rs-applet-card, .rs-applet-icon, .rs-applet-bar { transition: none; }
+  .rs-applet-trigger:hover .rs-applet-card,
+  .rs-applet-trigger:hover .rs-applet-icon { transform: none; }
+}
