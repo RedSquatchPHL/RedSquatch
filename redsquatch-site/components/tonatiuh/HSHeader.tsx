@@ -1,19 +1,20 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { Waves } from 'lucide-react';
 import { HS_NAV } from '@/lib/menuConfig';
 import ThemeToggle from '@/components/ThemeToggle';
+import ClockGateMenu from '@/components/ClockGateMenu';
 import BrandMark from './BrandMark';
 import { PRESET_NAMES, loadOverride, nextOverride, saveOverride, subscribeOverride, type Override } from '@/lib/oceanScene';
 
 // Shared HomeSquatch top bar (mounted once in app/hs/layout.tsx): two-tone brand
-// + OS switch to WorkSquatch, current page name, theme toggle and settings.
+// + OS switch to WorkSquatch, current page name, theme toggle and the Settings menu
+// (ClockGateMenu in its header placement: clock in/out, navigation, quick links, account).
 // Fixed 64px (h-16) so full-height pages can subtract it: calc(100vh - 4rem).
 export default function HSHeader() {
   const pathname = usePathname() ?? '';
-  const router = useRouter();
   const [scene, setScene] = useState<Override>('auto');
   useEffect(() => {
     setScene(loadOverride());
@@ -47,13 +48,7 @@ export default function HSHeader() {
           <span className="hidden sm:inline">{sceneLabel}</span>
         </button>
         <ThemeToggle />
-        <button
-          onClick={() => router.push('/settings')}
-          className="glass-btn px-3.5 py-1.5 text-sm rounded-xl font-medium"
-          title="Settings"
-        >
-          ⚙ Settings
-        </button>
+        <ClockGateMenu placement="header" />
       </div>
     </header>
   );

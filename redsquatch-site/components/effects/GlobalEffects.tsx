@@ -24,12 +24,13 @@ function StaticWorkBackdrop() {
 export default function GlobalEffects() {
   const pathname = usePathname();
   const isWorkMode = pathname?.startsWith('/ws') ?? false;
+  const isHome = pathname?.startsWith('/hs') ?? false;
 
   return (
     <>
       {/* Work Mode <-> Downtime Mode manual toggle. Floating bottom-left everywhere except
-          /ws, where OSHeader renders it in the top bar instead (no bottom buttons there). */}
-      {!isWorkMode && <ClockGateMenu />}
+          /ws (OSHeader) and /hs (HSHeader), which render it in their own top bars. */}
+      {!isWorkMode && !isHome && <ClockGateMenu />}
       {isWorkMode && <StaticWorkBackdrop />}
     </>
   );

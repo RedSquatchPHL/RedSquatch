@@ -30,7 +30,7 @@ function formatRemaining(ms: number): string {
 // (Switch/Settings/Log out). Reachable from every route via GlobalEffects.tsx.
 // A small dot on the badge signals a pending scheduled clock-out even while
 // the panel is closed.
-export default function ClockGateMenu() {
+export default function ClockGateMenu({ placement = 'floating' }: { placement?: 'floating' | 'header' }) {
   const { mode, clockoutTarget, clockOutNow, scheduleClockOut, cancelClockOut, clockInNow } = useHomeSquatchGate();
   const router = useRouter();
   const pathname = usePathname();
@@ -38,6 +38,10 @@ export default function ClockGateMenu() {
   // On /ws the trigger lives inside the SideRail's bottom slot instead of
   // floating as its own pill; wsDock.* handles that placement + styling.
   const inWS = pathname?.startsWith('/ws') ?? false;
+  // placement='header' is the /hs top bar: the labelled Settings button IS the trigger and
+  // the panel drops down from it, reusing the same dock/panel positioning as /ws.
+  const inHeaderSlot = placement === 'header';
+  const inDock = inWS || inHeaderSlot;
   const navItems = inHS ? HS_NAV : WS_NAV;
   const [open, setOpen] = useState(false);
   const [remaining, setRemaining] = useState('');
@@ -158,12 +162,12 @@ export default function ClockGateMenu() {
   return (
     <div
       ref={ref}
-      className={inWS ? wsDock.dock : undefined}
-      style={inWS ? undefined : { position: 'fixed', bottom: 14, left: 14, zIndex: 60 }}
+      className={inDock ? wsDock.dock : undefined}
+      style={inDock ? undefined : { position: 'fixed', bottom: 14, left: 14, zIndex: 60 }}
     >
       {open && (
         <div
-          className={inWS ? wsDock.panel : undefined}
+          className={inDock ? wsDock.panel : undefined}
           style={{
             position: 'absolute',
             bottom: 'calc(100% + 6px)',
@@ -175,6 +179,7 @@ export default function ClockGateMenu() {
             gap: 4,
             padding: 8,
             minWidth: 226,
+            ...(inDock ? { maxHeight: 'calc(100vh - 84px)', overflowY: 'auto' as const } : null),
           }}
         >
           {mode === 'work' ? (
@@ -273,11 +278,13 @@ export default function ClockGateMenu() {
 
       <button
         onClick={() => setOpen(o => !o)}
-        title={mode === 'work' ? 'Clock out' : 'Clock in'}
+        title={inHeaderSlot ? 'Settings, navigation and clock' : mode === 'work' ? 'Clock out' : 'Clock in'}
         aria-label="Clock in/out and account menu"
         aria-expanded={open}
-        className={inWS ? `${wsDock.trigger} ${open ? wsDock.triggerOpen : ''}` : undefined}
-        style={inWS ? { position: 'relative' } : {
+        className={inWS
+          ? `${wsDock.trigger} ${open ? wsDock.triggerOpen : ''}`
+          : inHeaderSlot ? 'glass-btn px-3.5 py-1.5 text-sm rounded-xl font-medium flex items-center gap-1.5' : undefined}
+        style={inDock ? { position: 'relative' } : {
           ...pillBase,
           position: 'relative',
           width: 34,
@@ -291,7 +298,8 @@ export default function ClockGateMenu() {
           cursor: 'pointer',
         }}
       >
-        <Settings style={{ width: 15, height: 15 }} />
+        <Settings style={{ width: 15, height: 15 }} aria-hidden />
+        {inHeaderSlot && <span>Settings</span>}
         {clockoutTarget != null && (
           <span
             style={{
