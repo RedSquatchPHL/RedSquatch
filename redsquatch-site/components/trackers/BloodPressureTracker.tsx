@@ -46,11 +46,11 @@ const MEDICATION_LABEL: Record<Medication, string> = {
 type Category = 'Normal' | 'Elevated' | 'High (Stage 1)' | 'High (Stage 2)' | 'Hypertensive Crisis';
 
 function getCategory(systolic: number, diastolic: number): { label: Category; color: string } {
-  if (systolic > 180 || diastolic > 120) return { label: 'Hypertensive Crisis', color: '#c85050' };
-  if (systolic >= 140 || diastolic >= 90) return { label: 'High (Stage 2)', color: '#d97a5c' };
-  if (systolic >= 130 || diastolic >= 80) return { label: 'High (Stage 1)', color: '#d9a036' };
-  if (systolic >= 120) return { label: 'Elevated', color: '#d4a373' };
-  return { label: 'Normal', color: '#4caf50' };
+  if (systolic > 180 || diastolic > 120) return { label: 'Hypertensive Crisis', color: 'var(--rs-bad)' };
+  if (systolic >= 140 || diastolic >= 90) return { label: 'High (Stage 2)', color: 'var(--rs-bad)' };
+  if (systolic >= 130 || diastolic >= 80) return { label: 'High (Stage 1)', color: 'var(--rs-warn)' };
+  if (systolic >= 120) return { label: 'Elevated', color: 'var(--rs-accent)' };
+  return { label: 'Normal', color: 'var(--rs-ok)' };
 }
 
 function toLocalDatetimeInputValue(iso: string): string {
@@ -107,8 +107,8 @@ function formToPayload(f: FormState): Record<string, unknown> | null {
 }
 
 const inputStyle: React.CSSProperties = {
-  borderColor: 'rgba(var(--copper-bold-rgb),0.3)',
-  color: 'var(--copper-tan)',
+  borderColor: 'rgba(var(--rs-edge-rgb),0.3)',
+  color: 'var(--rs-accent)',
   background: 'transparent',
 };
 
@@ -202,14 +202,14 @@ function BPTooltip({ active, payload }: { active?: boolean; payload?: TooltipEnt
   const point = payload[0].payload;
   return (
     <div style={{
-      backgroundColor: 'rgba(20,18,16,0.95)',
-      border: '1px solid rgba(184,115,51,0.3)',
+      backgroundColor: 'var(--rs-well-solid)',
+      border: '1px solid rgba(var(--rs-edge-rgb),0.3)',
       borderRadius: '6px',
-      color: 'var(--copper-tan)',
+      color: 'var(--rs-accent)',
       fontSize: '12px',
       padding: '8px 12px',
     }}>
-      <div style={{ color: 'rgba(212,163,115,0.7)', marginBottom: 6, fontSize: '11px' }}>{point.fullLabel}</div>
+      <div style={{ color: 'rgba(var(--rs-accent-rgb),0.7)', marginBottom: 6, fontSize: '11px' }}>{point.fullLabel}</div>
       {payload.map(entry => (
         <div key={entry.name} style={{ color: entry.color, lineHeight: '1.6' }}>
           {entry.name}: <strong>{entry.value}</strong>
@@ -246,19 +246,19 @@ function BPChart({ readings }: { readings: Reading[] }) {
   };
   const activeBtn: React.CSSProperties = {
     ...btnBase,
-    background: 'var(--copper-bold)',
-    borderColor: 'var(--copper-bold)',
-    color: 'var(--stone-0)',
+    background: 'var(--rs-btn)',
+    borderColor: 'var(--rs-btn)',
+    color: 'var(--rs-btn-ink)',
   };
   const inactiveBtn: React.CSSProperties = {
     ...btnBase,
     background: 'transparent',
-    borderColor: 'rgba(var(--copper-bold-rgb),0.3)',
-    color: 'var(--copper-tan)',
+    borderColor: 'rgba(var(--rs-edge-rgb),0.3)',
+    color: 'var(--rs-accent)',
   };
 
-  const axisStyle = { fill: 'rgba(212,163,115,0.5)', fontSize: 11 };
-  const gridStyle = { stroke: 'rgba(184,115,51,0.1)' };
+  const axisStyle = { fill: 'rgba(var(--rs-accent-rgb),0.5)', fontSize: 11 };
+  const gridStyle = { stroke: 'rgba(var(--rs-edge-rgb),0.1)' };
 
   const sharedProps = {
     data,
@@ -269,7 +269,7 @@ function BPChart({ readings }: { readings: Reading[] }) {
     <div style={{ marginBottom: '20px' }}>
       {/* Chart controls */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px', flexWrap: 'wrap', gap: '8px' }}>
-        <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--copper-tan)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+        <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--rs-accent)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
           BP Over Time
         </span>
         <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
@@ -280,7 +280,7 @@ function BPChart({ readings }: { readings: Reading[] }) {
             <BarChart2 size={12} /> Bar
           </button>
           <button
-            style={{ ...inactiveBtn, borderColor: showHR ? '#4caf5088' : 'rgba(var(--copper-bold-rgb),0.3)', color: showHR ? '#4caf50' : 'var(--copper-tan)' }}
+            style={{ ...inactiveBtn, borderColor: showHR ? 'color-mix(in srgb, var(--rs-ok) 53%, transparent)' : 'rgba(var(--rs-edge-rgb),0.3)', color: showHR ? 'var(--rs-ok)' : 'var(--rs-accent)' }}
             onClick={() => setShowHR(h => !h)}
           >
             HR
@@ -288,29 +288,29 @@ function BPChart({ readings }: { readings: Reading[] }) {
         </div>
       </div>
 
-      <div style={{ borderRadius: '8px', padding: '12px 4px 4px', background: 'rgba(20,18,16,0.6)', overflow: 'hidden' }}>
+      <div style={{ borderRadius: '8px', padding: '12px 4px 4px', background: 'var(--rs-well)', overflow: 'hidden' }}>
         <ResponsiveContainer width="100%" height={220}>
           {chartType === 'line' ? (
             <LineChart {...sharedProps}>
               <CartesianGrid strokeDasharray="3 3" {...gridStyle} />
               <XAxis dataKey="label" tick={axisStyle} axisLine={false} tickLine={false} />
               <YAxis tick={axisStyle} axisLine={false} tickLine={false} width={32} domain={['auto', 'auto']} />
-              <Tooltip content={<BPTooltip />} cursor={{ stroke: 'rgba(184,115,51,0.25)', strokeWidth: 1 }} />
-              <Legend wrapperStyle={{ fontSize: 11, color: 'rgba(212,163,115,0.7)' }} />
-              <Line type="monotone" dataKey="systolic" stroke="#c85050" strokeWidth={2} dot={{ r: 3, fill: '#c85050' }} activeDot={{ r: 6 }} name="Systolic" />
-              <Line type="monotone" dataKey="diastolic" stroke="#b87333" strokeWidth={2} dot={{ r: 3, fill: '#b87333' }} activeDot={{ r: 6 }} name="Diastolic" />
-              {showHR && <Line type="monotone" dataKey="heart_rate" stroke="#4caf50" strokeWidth={2} dot={{ r: 3, fill: '#4caf50' }} activeDot={{ r: 6 }} name="Heart Rate" connectNulls />}
+              <Tooltip content={<BPTooltip />} cursor={{ stroke: 'rgba(var(--rs-edge-rgb),0.25)', strokeWidth: 1 }} />
+              <Legend wrapperStyle={{ fontSize: 11, color: 'rgba(var(--rs-accent-rgb),0.7)' }} />
+              <Line type="monotone" dataKey="systolic" stroke="var(--rs-bad)" strokeWidth={2} dot={{ r: 3, fill: 'var(--rs-bad)' }} activeDot={{ r: 6 }} name="Systolic" />
+              <Line type="monotone" dataKey="diastolic" stroke="var(--rs-btn)" strokeWidth={2} dot={{ r: 3, fill: 'var(--rs-btn)' }} activeDot={{ r: 6 }} name="Diastolic" />
+              {showHR && <Line type="monotone" dataKey="heart_rate" stroke="var(--rs-ok)" strokeWidth={2} dot={{ r: 3, fill: 'var(--rs-ok)' }} activeDot={{ r: 6 }} name="Heart Rate" connectNulls />}
             </LineChart>
           ) : (
             <BarChart {...sharedProps} barCategoryGap="30%">
               <CartesianGrid strokeDasharray="3 3" {...gridStyle} />
               <XAxis dataKey="label" tick={axisStyle} axisLine={false} tickLine={false} />
               <YAxis tick={axisStyle} axisLine={false} tickLine={false} width={32} domain={['auto', 'auto']} />
-              <Tooltip content={<BPTooltip />} cursor={{ fill: 'rgba(184,115,51,0.08)' }} />
-              <Legend wrapperStyle={{ fontSize: 11, color: 'rgba(212,163,115,0.7)' }} />
-              <Bar dataKey="systolic" fill="#c85050" radius={[3, 3, 0, 0]} name="Systolic" />
-              <Bar dataKey="diastolic" fill="#b87333" radius={[3, 3, 0, 0]} name="Diastolic" />
-              {showHR && <Bar dataKey="heart_rate" fill="#4caf50" radius={[3, 3, 0, 0]} name="Heart Rate" />}
+              <Tooltip content={<BPTooltip />} cursor={{ fill: 'rgba(var(--rs-edge-rgb),0.08)' }} />
+              <Legend wrapperStyle={{ fontSize: 11, color: 'rgba(var(--rs-accent-rgb),0.7)' }} />
+              <Bar dataKey="systolic" fill="var(--rs-bad)" radius={[3, 3, 0, 0]} name="Systolic" />
+              <Bar dataKey="diastolic" fill="var(--rs-btn)" radius={[3, 3, 0, 0]} name="Diastolic" />
+              {showHR && <Bar dataKey="heart_rate" fill="var(--rs-ok)" radius={[3, 3, 0, 0]} name="Heart Rate" />}
             </BarChart>
           )}
         </ResponsiveContainer>
@@ -502,22 +502,22 @@ export default function BloodPressureTracker() {
   }
 
   if (loading) {
-    return <div className="py-12 text-center" style={{ color: 'var(--copper-tan)' }}>Loading…</div>;
+    return <div className="py-12 text-center" style={{ color: 'var(--rs-accent)' }}>Loading…</div>;
   }
 
   return (
-    <div style={{ color: 'var(--copper-tan)' }}>
+    <div style={{ color: 'var(--rs-accent)' }}>
 
       {/* ── Header ───────────────────────────────────────────────────────── */}
       <div className="mb-3 flex items-start justify-between gap-3">
         <div>
-          <h2 className="text-xl font-bold" style={{ color: 'var(--copper-tan)', textShadow: '0 0 16px rgba(var(--copper-bold-rgb),0.3)' }}>
+          <h2 className="text-xl font-bold" style={{ color: 'var(--rs-accent)', textShadow: '0 0 16px rgba(var(--rs-edge-rgb),0.3)' }}>
             Blood Pressure Log
           </h2>
-          <p className="text-xs mt-1" style={{ color: 'rgba(var(--copper-tan-rgb),0.6)' }}>
+          <p className="text-xs mt-1" style={{ color: 'rgba(var(--rs-accent-rgb),0.6)' }}>
             Track systolic/diastolic, heart rate, position, and cuff placement over time
           </p>
-          {error && <p className="text-xs mt-1 text-red-400">{error}</p>}
+          {error && <p className="text-xs mt-1 text-[color:var(--rs-bad)]">{error}</p>}
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
           {readings.length > 0 && (
@@ -527,8 +527,8 @@ export default function BloodPressureTracker() {
               title={locked ? 'Unlock to edit or delete readings' : 'Lock editing'}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold border"
               style={{
-                borderColor: locked ? 'rgba(var(--copper-bold-rgb),0.3)' : 'rgba(76,175,80,0.5)',
-                color: locked ? 'var(--copper-tan)' : '#4caf50',
+                borderColor: locked ? 'rgba(var(--rs-edge-rgb),0.3)' : 'color-mix(in srgb, var(--rs-ok) 50%, transparent)',
+                color: locked ? 'var(--rs-accent)' : 'var(--rs-ok)',
               }}
             >
               {locked ? <Lock size={14} /> : <Unlock size={14} />}
@@ -540,7 +540,7 @@ export default function BloodPressureTracker() {
               type="button"
               onClick={exportPdf}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold border"
-              style={{ borderColor: 'rgba(var(--copper-bold-rgb),0.3)', color: 'var(--copper-tan)' }}
+              style={{ borderColor: 'rgba(var(--rs-edge-rgb),0.3)', color: 'var(--rs-accent)' }}
             >
               <FileDown size={14} /> Export PDF
             </button>
@@ -550,32 +550,32 @@ export default function BloodPressureTracker() {
 
       {/* ── Add Reading form (top) ────────────────────────────────────────── */}
       {showForm ? (
-        <div className="rounded-md p-4 mb-4 space-y-3" style={{ background: 'rgba(20,18,16,0.6)', border: '1px solid rgba(184,115,51,0.2)' }}>
+        <div className="rounded-md p-4 mb-4 space-y-3" style={{ background: 'var(--rs-well)', border: '1px solid rgba(var(--rs-edge-rgb),0.2)' }}>
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold" style={{ color: 'var(--copper-tan)' }}>Add a Reading</h3>
-            <button type="button" onClick={() => setShowForm(false)} style={{ color: 'rgba(var(--copper-tan-rgb),0.5)' }}>
+            <h3 className="text-sm font-bold" style={{ color: 'var(--rs-accent)' }}>Add a Reading</h3>
+            <button type="button" onClick={() => setShowForm(false)} style={{ color: 'rgba(var(--rs-accent-rgb),0.5)' }}>
               <X size={14} />
             </button>
           </div>
 
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="block text-xs mb-1" style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }}>Systolic</label>
+              <label className="block text-xs mb-1" style={{ color: 'rgba(var(--rs-accent-rgb),0.7)' }}>Systolic</label>
               <input value={form.systolic} onChange={e => setForm(f => ({ ...f, systolic: e.target.value }))} placeholder="e.g. 120" inputMode="numeric" className="w-full border px-2 py-1.5 text-sm rounded" style={inputStyle} />
             </div>
             <div>
-              <label className="block text-xs mb-1" style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }}>Diastolic</label>
+              <label className="block text-xs mb-1" style={{ color: 'rgba(var(--rs-accent-rgb),0.7)' }}>Diastolic</label>
               <input value={form.diastolic} onChange={e => setForm(f => ({ ...f, diastolic: e.target.value }))} placeholder="e.g. 80" inputMode="numeric" className="w-full border px-2 py-1.5 text-sm rounded" style={inputStyle} />
             </div>
             <div>
-              <label className="block text-xs mb-1" style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }}>Heart Rate (optional)</label>
+              <label className="block text-xs mb-1" style={{ color: 'rgba(var(--rs-accent-rgb),0.7)' }}>Heart Rate (optional)</label>
               <input value={form.heart_rate} onChange={e => setForm(f => ({ ...f, heart_rate: e.target.value }))} placeholder="e.g. 70" inputMode="numeric" className="w-full border px-2 py-1.5 text-sm rounded" style={inputStyle} />
             </div>
           </div>
 
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="block text-xs mb-1" style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }}>Position</label>
+              <label className="block text-xs mb-1" style={{ color: 'rgba(var(--rs-accent-rgb),0.7)' }}>Position</label>
               <select value={form.position} onChange={e => setForm(f => ({ ...f, position: e.target.value as Position }))} className="w-full border px-2 py-1.5 text-sm rounded" style={inputStyle}>
                 {Object.entries(POSITION_LABEL).map(([v, label]) => (
                   <option key={v} value={v} style={{ color: '#000' }}>{label}</option>
@@ -583,7 +583,7 @@ export default function BloodPressureTracker() {
               </select>
             </div>
             <div>
-              <label className="block text-xs mb-1" style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }}>Arm</label>
+              <label className="block text-xs mb-1" style={{ color: 'rgba(var(--rs-accent-rgb),0.7)' }}>Arm</label>
               <select value={form.arm} onChange={e => setForm(f => ({ ...f, arm: e.target.value as Arm }))} className="w-full border px-2 py-1.5 text-sm rounded" style={inputStyle}>
                 {Object.entries(ARM_LABEL).map(([v, label]) => (
                   <option key={v} value={v} style={{ color: '#000' }}>{label}</option>
@@ -591,7 +591,7 @@ export default function BloodPressureTracker() {
               </select>
             </div>
             <div>
-              <label className="block text-xs mb-1" style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }}>Medication (optional)</label>
+              <label className="block text-xs mb-1" style={{ color: 'rgba(var(--rs-accent-rgb),0.7)' }}>Medication (optional)</label>
               <select value={form.medication} onChange={e => setForm(f => ({ ...f, medication: e.target.value as Medication | '' }))} className="w-full border px-2 py-1.5 text-sm rounded" style={inputStyle}>
                 <option value="" style={{ color: '#000' }}>None</option>
                 {Object.entries(MEDICATION_LABEL).map(([v, label]) => (
@@ -602,7 +602,7 @@ export default function BloodPressureTracker() {
           </div>
 
           <div>
-            <label className="block text-xs mb-1" style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }}>Date/Time</label>
+            <label className="block text-xs mb-1" style={{ color: 'rgba(var(--rs-accent-rgb),0.7)' }}>Date/Time</label>
             <input
               type="datetime-local"
               value={form.reading_at}
@@ -613,10 +613,10 @@ export default function BloodPressureTracker() {
           </div>
 
           <div className="flex items-center gap-2">
-            <button type="button" onClick={saveForm} className="flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-semibold" style={{ background: 'var(--copper-bold)', color: 'var(--stone-0)' }}>
+            <button type="button" onClick={saveForm} className="flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-semibold" style={{ background: 'var(--rs-btn)', color: 'var(--rs-btn-ink)' }}>
               Add Reading
             </button>
-            <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 rounded-md text-sm font-semibold border" style={{ borderColor: 'rgba(var(--copper-bold-rgb),0.3)', color: 'var(--copper-tan)' }}>
+            <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 rounded-md text-sm font-semibold border" style={{ borderColor: 'rgba(var(--rs-edge-rgb),0.3)', color: 'var(--rs-accent)' }}>
               Cancel
             </button>
           </div>
@@ -626,14 +626,14 @@ export default function BloodPressureTracker() {
           type="button"
           onClick={startAdd}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold mb-4"
-          style={{ background: 'var(--copper-bold)', color: 'var(--stone-0)' }}
+          style={{ background: 'var(--rs-btn)', color: 'var(--rs-btn-ink)' }}
         >
           <Plus size={14} /> Add Reading
         </button>
       )}
 
       {confirmMsg && (
-        <div className="mb-3 text-xs rounded-md p-2" style={{ background: 'rgba(76,175,80,0.15)', color: '#4caf50' }}>
+        <div className="mb-3 text-xs rounded-md p-2" style={{ background: 'color-mix(in srgb, var(--rs-ok) 15%, transparent)', color: 'var(--rs-ok)' }}>
           {confirmMsg}
         </div>
       )}
@@ -643,16 +643,16 @@ export default function BloodPressureTracker() {
 
       {/* ── Readings table ───────────────────────────────────────────────── */}
       {readings.length === 0 && (
-        <div className="text-center py-10 text-sm" style={{ color: 'rgba(var(--copper-tan-rgb),0.55)' }}>
+        <div className="text-center py-10 text-sm" style={{ color: 'rgba(var(--rs-accent-rgb),0.55)' }}>
           No readings logged yet. Click &quot;Add Reading&quot; above to start tracking.
         </div>
       )}
 
       {readings.length > 0 && (
-        <div className="overflow-x-auto rounded-md" style={{ background: 'rgba(20,18,16,0.6)' }}>
+        <div className="overflow-x-auto rounded-md" style={{ background: 'var(--rs-well)' }}>
           <table className="w-full text-xs">
             <thead>
-              <tr style={{ borderBottom: '2px solid rgba(var(--copper-bold-rgb),0.2)' }}>
+              <tr style={{ borderBottom: '2px solid rgba(var(--rs-edge-rgb),0.2)' }}>
                 <th className="text-left px-3 py-2">Date/Time</th>
                 <th className="text-left px-3 py-2">BP</th>
                 <th className="text-left px-3 py-2">Heart Rate</th>
@@ -669,17 +669,17 @@ export default function BloodPressureTracker() {
                 const monthCount = month.weeks.reduce((n, w) => n + w.readings.length, 0);
                 return (
                   <Fragment key={month.key}>
-                    <tr style={{ borderBottom: '1px solid rgba(var(--copper-bold-rgb),0.15)' }}>
+                    <tr style={{ borderBottom: '1px solid rgba(var(--rs-edge-rgb),0.15)' }}>
                       <td colSpan={8} className="px-3 py-1.5">
                         <button
                           type="button"
                           onClick={() => toggleMonth(month.key)}
                           className="flex items-center gap-1.5 w-full text-left font-semibold text-sm"
-                          style={{ color: 'var(--copper-tan)' }}
+                          style={{ color: 'var(--rs-accent)' }}
                         >
                           {monthCollapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}
                           {month.label}
-                          <span className="text-xs font-normal" style={{ color: 'rgba(var(--copper-tan-rgb),0.5)' }}>
+                          <span className="text-xs font-normal" style={{ color: 'rgba(var(--rs-accent-rgb),0.5)' }}>
                             ({monthCount} reading{monthCount === 1 ? '' : 's'})
                           </span>
                         </button>
@@ -689,17 +689,17 @@ export default function BloodPressureTracker() {
                       const weekCollapsed = collapsedWeeks.has(week.key);
                       return (
                         <Fragment key={week.key}>
-                          <tr style={{ borderBottom: '1px solid rgba(var(--copper-bold-rgb),0.08)' }}>
+                          <tr style={{ borderBottom: '1px solid rgba(var(--rs-edge-rgb),0.08)' }}>
                             <td colSpan={8} className="pl-8 pr-3 py-1">
                               <button
                                 type="button"
                                 onClick={() => toggleWeek(week.key)}
                                 className="flex items-center gap-1.5 w-full text-left text-xs"
-                                style={{ color: 'rgba(var(--copper-tan-rgb),0.75)' }}
+                                style={{ color: 'rgba(var(--rs-accent-rgb),0.75)' }}
                               >
                                 {weekCollapsed ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
                                 {week.label}
-                                <span style={{ color: 'rgba(var(--copper-tan-rgb),0.45)' }}>({week.readings.length})</span>
+                                <span style={{ color: 'rgba(var(--rs-accent-rgb),0.45)' }}>({week.readings.length})</span>
                               </button>
                             </td>
                           </tr>
@@ -711,7 +711,7 @@ export default function BloodPressureTracker() {
                                 ? getCategory(liveSystolic, liveDiastolic)
                                 : getCategory(r.systolic, r.diastolic);
                               return (
-                                <tr key={r.id} style={{ borderBottom: '1px solid rgba(var(--copper-bold-rgb),0.1)', background: 'rgba(184,115,51,0.08)' }}>
+                                <tr key={r.id} style={{ borderBottom: '1px solid rgba(var(--rs-edge-rgb),0.1)', background: 'rgba(var(--rs-edge-rgb),0.08)' }}>
                                   <td className="px-3 py-2 pl-10">
                                     <input type="datetime-local" value={form.reading_at} onChange={e => setForm(f => ({ ...f, reading_at: e.target.value }))} className="w-full border px-1.5 py-1 text-xs rounded" style={inputStyle} />
                                   </td>
@@ -742,14 +742,14 @@ export default function BloodPressureTracker() {
                                     </select>
                                   </td>
                                   <td className="px-3 py-2">
-                                    <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold whitespace-nowrap" style={{ background: `${cat.color}2e`, color: cat.color }}>
+                                    <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold whitespace-nowrap" style={{ background: `color-mix(in srgb, ${cat.color} 18%, transparent)`, color: cat.color }}>
                                       {cat.label}
                                     </span>
                                   </td>
                                   <td className="px-3 py-2">
                                     <div className="flex items-center justify-end gap-2">
-                                      <button type="button" onClick={saveForm} title="Save"><Check size={15} style={{ color: '#4caf50' }} /></button>
-                                      <button type="button" onClick={cancelEdit} title="Cancel"><X size={15} style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }} /></button>
+                                      <button type="button" onClick={saveForm} title="Save"><Check size={15} style={{ color: 'var(--rs-ok)' }} /></button>
+                                      <button type="button" onClick={cancelEdit} title="Cancel"><X size={15} style={{ color: 'rgba(var(--rs-accent-rgb),0.7)' }} /></button>
                                     </div>
                                   </td>
                                 </tr>
@@ -758,7 +758,7 @@ export default function BloodPressureTracker() {
 
                             const cat = getCategory(r.systolic, r.diastolic);
                             return (
-                              <tr key={r.id} style={{ borderBottom: '1px solid rgba(var(--copper-bold-rgb),0.1)' }}>
+                              <tr key={r.id} style={{ borderBottom: '1px solid rgba(var(--rs-edge-rgb),0.1)' }}>
                                 <td className="px-3 py-2 pl-10 whitespace-nowrap">{formatDateTime(r.reading_at)}</td>
                                 <td className="px-3 py-2 font-semibold">{r.systolic}/{r.diastolic}</td>
                                 <td className="px-3 py-2">{r.heart_rate != null ? `${r.heart_rate} bpm` : '—'}</td>
@@ -766,15 +766,15 @@ export default function BloodPressureTracker() {
                                 <td className="px-3 py-2">{ARM_LABEL[r.arm]}</td>
                                 <td className="px-3 py-2">{r.medication ? MEDICATION_LABEL[r.medication] : '—'}</td>
                                 <td className="px-3 py-2">
-                                  <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold whitespace-nowrap" style={{ background: `${cat.color}2e`, color: cat.color }}>
+                                  <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold whitespace-nowrap" style={{ background: `color-mix(in srgb, ${cat.color} 18%, transparent)`, color: cat.color }}>
                                     {cat.label}
                                   </span>
                                 </td>
                                 <td className="px-3 py-2">
                                   {!locked && (
                                     <div className="flex items-center justify-end gap-2">
-                                      <button type="button" onClick={() => startEdit(r)} title="Edit"><Pencil size={13} style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }} /></button>
-                                      <button type="button" onClick={() => deleteReading(r)} title="Delete"><Trash2 size={13} style={{ color: '#c85050' }} /></button>
+                                      <button type="button" onClick={() => startEdit(r)} title="Edit"><Pencil size={13} style={{ color: 'rgba(var(--rs-accent-rgb),0.7)' }} /></button>
+                                      <button type="button" onClick={() => deleteReading(r)} title="Delete"><Trash2 size={13} style={{ color: 'var(--rs-bad)' }} /></button>
                                     </div>
                                   )}
                                 </td>

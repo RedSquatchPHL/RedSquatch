@@ -18,8 +18,10 @@
   --rs-field: rgba(255, 255, 255, 0.9);  --rs-field-edge: rgba(15, 58, 70, 0.22);
   --rs-row: rgba(15, 58, 70, 0.07);
   --rs-btn: #b83f25;  --rs-btn-ink: #ffffff;
+  --rs-edge-rgb: 58, 34, 48;
+  --rs-edge-rgb: 15, 58, 70;
   --rs-shadow: 0 10px 30px rgba(10, 60, 90, 0.18);
-  --rs-ok: #1c7a4f;  --rs-warn: #8a5a00;  --rs-bad: #b3263a;
+  --rs-ok: #1c7a4f;  --rs-warn: #8a5a00;  --rs-bad: #b3263a;  --rs-info: #2a6f9a;
   --stone-0: #eaf3f5;  --stone-1: #dcebef;  --stone-2: #b9d3da;  --stone-3: #7fa3ad;
   --copper-0: #b83f25;  --copper-1: #3a6370;  --copper-2: #0f3a46;
 }
@@ -34,7 +36,7 @@
   --rs-row: rgba(58, 34, 48, 0.07);
   --rs-btn: #a8372a;  --rs-btn-ink: #ffffff;
   --rs-shadow: 0 10px 30px rgba(40, 16, 50, 0.28);
-  --rs-ok: #1c7a4f;  --rs-warn: #8a5a00;  --rs-bad: #b3263a;
+  --rs-ok: #1c7a4f;  --rs-warn: #8a5a00;  --rs-bad: #b3263a;  --rs-info: #2a6f9a;
   --stone-0: #f6e6d8;  --stone-1: #efd9c8;  --stone-2: #d9b9a4;  --stone-3: #a8806f;
   --copper-0: #a8372a;  --copper-1: #6b4a52;  --copper-2: #3a2230;
 }
@@ -48,8 +50,9 @@
   --rs-field: rgba(14, 24, 52, 0.82);  --rs-field-edge: rgba(160, 180, 230, 0.30);
   --rs-row: rgba(230, 236, 250, 0.07);
   --rs-btn: #f0b27a;  --rs-btn-ink: #1a1410;
+  --rs-edge-rgb: 230, 236, 250;
   --rs-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
-  --rs-ok: #5fd6a0;  --rs-warn: #e6c25a;  --rs-bad: #ff8aa0;
+  --rs-ok: #5fd6a0;  --rs-warn: #e6c25a;  --rs-bad: #ff8aa0;  --rs-info: #8fc4e8;
   --stone-0: #0b1220;  --stone-1: #131f33;  --stone-2: #2b3f5c;  --stone-3: #55719a;
   --copper-0: #c98f5e;  --copper-1: #f0b27a;  --copper-2: #e6ecfa;
 }
@@ -67,6 +70,8 @@
   --rs-panel-clip: none;
   --rs-panel-radius: 22px;
   --rs-panel-inner: none;
+  --rs-well: var(--rs-row);
+  --rs-well-solid: var(--rs-field);
 }
 
 .hs-root[data-hs-theme="beach"] :is(.glass-surface, .glass-card, .glass-panel, .glass-header) {
@@ -128,8 +133,9 @@
   --rs-field: rgba(255, 255, 255, 0.06);  --rs-field-edge: rgba(212, 163, 115, 0.3);
   --rs-row: rgba(255, 255, 255, 0.05);
   --rs-btn: #b87333;  --rs-btn-ink: #ffffff;
+  --rs-edge-rgb: 184, 115, 51;  --rs-well: rgba(20, 18, 16, 0.6);  --rs-well-solid: rgba(20, 18, 16, 0.95);
   --rs-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
-  --rs-ok: #5fbf8f;  --rs-warn: #d4af37;  --rs-bad: #e34c7a;
+  --rs-ok: #5fbf8f;  --rs-warn: #d4af37;  --rs-bad: #e34c7a;  --rs-info: #7fb3d5;
   --rs-text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6);
   color: var(--rs-ink);
 }

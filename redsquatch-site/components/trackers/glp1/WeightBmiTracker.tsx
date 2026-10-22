@@ -131,7 +131,7 @@ export default function WeightBmiTracker() {
   const sign = (n: number) => `${n > 0 ? '+' : ''}${n.toFixed(1)}`;
 
   return (
-    <div style={{ color: 'var(--copper-tan)' }}>
+    <div style={{ color: 'var(--rs-accent)' }}>
       <ModuleHeader title="Weight & BMI" blurb="Weigh-ins in pounds, with BMI from your height and a trend toward your target." error={error ?? formError} />
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
@@ -155,32 +155,32 @@ export default function WeightBmiTracker() {
       </div>
 
       {chartData.length > 1 && (
-        <div className="rounded-lg mb-4" style={{ padding: '12px 4px 4px', background: 'rgba(20,18,16,0.6)' }}>
+        <div className="rounded-lg mb-4" style={{ padding: '12px 4px 4px', background: 'var(--rs-well)' }}>
           <ResponsiveContainer width="100%" height={220}>
             <LineChart data={chartData} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" {...gridStyle} />
               <XAxis dataKey="label" tick={axisStyle} axisLine={false} tickLine={false} />
               <YAxis tick={axisStyle} axisLine={false} tickLine={false} width={36} domain={['auto', 'auto']} />
               <Tooltip
-                cursor={{ stroke: 'rgba(184,115,51,0.25)', strokeWidth: 1 }}
+                cursor={{ stroke: 'rgba(var(--rs-edge-rgb),0.25)', strokeWidth: 1 }}
                 content={({ active, payload }) => {
                   if (!active || !payload?.length) return null;
                   const p = payload[0].payload as (typeof chartData)[number];
                   return (
                     <div style={tooltipBox}>
-                      <div style={{ color: 'rgba(212,163,115,0.7)', marginBottom: 6, fontSize: 11 }}>{p.fullLabel}</div>
-                      <div style={{ color: '#d4a373' }}>Weight: <strong>{p.weight} lb</strong></div>
-                      <div style={{ color: '#7fb3d5' }}>7-entry avg: <strong>{p.average} lb</strong></div>
+                      <div style={{ color: 'rgba(var(--rs-accent-rgb),0.7)', marginBottom: 6, fontSize: 11 }}>{p.fullLabel}</div>
+                      <div style={{ color: 'var(--rs-accent)' }}>Weight: <strong>{p.weight} lb</strong></div>
+                      <div style={{ color: 'var(--rs-info)' }}>7-entry avg: <strong>{p.average} lb</strong></div>
                     </div>
                   );
                 }}
               />
-              <Legend wrapperStyle={{ fontSize: 11, color: 'rgba(212,163,115,0.7)' }} />
+              <Legend wrapperStyle={{ fontSize: 11, color: 'rgba(var(--rs-accent-rgb),0.7)' }} />
               {profile.target_weight_lb && (
-                <ReferenceLine y={profile.target_weight_lb} stroke="#4caf50" strokeDasharray="4 4" label={{ value: 'Target', fill: '#4caf50', fontSize: 11, position: 'insideBottomRight' }} />
+                <ReferenceLine y={profile.target_weight_lb} stroke="var(--rs-ok)" strokeDasharray="4 4" label={{ value: 'Target', fill: 'var(--rs-ok)', fontSize: 11, position: 'insideBottomRight' }} />
               )}
-              <Line type="monotone" dataKey="weight" stroke="#d4a373" strokeWidth={2} dot={{ r: 3, fill: '#d4a373' }} activeDot={{ r: 6 }} name="Weight" />
-              <Line type="monotone" dataKey="average" stroke="#7fb3d5" strokeWidth={2} strokeDasharray="5 3" dot={false} name="7-entry avg" />
+              <Line type="monotone" dataKey="weight" stroke="var(--rs-accent)" strokeWidth={2} dot={{ r: 3, fill: 'var(--rs-accent)' }} activeDot={{ r: 6 }} name="Weight" />
+              <Line type="monotone" dataKey="average" stroke="var(--rs-info)" strokeWidth={2} strokeDasharray="5 3" dot={false} name="7-entry avg" />
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -201,10 +201,10 @@ export default function WeightBmiTracker() {
           </>
         ) : (
           <>
-            <div className="text-xs" style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }}>
-              Height: <strong style={{ color: 'var(--copper-tan)' }}>{profile.height_in ? `${profile.height_in} in` : 'not set'}</strong>
+            <div className="text-xs" style={{ color: 'rgba(var(--rs-accent-rgb),0.7)' }}>
+              Height: <strong style={{ color: 'var(--rs-accent)' }}>{profile.height_in ? `${profile.height_in} in` : 'not set'}</strong>
               <span className="mx-2">·</span>
-              Target: <strong style={{ color: 'var(--copper-tan)' }}>{profile.target_weight_lb ? `${profile.target_weight_lb} lb` : 'not set'}</strong>
+              Target: <strong style={{ color: 'var(--rs-accent)' }}>{profile.target_weight_lb ? `${profile.target_weight_lb} lb` : 'not set'}</strong>
             </div>
             <button
               type="button"
@@ -219,7 +219,7 @@ export default function WeightBmiTracker() {
         <div className="rounded-md p-4 mb-4 space-y-3" style={panelStyle}>
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-bold">{editingId !== null ? 'Edit weigh-in' : 'Log a weigh-in'}</h3>
-            <button type="button" onClick={() => { setShowForm(false); setEditingId(null); setForm(emptyForm()); }} style={{ color: 'rgba(var(--copper-tan-rgb),0.5)' }}><X size={16} /></button>
+            <button type="button" onClick={() => { setShowForm(false); setEditingId(null); setForm(emptyForm()); }} style={{ color: 'rgba(var(--rs-accent-rgb),0.5)' }}><X size={16} /></button>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <Field label="Weight (lb)">
@@ -244,12 +244,12 @@ export default function WeightBmiTracker() {
       )}
 
       {entries.length === 0 ? (
-        <div className="text-center py-10 text-sm" style={{ color: 'rgba(var(--copper-tan-rgb),0.55)' }}>No weigh-ins yet.</div>
+        <div className="text-center py-10 text-sm" style={{ color: 'rgba(var(--rs-accent-rgb),0.55)' }}>No weigh-ins yet.</div>
       ) : (
-        <div className="overflow-x-auto rounded-md" style={{ background: 'rgba(20,18,16,0.6)' }}>
+        <div className="overflow-x-auto rounded-md" style={{ background: 'var(--rs-well)' }}>
           <table className="w-full text-xs">
             <thead>
-              <tr style={{ borderBottom: '2px solid rgba(var(--copper-bold-rgb),0.2)' }}>
+              <tr style={{ borderBottom: '2px solid rgba(var(--rs-edge-rgb),0.2)' }}>
                 <th className="text-left px-3 py-2">Date/Time</th>
                 <th className="text-left px-3 py-2">Weight</th>
                 <th className="text-left px-3 py-2">BMI</th>
@@ -272,7 +272,7 @@ export default function WeightBmiTracker() {
                   const link = linkById.get(r.id);
                   const days = link?.last ? Math.floor((new Date(r.measured_at).getTime() - link.last.t) / DAY) : null;
                   return (
-                    <tr key={r.id} style={{ borderBottom: '1px solid rgba(var(--copper-bold-rgb),0.1)' }}>
+                    <tr key={r.id} style={{ borderBottom: '1px solid rgba(var(--rs-edge-rgb),0.1)' }}>
                       <td className="px-3 py-2 pl-10">{fmtDateTime(r.measured_at)}</td>
                       <td className="px-3 py-2 font-semibold">{lb?.toFixed(1)} lb</td>
                       <td className="px-3 py-2">{b !== null ? b.toFixed(1) : '—'}</td>
@@ -280,12 +280,12 @@ export default function WeightBmiTracker() {
                         {link?.last ? (
                           <>
                             {fmtShort(link.last.t)} · {link.last.mg} mg {DRUGS[link.last.medication].label}
-                            <span style={{ color: 'rgba(var(--copper-tan-rgb),0.55)' }}> ({days === 0 ? 'same day' : `${days}d before`})</span>
+                            <span style={{ color: 'rgba(var(--rs-accent-rgb),0.55)' }}> ({days === 0 ? 'same day' : `${days}d before`})</span>
                           </>
                         ) : '—'}
                       </td>
                       <td className="px-3 py-2">{link?.level != null ? `${link.level.toFixed(2)} mg` : '—'}</td>
-                      <td className="px-3 py-2" style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }}>{r.notes ?? ''}</td>
+                      <td className="px-3 py-2" style={{ color: 'rgba(var(--rs-accent-rgb),0.7)' }}>{r.notes ?? ''}</td>
                       {!locked && (
                         <td className="px-3 py-2 text-right whitespace-nowrap">
                           <button type="button" onClick={() => startEdit(r)} className="p-1" aria-label="Edit"><Pencil size={13} /></button>

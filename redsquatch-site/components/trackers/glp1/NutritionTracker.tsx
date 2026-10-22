@@ -32,7 +32,7 @@ function labelDay(key: string): string {
 function ProgressBar({ value, goal, color }: { value: number; goal: number | null; color: string }) {
   const pct = goal ? Math.min(100, (value / goal) * 100) : 0;
   return (
-    <div className="h-2 rounded-full overflow-hidden" style={{ background: 'rgba(184,115,51,0.15)' }}>
+    <div className="h-2 rounded-full overflow-hidden" style={{ background: 'rgba(var(--rs-edge-rgb),0.15)' }}>
       <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: color }} />
     </div>
   );
@@ -79,17 +79,17 @@ function Logger<T extends { id: number; logged_at: string; notes: string | null 
         <h3 className="text-sm font-bold">{title}</h3>
         <span className="ml-auto text-sm">
           <strong style={{ color }}>{Math.round(total * 10) / 10}</strong>
-          <span style={{ color: 'rgba(var(--copper-tan-rgb),0.6)' }}> / {goal ?? '—'} {unit}</span>
+          <span style={{ color: 'rgba(var(--rs-accent-rgb),0.6)' }}> / {goal ?? '—'} {unit}</span>
         </span>
       </div>
       <ProgressBar value={total} goal={goal} color={color} />
 
       <div className="flex flex-wrap items-center gap-2 mt-3">
-        <label className="flex items-center gap-1 text-xs" style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }}>
+        <label className="flex items-center gap-1 text-xs" style={{ color: 'rgba(var(--rs-accent-rgb),0.7)' }}>
           Time
           <input type="time" value={time} onChange={e => setTime(e.target.value)} aria-label={`${title} entry time`}
             className="border px-1.5 py-1 text-xs rounded" style={inputStyle} />
-          {time && <button type="button" onClick={() => setTime('')} className="underline" style={{ color: 'var(--copper-tan)' }}>{day === dayKey(new Date()) ? 'now' : 'noon'}</button>}
+          {time && <button type="button" onClick={() => setTime('')} className="underline" style={{ color: 'var(--rs-accent)' }}>{day === dayKey(new Date()) ? 'now' : 'noon'}</button>}
         </label>
         {quick.map(q => (
           <button key={q} type="button" onClick={() => run(() => onAdd(q, stampFor()))}
@@ -106,12 +106,12 @@ function Logger<T extends { id: number; logged_at: string; notes: string | null 
           }}
           className="px-2.5 py-1 rounded-md text-xs font-semibold disabled:opacity-40" style={primaryBtn}>Add</button>
       </div>
-      {err && <p className="text-xs mt-2 text-red-400">{err}</p>}
+      {err && <p className="text-xs mt-2 text-[color:var(--rs-bad)]">{err}</p>}
 
       <ul className="mt-3 space-y-1">
-        {dayRows.length === 0 && <li className="text-xs" style={{ color: 'rgba(var(--copper-tan-rgb),0.5)' }}>Nothing logged.</li>}
+        {dayRows.length === 0 && <li className="text-xs" style={{ color: 'rgba(var(--rs-accent-rgb),0.5)' }}>Nothing logged.</li>}
         {dayRows.map(r => (
-          <li key={r.id} className="flex items-center gap-2 text-xs py-1" style={{ borderBottom: '1px solid rgba(var(--copper-bold-rgb),0.1)' }}>
+          <li key={r.id} className="flex items-center gap-2 text-xs py-1" style={{ borderBottom: '1px solid rgba(var(--rs-edge-rgb),0.1)' }}>
             {editing?.id === r.id ? (
               <>
                 <input type="datetime-local" value={editing.at} onChange={e => setEditing(x => x && ({ ...x, at: e.target.value }))} className="border px-1 py-0.5 rounded" style={inputStyle} />
@@ -125,7 +125,7 @@ function Logger<T extends { id: number; logged_at: string; notes: string | null 
               </>
             ) : (
               <>
-                <span style={{ color: 'rgba(var(--copper-tan-rgb),0.6)' }}>{new Date(r.logged_at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}</span>
+                <span style={{ color: 'rgba(var(--rs-accent-rgb),0.6)' }}>{new Date(r.logged_at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}</span>
                 <span className="font-semibold">{amountOf(r)} {unit}</span>
                 <span className="ml-auto flex gap-1">
                   <button type="button" aria-label="Edit" onClick={() => setEditing({ id: r.id, amount: String(amountOf(r)), at: toLocalInput(r.logged_at) })}><Pencil size={12} /></button>
@@ -179,18 +179,18 @@ export default function NutritionTracker() {
   }
 
   const chart = (key: 'ounces' | 'grams', color: string, goal: number | null, unit: string) => (
-    <div className="rounded-lg" style={{ padding: '12px 4px 4px', background: 'rgba(20,18,16,0.6)' }}>
+    <div className="rounded-lg" style={{ padding: '12px 4px 4px', background: 'var(--rs-well)' }}>
       <ResponsiveContainer width="100%" height={150}>
         <BarChart data={trend} margin={{ top: 8, right: 16, left: 0, bottom: 0 }} barCategoryGap="25%">
           <CartesianGrid strokeDasharray="3 3" {...gridStyle} />
           <XAxis dataKey="label" tick={axisStyle} axisLine={false} tickLine={false} interval={1} />
           <YAxis tick={axisStyle} axisLine={false} tickLine={false} width={32} />
-          <Tooltip cursor={{ fill: 'rgba(184,115,51,0.08)' }} content={({ active, payload }) => {
+          <Tooltip cursor={{ fill: 'rgba(var(--rs-edge-rgb),0.08)' }} content={({ active, payload }) => {
             if (!active || !payload?.length) return null;
             const p = payload[0].payload as (typeof trend)[number];
             return <div style={tooltipBox}>{p.label}: <strong style={{ color }}>{p[key]} {unit}</strong></div>;
           }} />
-          {goal && <ReferenceLine y={goal} stroke="#4caf50" strokeDasharray="4 4" />}
+          {goal && <ReferenceLine y={goal} stroke="var(--rs-ok)" strokeDasharray="4 4" />}
           <Bar dataKey={key} fill={color} radius={[3, 3, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
@@ -198,7 +198,7 @@ export default function NutritionTracker() {
   );
 
   return (
-    <div style={{ color: 'var(--copper-tan)' }}>
+    <div style={{ color: 'var(--rs-accent)' }}>
       <ModuleHeader title="Hydration & Protein" blurb="Daily running totals against your goals. Tap a quick amount or enter your own." error={hydration.error ?? protein.error ?? goalErr} />
 
       <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
@@ -224,7 +224,7 @@ export default function NutritionTracker() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
         <Logger
           key={`h-${day}`}
-          title="Hydration" unit="oz" color="#7fb3d5" icon={Droplets} quick={HYDRATION_QUICK} goal={profile.hydration_goal_oz}
+          title="Hydration" unit="oz" color="var(--rs-info)" icon={Droplets} quick={HYDRATION_QUICK} goal={profile.hydration_goal_oz}
           rows={hydration.entries} day={day} amountOf={r => num(r.ounces) ?? 0}
           onAdd={(ounces, at) => hydration.add({ ounces, logged_at: at.toISOString(), notes: null })}
           onUpdate={(id, ounces, at) => hydration.update(id, { ounces, logged_at: at.toISOString(), notes: null })}
@@ -232,7 +232,7 @@ export default function NutritionTracker() {
         />
         <Logger
           key={`p-${day}`}
-          title="Protein" unit="g" color="#d4a373" icon={Drumstick} quick={PROTEIN_QUICK} goal={profile.protein_goal_g}
+          title="Protein" unit="g" color="var(--rs-accent)" icon={Drumstick} quick={PROTEIN_QUICK} goal={profile.protein_goal_g}
           rows={protein.entries} day={day} amountOf={r => num(r.grams) ?? 0}
           onAdd={(grams, at) => protein.add({ grams, logged_at: at.toISOString(), notes: null })}
           onUpdate={(id, grams, at) => protein.update(id, { grams, logged_at: at.toISOString(), notes: null })}
@@ -242,12 +242,12 @@ export default function NutritionTracker() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <div className="text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }}>Water · last {TREND_DAYS} days</div>
-          {chart('ounces', '#7fb3d5', profile.hydration_goal_oz, 'oz')}
+          <div className="text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: 'rgba(var(--rs-accent-rgb),0.7)' }}>Water · last {TREND_DAYS} days</div>
+          {chart('ounces', 'var(--rs-info)', profile.hydration_goal_oz, 'oz')}
         </div>
         <div>
-          <div className="text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }}>Protein · last {TREND_DAYS} days</div>
-          {chart('grams', '#d4a373', profile.protein_goal_g, 'g')}
+          <div className="text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: 'rgba(var(--rs-accent-rgb),0.7)' }}>Protein · last {TREND_DAYS} days</div>
+          {chart('grams', 'var(--rs-accent)', profile.protein_goal_g, 'g')}
         </div>
       </div>
     </div>

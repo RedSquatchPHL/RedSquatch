@@ -26,11 +26,11 @@ const DAY = 86400000;
 // How recently a site was used → fill. Recent use is warm (avoid), long-rested is
 // green (go), never-used is neutral-green.
 function heat(lastUsed: number | null, now: number): { fill: string; stroke: string } {
-  if (lastUsed === null) return { fill: 'rgba(76,175,80,0.35)', stroke: '#4caf50' };
+  if (lastUsed === null) return { fill: 'color-mix(in srgb, var(--rs-ok) 35%, transparent)', stroke: 'var(--rs-ok)' };
   const days = (now - lastUsed) / DAY;
-  if (days < 7) return { fill: 'rgba(200,80,80,0.45)', stroke: '#c85050' };
-  if (days < 14) return { fill: 'rgba(217,160,54,0.4)', stroke: '#d9a036' };
-  return { fill: 'rgba(76,175,80,0.35)', stroke: '#4caf50' };
+  if (days < 7) return { fill: 'color-mix(in srgb, var(--rs-bad) 45%, transparent)', stroke: 'var(--rs-bad)' };
+  if (days < 14) return { fill: 'color-mix(in srgb, var(--rs-warn) 40%, transparent)', stroke: 'var(--rs-warn)' };
+  return { fill: 'color-mix(in srgb, var(--rs-ok) 35%, transparent)', stroke: 'var(--rs-ok)' };
 }
 
 function daysLabel(lastUsed: number | null, now: number): string {
@@ -49,7 +49,7 @@ export default function BodyMap({
 }) {
   const now = Date.now();
   const byId = new Map(statuses.map(s => [s.site, s]));
-  const body = { fill: 'rgba(212,163,115,0.07)', stroke: 'rgba(212,163,115,0.45)', strokeWidth: 1.5 };
+  const body = { fill: 'rgba(var(--rs-accent-rgb),0.07)', stroke: 'rgba(var(--rs-accent-rgb),0.45)', strokeWidth: 1.5 };
 
   return (
     <svg viewBox="0 0 200 300" role="group" aria-label="Injection site map" className="w-full max-w-[240px] mx-auto">
@@ -61,7 +61,7 @@ export default function BodyMap({
       <rect x="138" y="58" width="26" height="96" rx="13" {...body} />
       <rect x="66" y="150" width="32" height="138" rx="15" {...body} />
       <rect x="102" y="150" width="32" height="138" rx="15" {...body} />
-      <circle cx="100" cy="113" r="2" fill="rgba(212,163,115,0.5)" />
+      <circle cx="100" cy="113" r="2" fill="rgba(var(--rs-accent-rgb),0.5)" />
 
       {SITES.map(site => {
         const z = ZONES[site];
@@ -83,13 +83,13 @@ export default function BodyMap({
             onKeyDown={e => { if (onSelect && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onSelect(site); } }}
           >
             {isRec && (
-              <rect x={z.x - 3} y={z.y - 3} width={z.w + 6} height={z.h + 6} rx={z.rx + 3} fill="none" stroke="#d4a373" strokeWidth="1.5" strokeDasharray="3 2">
+              <rect x={z.x - 3} y={z.y - 3} width={z.w + 6} height={z.h + 6} rx={z.rx + 3} fill="none" stroke="var(--rs-accent)" strokeWidth="1.5" strokeDasharray="3 2">
                 <animate attributeName="opacity" values="1;0.3;1" dur="1.8s" repeatCount="indefinite" />
               </rect>
             )}
-            <rect x={z.x} y={z.y} width={z.w} height={z.h} rx={z.rx} fill={fill} stroke={isSel ? '#fff' : stroke} strokeWidth={isSel ? 2.5 : 1.5} />
+            <rect x={z.x} y={z.y} width={z.w} height={z.h} rx={z.rx} fill={fill} stroke={isSel ? 'var(--rs-ink)' : stroke} strokeWidth={isSel ? 2.5 : 1.5} />
             <title>{SITE_LABEL[site]}</title>
-            <text x={cx} y={cy + 2.5} textAnchor="middle" fontSize="6.5" fill="rgba(255,255,255,0.8)" pointerEvents="none">
+            <text x={cx} y={cy + 2.5} textAnchor="middle" fontSize="6.5" fill="var(--rs-ink)" pointerEvents="none">
               {daysLabel(st?.lastUsed ?? null, now)}
             </text>
           </g>

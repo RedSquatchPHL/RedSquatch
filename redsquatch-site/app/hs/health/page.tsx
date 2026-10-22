@@ -76,23 +76,23 @@ export default function HSHealthPage() {
         </div>
       </div>
 
-      <AppletModal isOpen={activeApplet === 'blood_pressure'} title="Blood Pressure Log" onClose={() => setActiveApplet(null)} wide>
+      <AppletModal isOpen={activeApplet === 'blood_pressure'} title="Blood Pressure Log" onClose={() => setActiveApplet(null)} wide themed>
         <BloodPressureTracker />
       </AppletModal>
 
-      <AppletModal isOpen={activeApplet === 'weight'} title="Weight & BMI" onClose={() => setActiveApplet(null)} wide>
+      <AppletModal isOpen={activeApplet === 'weight'} title="Weight & BMI" onClose={() => setActiveApplet(null)} wide themed>
         <WeightBmiTracker />
       </AppletModal>
 
-      <AppletModal isOpen={activeApplet === 'nutrition'} title="Hydration & Protein" onClose={() => setActiveApplet(null)} wide>
+      <AppletModal isOpen={activeApplet === 'nutrition'} title="Hydration & Protein" onClose={() => setActiveApplet(null)} wide themed>
         <NutritionTracker />
       </AppletModal>
 
-      <AppletModal isOpen={activeApplet === 'injections'} title="Injections" onClose={() => setActiveApplet(null)} wide>
+      <AppletModal isOpen={activeApplet === 'injections'} title="Injections" onClose={() => setActiveApplet(null)} wide themed>
         <InjectionTracker />
       </AppletModal>
 
-      <AppletModal isOpen={activeApplet === 'drug_levels'} title="Drug Levels" onClose={() => setActiveApplet(null)} wide>
+      <AppletModal isOpen={activeApplet === 'drug_levels'} title="Drug Levels" onClose={() => setActiveApplet(null)} wide themed>
         <DrugLevelTracker />
       </AppletModal>
     </div>

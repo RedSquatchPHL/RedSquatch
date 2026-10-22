@@ -19,10 +19,18 @@
   --rs-ink-muted: #93A4B8;
   --rs-ink-faint: rgba(226, 232, 240, 0.62);
 
+  /* Tracker/applet interiors: hairlines, recessed wells, solid buttons */
+  --rs-edge-rgb: 184, 115, 51;
+  --rs-well: rgba(20, 18, 16, 0.6);
+  --rs-well-solid: rgba(20, 18, 16, 0.95);
+  --rs-btn: #D97A38;
+  --rs-btn-ink: #0F1720;
+
   /* Status — same on both sides so "ok / watch / bad" always reads the same */
   --rs-ok: #5FBF8F;
   --rs-warn: #D4AF37;
   --rs-bad: #E34C7A;
+  --rs-info: #7FB3D5;
 
   /* Type — Cabinet Grotesk headings, Satoshi body, JetBrains Mono data */
   --rs-font-heading: 'Cabinet Grotesk', 'Satoshi', system-ui, sans-serif;
@@ -39,6 +47,9 @@
   --rs-ink: var(--copper-2);
   --rs-ink-muted: color-mix(in srgb, var(--copper-2) 68%, transparent);
   --rs-ink-faint: color-mix(in srgb, var(--copper-2) 62%, transparent);
+  --rs-edge-rgb: var(--copper-bold-rgb);
+  --rs-btn: var(--copper-bold);
+  --rs-btn-ink: var(--stone-0);
 }
 
 /* Applet launcher card — the Health / Mexican tool cards. Hover and focus live in

@@ -90,21 +90,21 @@ export default function InjectionTracker() {
   }
 
   let reminder = 'Log your first dose to start site rotation and reminders.';
-  let reminderColor = 'rgba(var(--copper-tan-rgb),0.7)';
+  let reminderColor = 'rgba(var(--rs-accent-rgb),0.7)';
   if (daysUntil !== null && dueAt !== null) {
     const dueStr = new Date(dueAt).toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' });
-    if (daysUntil < 0) { reminder = `Overdue by ${-daysUntil} day${daysUntil === -1 ? '' : 's'} (was due ${dueStr}).`; reminderColor = '#c85050'; }
-    else if (daysUntil === 0) { reminder = `Due today (${dueStr}).`; reminderColor = '#d9a036'; }
-    else { reminder = `Next dose in ${daysUntil} day${daysUntil === 1 ? '' : 's'} — ${dueStr}.`; reminderColor = '#4caf50'; }
+    if (daysUntil < 0) { reminder = `Overdue by ${-daysUntil} day${daysUntil === -1 ? '' : 's'} (was due ${dueStr}).`; reminderColor = 'var(--rs-bad)'; }
+    else if (daysUntil === 0) { reminder = `Due today (${dueStr}).`; reminderColor = 'var(--rs-warn)'; }
+    else { reminder = `Next dose in ${daysUntil} day${daysUntil === 1 ? '' : 's'} — ${dueStr}.`; reminderColor = 'var(--rs-ok)'; }
   }
 
   return (
-    <div style={{ color: 'var(--copper-tan)' }}>
+    <div style={{ color: 'var(--rs-accent)' }}>
       <ModuleHeader title="Injections" blurb="Log doses, rotate sites with the body map, and review your history." error={error ?? formError} />
 
       <div className="rounded-md p-3 mb-4 text-sm font-semibold flex items-center gap-2" style={{ ...panelStyle, color: reminderColor }}>
         <Syringe size={15} /> {reminder}
-        {latest && <span className="ml-auto text-xs font-normal" style={{ color: 'rgba(var(--copper-tan-rgb),0.55)' }}>typical gap {interval.toFixed(1)} d</span>}
+        {latest && <span className="ml-auto text-xs font-normal" style={{ color: 'rgba(var(--rs-accent-rgb),0.55)' }}>typical gap {interval.toFixed(1)} d</span>}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
@@ -114,7 +114,7 @@ export default function InjectionTracker() {
             <>
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-bold">{editingId !== null ? 'Edit injection' : 'Log an injection'}</h3>
-                <button type="button" aria-label="Close" onClick={() => { setForm(null); setEditingId(null); }} style={{ color: 'rgba(var(--copper-tan-rgb),0.5)' }}><X size={16} /></button>
+                <button type="button" aria-label="Close" onClick={() => { setForm(null); setEditingId(null); }} style={{ color: 'rgba(var(--rs-accent-rgb),0.5)' }}><X size={16} /></button>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <Field label="Medication">
@@ -145,7 +145,7 @@ export default function InjectionTracker() {
             </>
           ) : (
             <div className="h-full flex flex-col items-center justify-center gap-3 py-8 text-center">
-              <p className="text-xs" style={{ color: 'rgba(var(--copper-tan-rgb),0.6)' }}>Tap a zone on the body map, or start a blank entry.</p>
+              <p className="text-xs" style={{ color: 'rgba(var(--rs-accent-rgb),0.6)' }}>Tap a zone on the body map, or start a blank entry.</p>
               <button type="button" onClick={openNew} className="flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-semibold" style={primaryBtn}><Syringe size={14} /> Log injection</button>
             </div>
           )}
@@ -159,17 +159,17 @@ export default function InjectionTracker() {
             selected={form?.site || null}
             onSelect={site => { if (!form) { setEditingId(null); setForm({ ...blankForm(), site }); setFormError(null); } else setForm(f => f && ({ ...f, site })); }}
           />
-          <div className="flex flex-wrap gap-x-3 gap-y-1 justify-center text-[10px] mt-2" style={{ color: 'rgba(var(--copper-tan-rgb),0.65)' }}>
-            <span><i className="inline-block w-2 h-2 rounded-sm mr-1" style={{ background: '#c85050' }} />&lt; 7 d</span>
-            <span><i className="inline-block w-2 h-2 rounded-sm mr-1" style={{ background: '#d9a036' }} />7–14 d</span>
-            <span><i className="inline-block w-2 h-2 rounded-sm mr-1" style={{ background: '#4caf50' }} />14 d+ / never</span>
+          <div className="flex flex-wrap gap-x-3 gap-y-1 justify-center text-[10px] mt-2" style={{ color: 'rgba(var(--rs-accent-rgb),0.65)' }}>
+            <span><i className="inline-block w-2 h-2 rounded-sm mr-1" style={{ background: 'var(--rs-bad)' }} />&lt; 7 d</span>
+            <span><i className="inline-block w-2 h-2 rounded-sm mr-1" style={{ background: 'var(--rs-warn)' }} />7–14 d</span>
+            <span><i className="inline-block w-2 h-2 rounded-sm mr-1" style={{ background: 'var(--rs-ok)' }} />14 d+ / never</span>
             <span>dashed = suggested next</span>
           </div>
           <ul className="mt-3 space-y-1 text-xs">
             {statuses.map(s => (
-              <li key={s.site} className="flex justify-between" style={{ borderBottom: '1px solid rgba(var(--copper-bold-rgb),0.1)', paddingBottom: 2 }}>
-                <span>{SITE_LABEL[s.site]}{s.site === recommended && <span style={{ color: '#d4a373' }}> ← next</span>}</span>
-                <span style={{ color: 'rgba(var(--copper-tan-rgb),0.6)' }}>
+              <li key={s.site} className="flex justify-between" style={{ borderBottom: '1px solid rgba(var(--rs-edge-rgb),0.1)', paddingBottom: 2 }}>
+                <span>{SITE_LABEL[s.site]}{s.site === recommended && <span style={{ color: 'var(--rs-accent)' }}> ← next</span>}</span>
+                <span style={{ color: 'rgba(var(--rs-accent-rgb),0.6)' }}>
                   {s.lastUsed ? new Date(s.lastUsed).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'never'} · {s.uses}×
                 </span>
               </li>
@@ -185,12 +185,12 @@ export default function InjectionTracker() {
         {entries.length > 0 && <LockToggle locked={locked} onToggle={toggleLock} noun="injections" />}
       </div>
       {entries.length === 0 ? (
-        <div className="text-center py-8 text-sm" style={{ color: 'rgba(var(--copper-tan-rgb),0.55)' }}>No injections logged yet.</div>
+        <div className="text-center py-8 text-sm" style={{ color: 'rgba(var(--rs-accent-rgb),0.55)' }}>No injections logged yet.</div>
       ) : (
-        <div className="overflow-x-auto rounded-md" style={{ background: 'rgba(20,18,16,0.6)' }}>
+        <div className="overflow-x-auto rounded-md" style={{ background: 'var(--rs-well)' }}>
           <table className="w-full text-xs">
             <thead>
-              <tr style={{ borderBottom: '2px solid rgba(var(--copper-bold-rgb),0.2)' }}>
+              <tr style={{ borderBottom: '2px solid rgba(var(--rs-edge-rgb),0.2)' }}>
                 <th className="text-left px-3 py-2">Date/Time</th>
                 <th className="text-left px-3 py-2">Medication</th>
                 <th className="text-left px-3 py-2">Dose</th>
@@ -207,12 +207,12 @@ export default function InjectionTracker() {
                 noun="injection"
                 reveal={reveal}
                 renderRow={r => (
-                  <tr key={r.id} style={{ borderBottom: '1px solid rgba(var(--copper-bold-rgb),0.1)' }}>
+                  <tr key={r.id} style={{ borderBottom: '1px solid rgba(var(--rs-edge-rgb),0.1)' }}>
                     <td className="px-3 py-2 pl-10">{fmtDateTime(r.injected_at)}</td>
                     <td className="px-3 py-2">{DRUGS[r.medication]?.label ?? r.medication}</td>
                     <td className="px-3 py-2 font-semibold">{num(r.dose_mg)} mg</td>
                     <td className="px-3 py-2">{SITE_LABEL[r.site] ?? r.site}</td>
-                    <td className="px-3 py-2" style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }}>{r.notes ?? ''}</td>
+                    <td className="px-3 py-2" style={{ color: 'rgba(var(--rs-accent-rgb),0.7)' }}>{r.notes ?? ''}</td>
                     {!locked && (
                       <td className="px-3 py-2 text-right whitespace-nowrap">
                         <button type="button" aria-label="Edit" onClick={() => openEdit(r)} className="p-1"><Pencil size={13} /></button>

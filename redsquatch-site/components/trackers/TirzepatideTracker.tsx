@@ -49,18 +49,18 @@ function getEffectiveCostPerMg(c: Compounder): number | null {
 }
 
 const STATUS_STYLE: Record<Status, { bg: string; color: string; label: string }> = {
-  researching: { bg: 'rgba(var(--copper-bold-rgb),0.18)', color: 'var(--copper-tan)', label: 'RESEARCHING' },
+  researching: { bg: 'rgba(var(--rs-edge-rgb),0.18)', color: 'var(--rs-accent)', label: 'RESEARCHING' },
   contacted:   { bg: 'rgba(42,149,163,0.18)',              color: '#2a95a3',           label: 'CONTACTED' },
-  ordered:     { bg: 'rgba(76,175,80,0.18)',                color: '#4caf50',           label: 'ORDERED' },
-  rejected:    { bg: 'rgba(200,80,80,0.18)',                 color: '#c85050',           label: 'REJECTED' },
+  ordered:     { bg: 'color-mix(in srgb, var(--rs-ok) 18%, transparent)',                color: 'var(--rs-ok)',           label: 'ORDERED' },
+  rejected:    { bg: 'color-mix(in srgb, var(--rs-bad) 18%, transparent)',                 color: 'var(--rs-bad)',           label: 'REJECTED' },
 };
 
 // Compounded (503A/503B pharmacy) vs. manufacturer-direct (brand Zepbound/Mounjaro
 // via insurance, Medicare, or LillyDirect) are different purchasing paths with
 // different fields that matter — this badge is just the "which world is this" flag.
 const SOURCE_TYPE_STYLE: Record<'compounded' | 'manufacturer_direct', { bg: string; color: string; label: string }> = {
-  compounded:          { bg: 'rgba(184,115,51,0.18)', color: '#d4a373', label: 'Compounded' },
-  manufacturer_direct: { bg: 'rgba(90,130,200,0.18)', color: '#8fb0e8', label: 'Manufacturer' },
+  compounded:          { bg: 'rgba(var(--rs-edge-rgb),0.18)', color: 'var(--rs-accent)', label: 'Compounded' },
+  manufacturer_direct: { bg: 'rgba(90,130,200,0.18)', color: 'var(--rs-info)', label: 'Manufacturer' },
 };
 
 const money = (v: string | number | null) => {
@@ -238,48 +238,48 @@ export default function TirzepatideTracker() {
   }
 
   const inputStyle: React.CSSProperties = {
-    borderColor: 'rgba(var(--copper-bold-rgb),0.3)',
-    color: 'var(--copper-tan)',
+    borderColor: 'rgba(var(--rs-edge-rgb),0.3)',
+    color: 'var(--rs-accent)',
     background: 'transparent',
   };
 
   if (loading) {
-    return <div className="py-12 text-center" style={{ color: 'var(--copper-tan)' }}>Loading…</div>;
+    return <div className="py-12 text-center" style={{ color: 'var(--rs-accent)' }}>Loading…</div>;
   }
 
   return (
-    <div style={{ color: 'var(--copper-tan)' }}>
+    <div style={{ color: 'var(--rs-accent)' }}>
       <div className="mb-1 flex items-start justify-between gap-3">
         <div>
-          <h2 className="text-xl font-bold" style={{ color: 'var(--copper-tan)', textShadow: '0 0 16px rgba(var(--copper-bold-rgb),0.3)' }}>
+          <h2 className="text-xl font-bold" style={{ color: 'var(--rs-accent)', textShadow: '0 0 16px rgba(var(--rs-edge-rgb),0.3)' }}>
             Tirzepatide Compounder Tracker
           </h2>
-          <p className="text-xs mt-1" style={{ color: 'rgba(var(--copper-tan-rgb),0.6)' }}>
+          <p className="text-xs mt-1" style={{ color: 'rgba(var(--rs-accent-rgb),0.6)' }}>
             Compare pricing across compounding pharmacies to find the most affordable option
           </p>
-          {error && <p className="text-xs mt-1 text-red-400">{error}</p>}
+          {error && <p className="text-xs mt-1 text-[color:var(--rs-bad)]">{error}</p>}
         </div>
         <button
           type="button"
           onClick={startAdd}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold flex-shrink-0"
-          style={{ background: 'var(--copper-bold)', color: 'var(--stone-0)' }}
+          style={{ background: 'var(--rs-btn)', color: 'var(--rs-btn-ink)' }}
         >
           <Plus size={14} /> Add Compounder
         </button>
       </div>
 
       {compounders.length === 0 && !showForm && (
-        <div className="text-center py-10 text-sm" style={{ color: 'rgba(var(--copper-tan-rgb),0.55)' }}>
+        <div className="text-center py-10 text-sm" style={{ color: 'rgba(var(--rs-accent-rgb),0.55)' }}>
           No compounders added yet. Click &quot;Add Compounder&quot; to start tracking one.
         </div>
       )}
 
       {compounders.length > 0 && (
-        <div className="overflow-x-auto rounded-md" style={{ background: 'rgba(20,18,16,0.6)' }}>
+        <div className="overflow-x-auto rounded-md" style={{ background: 'var(--rs-well)' }}>
           <table className="w-full text-xs">
             <thead>
-              <tr style={{ borderBottom: '2px solid rgba(var(--copper-bold-rgb),0.2)' }}>
+              <tr style={{ borderBottom: '2px solid rgba(var(--rs-edge-rgb),0.2)' }}>
                 <th className="text-left px-3 py-2">Name</th>
                 <th className="text-left px-3 py-2">Source</th>
                 <th className="text-left px-3 py-2">Vial</th>
@@ -289,7 +289,7 @@ export default function TirzepatideTracker() {
                     type="button"
                     onClick={() => setSortAsc(prev => !prev)}
                     className="flex items-center gap-1 font-semibold"
-                    style={{ color: 'var(--copper-tan)' }}
+                    style={{ color: 'var(--rs-accent)' }}
                   >
                     $/mg <ArrowUpDown size={11} />
                   </button>
@@ -306,13 +306,13 @@ export default function TirzepatideTracker() {
               {sorted.map(({ c, cost }) => {
                 const status = STATUS_STYLE[c.status];
                 return (
-                  <tr key={c.id} style={{ borderBottom: '1px solid rgba(var(--copper-bold-rgb),0.1)' }}>
+                  <tr key={c.id} style={{ borderBottom: '1px solid rgba(var(--rs-edge-rgb),0.1)' }}>
                     <td className="px-3 py-2 font-semibold">
                       <div className="flex items-center gap-1.5">
                         {c.name}
                         {c.website_url && (
                           <a href={c.website_url} target="_blank" rel="noopener noreferrer" title={c.website_url}>
-                            <ExternalLink size={11} style={{ color: 'rgba(var(--copper-tan-rgb),0.6)' }} />
+                            <ExternalLink size={11} style={{ color: 'rgba(var(--rs-accent-rgb),0.6)' }} />
                           </a>
                         )}
                       </div>
@@ -326,12 +326,12 @@ export default function TirzepatideTracker() {
                           {SOURCE_TYPE_STYLE[c.source_type].label}
                         </span>
                       ) : (
-                        <span style={{ color: 'rgba(var(--copper-tan-rgb),0.4)' }}>—</span>
+                        <span style={{ color: 'rgba(var(--rs-accent-rgb),0.4)' }}>—</span>
                       )}
                     </td>
                     <td className="px-3 py-2">{toNum(c.vial_size_mg) !== null ? `${toNum(c.vial_size_mg)} mg` : '—'}</td>
                     <td className="px-3 py-2">{money(c.price_usd)}</td>
-                    <td className="px-3 py-2 font-semibold" style={{ color: cost !== null ? '#4caf50' : undefined }}>
+                    <td className="px-3 py-2 font-semibold" style={{ color: cost !== null ? 'var(--rs-ok)' : undefined }}>
                       {cost !== null ? `$${cost.toFixed(2)}` : '—'}
                     </td>
                     <td className="px-3 py-2">
@@ -352,16 +352,16 @@ export default function TirzepatideTracker() {
                         {status.label}
                       </span>
                     </td>
-                    <td className="px-3 py-2 max-w-[200px] truncate" title={c.notes ?? ''} style={{ color: 'rgba(var(--copper-tan-rgb),0.75)' }}>
+                    <td className="px-3 py-2 max-w-[200px] truncate" title={c.notes ?? ''} style={{ color: 'rgba(var(--rs-accent-rgb),0.75)' }}>
                       {c.notes || '—'}
                     </td>
                     <td className="px-3 py-2">
                       <div className="flex items-center justify-end gap-2">
                         <button type="button" onClick={() => startEdit(c)} title="Edit">
-                          <Pencil size={13} style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }} />
+                          <Pencil size={13} style={{ color: 'rgba(var(--rs-accent-rgb),0.7)' }} />
                         </button>
                         <button type="button" onClick={() => deleteCompounder(c)} title="Delete">
-                          <Trash2 size={13} style={{ color: '#c85050' }} />
+                          <Trash2 size={13} style={{ color: 'var(--rs-bad)' }} />
                         </button>
                       </div>
                     </td>
@@ -374,24 +374,24 @@ export default function TirzepatideTracker() {
       )}
 
       {showForm && (
-        <div className="rounded-md p-4 mt-4 space-y-3" style={{ background: 'rgba(20,18,16,0.6)' }}>
-          <h3 className="text-sm font-bold" style={{ color: 'var(--copper-tan)' }}>
+        <div className="rounded-md p-4 mt-4 space-y-3" style={{ background: 'var(--rs-well)' }}>
+          <h3 className="text-sm font-bold" style={{ color: 'var(--rs-accent)' }}>
             {editingId === null ? 'Add a Compounder' : 'Edit Compounder'}
           </h3>
 
           <div>
-            <label className="block text-xs mb-1" style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }}>Pharmacy Name</label>
+            <label className="block text-xs mb-1" style={{ color: 'rgba(var(--rs-accent-rgb),0.7)' }}>Pharmacy Name</label>
             <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} className="w-full border px-2 py-1.5 text-sm rounded" style={inputStyle} />
           </div>
 
           <div>
-            <label className="block text-xs mb-1" style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }}>Website URL</label>
+            <label className="block text-xs mb-1" style={{ color: 'rgba(var(--rs-accent-rgb),0.7)' }}>Website URL</label>
             <input value={form.website_url} onChange={e => setForm(f => ({ ...f, website_url: e.target.value }))} placeholder="https://..." className="w-full border px-2 py-1.5 text-sm rounded" style={inputStyle} />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs mb-1" style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }}>Source Type</label>
+              <label className="block text-xs mb-1" style={{ color: 'rgba(var(--rs-accent-rgb),0.7)' }}>Source Type</label>
               <select value={form.source_type} onChange={e => setForm(f => ({ ...f, source_type: e.target.value as typeof f.source_type }))} className="w-full border px-2 py-1.5 text-sm rounded" style={inputStyle}>
                 <option value="" style={{ color: '#000' }}>Not specified</option>
                 <option value="compounded" style={{ color: '#000' }}>Compounded (503A/503B pharmacy)</option>
@@ -402,15 +402,15 @@ export default function TirzepatideTracker() {
 
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             <div>
-              <label className="block text-xs mb-1" style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }}>Vial Size (mg)</label>
+              <label className="block text-xs mb-1" style={{ color: 'rgba(var(--rs-accent-rgb),0.7)' }}>Vial Size (mg)</label>
               <input value={form.vial_size_mg} onChange={e => setForm(f => ({ ...f, vial_size_mg: e.target.value }))} placeholder="e.g. 10" inputMode="decimal" className="w-full border px-2 py-1.5 text-sm rounded" style={inputStyle} />
             </div>
             <div>
-              <label className="block text-xs mb-1" style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }}>Price per Vial ($)</label>
+              <label className="block text-xs mb-1" style={{ color: 'rgba(var(--rs-accent-rgb),0.7)' }}>Price per Vial ($)</label>
               <input value={form.price_usd} onChange={e => setForm(f => ({ ...f, price_usd: e.target.value }))} placeholder="e.g. 200" inputMode="decimal" className="w-full border px-2 py-1.5 text-sm rounded" style={inputStyle} />
             </div>
             <div>
-              <label className="block text-xs mb-1" style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }}>Status</label>
+              <label className="block text-xs mb-1" style={{ color: 'rgba(var(--rs-accent-rgb),0.7)' }}>Status</label>
               <select value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value as Status }))} className="w-full border px-2 py-1.5 text-sm rounded" style={inputStyle}>
                 <option value="researching" style={{ color: '#000' }}>Researching</option>
                 <option value="contacted" style={{ color: '#000' }}>Contacted</option>
@@ -422,22 +422,22 @@ export default function TirzepatideTracker() {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs mb-1" style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }}>Subscription Price ($)</label>
+              <label className="block text-xs mb-1" style={{ color: 'rgba(var(--rs-accent-rgb),0.7)' }}>Subscription Price ($)</label>
               <input value={form.subscription_price_usd} onChange={e => setForm(f => ({ ...f, subscription_price_usd: e.target.value }))} placeholder="leave blank if one-time only" inputMode="decimal" className="w-full border px-2 py-1.5 text-sm rounded" style={inputStyle} />
             </div>
             <div>
-              <label className="block text-xs mb-1" style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }}>Subscription Interval</label>
+              <label className="block text-xs mb-1" style={{ color: 'rgba(var(--rs-accent-rgb),0.7)' }}>Subscription Interval</label>
               <input value={form.subscription_interval} onChange={e => setForm(f => ({ ...f, subscription_interval: e.target.value }))} placeholder="e.g. monthly" className="w-full border px-2 py-1.5 text-sm rounded" style={inputStyle} />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs mb-1" style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }}>Shipping Cost ($)</label>
+              <label className="block text-xs mb-1" style={{ color: 'rgba(var(--rs-accent-rgb),0.7)' }}>Shipping Cost ($)</label>
               <input value={form.shipping_cost_usd} onChange={e => setForm(f => ({ ...f, shipping_cost_usd: e.target.value }))} placeholder="0 = free" inputMode="decimal" className="w-full border px-2 py-1.5 text-sm rounded" style={inputStyle} />
             </div>
             <div>
-              <label className="block text-xs mb-1" style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }}>Free Shipping Threshold ($)</label>
+              <label className="block text-xs mb-1" style={{ color: 'rgba(var(--rs-accent-rgb),0.7)' }}>Free Shipping Threshold ($)</label>
               <input value={form.free_shipping_threshold_usd} onChange={e => setForm(f => ({ ...f, free_shipping_threshold_usd: e.target.value }))} placeholder="optional" inputMode="decimal" className="w-full border px-2 py-1.5 text-sm rounded" style={inputStyle} />
             </div>
           </div>
@@ -445,33 +445,33 @@ export default function TirzepatideTracker() {
           <div className="grid grid-cols-2 gap-3 items-end">
             <div className="flex items-center gap-2">
               <input type="checkbox" id="telehealth" checked={form.telehealth_required} onChange={e => setForm(f => ({ ...f, telehealth_required: e.target.checked }))} />
-              <label htmlFor="telehealth" className="text-xs" style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }}>Telehealth visit required</label>
+              <label htmlFor="telehealth" className="text-xs" style={{ color: 'rgba(var(--rs-accent-rgb),0.7)' }}>Telehealth visit required</label>
             </div>
             <div>
-              <label className="block text-xs mb-1" style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }}>Telehealth Cost ($)</label>
+              <label className="block text-xs mb-1" style={{ color: 'rgba(var(--rs-accent-rgb),0.7)' }}>Telehealth Cost ($)</label>
               <input value={form.telehealth_cost_usd} onChange={e => setForm(f => ({ ...f, telehealth_cost_usd: e.target.value }))} placeholder="optional" inputMode="decimal" className="w-full border px-2 py-1.5 text-sm rounded" style={inputStyle} />
             </div>
           </div>
 
           <div className="flex items-center gap-2">
             <input type="checkbox" id="labs" checked={form.labs_required} onChange={e => setForm(f => ({ ...f, labs_required: e.target.checked }))} />
-            <label htmlFor="labs" className="text-xs" style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }}>Bloodwork/labs required</label>
+            <label htmlFor="labs" className="text-xs" style={{ color: 'rgba(var(--rs-accent-rgb),0.7)' }}>Bloodwork/labs required</label>
           </div>
 
           <div>
-            <label className="block text-xs mb-1" style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }}>Notes</label>
+            <label className="block text-xs mb-1" style={{ color: 'rgba(var(--rs-accent-rgb),0.7)' }}>Notes</label>
             <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} rows={3} placeholder="Reviews, red flags, how you found them, anything else worth remembering..." className="w-full border px-2 py-1.5 text-sm rounded resize-vertical" style={inputStyle} />
           </div>
 
           <div className="flex items-center gap-2">
-            <button type="button" onClick={saveForm} className="flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-semibold" style={{ background: 'var(--copper-bold)', color: 'var(--stone-0)' }}>
+            <button type="button" onClick={saveForm} className="flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-semibold" style={{ background: 'var(--rs-btn)', color: 'var(--rs-btn-ink)' }}>
               {editingId === null ? 'Add Compounder' : 'Save Changes'}
             </button>
             <button
               type="button"
               onClick={() => { setShowForm(false); setEditingId(null); }}
               className="px-4 py-2 rounded-md text-sm font-semibold border"
-              style={{ borderColor: 'rgba(var(--copper-bold-rgb),0.3)', color: 'var(--copper-tan)' }}
+              style={{ borderColor: 'rgba(var(--rs-edge-rgb),0.3)', color: 'var(--rs-accent)' }}
             >
               Cancel
             </button>
@@ -480,7 +480,7 @@ export default function TirzepatideTracker() {
       )}
 
       {confirmMsg && (
-        <div className="mt-3 text-xs rounded-md p-2" style={{ background: 'rgba(76,175,80,0.15)', color: '#4caf50' }}>
+        <div className="mt-3 text-xs rounded-md p-2" style={{ background: 'color-mix(in srgb, var(--rs-ok) 15%, transparent)', color: 'var(--rs-ok)' }}>
           {confirmMsg}
         </div>
       )}

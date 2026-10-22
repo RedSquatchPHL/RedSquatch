@@ -132,31 +132,31 @@ export function fmtShort(t: number | string): string {
 // ── Styling (same copper vocabulary as BloodPressureTracker) ─────────────────
 
 export const inputStyle: React.CSSProperties = {
-  borderColor: 'rgba(var(--copper-bold-rgb),0.3)',
-  color: 'var(--copper-tan)',
+  borderColor: 'rgba(var(--rs-edge-rgb),0.3)',
+  color: 'var(--rs-accent)',
   background: 'transparent',
 };
 
 export const panelStyle: React.CSSProperties = {
-  background: 'rgba(20,18,16,0.6)',
-  border: '1px solid rgba(184,115,51,0.2)',
+  background: 'var(--rs-well)',
+  border: '1px solid rgba(var(--rs-edge-rgb),0.2)',
 };
 
-export const primaryBtn: React.CSSProperties = { background: 'var(--copper-bold)', color: 'var(--stone-0)' };
+export const primaryBtn: React.CSSProperties = { background: 'var(--rs-btn)', color: 'var(--rs-btn-ink)' };
 
 export const ghostBtn: React.CSSProperties = {
-  borderColor: 'rgba(var(--copper-bold-rgb),0.3)',
-  color: 'var(--copper-tan)',
+  borderColor: 'rgba(var(--rs-edge-rgb),0.3)',
+  color: 'var(--rs-accent)',
 };
 
-export const axisStyle = { fill: 'rgba(212,163,115,0.5)', fontSize: 11 };
-export const gridStyle = { stroke: 'rgba(184,115,51,0.1)' };
+export const axisStyle = { fill: 'rgba(var(--rs-accent-rgb),0.5)', fontSize: 11 };
+export const gridStyle = { stroke: 'rgba(var(--rs-edge-rgb),0.1)' };
 
 export const tooltipBox: React.CSSProperties = {
-  backgroundColor: 'rgba(20,18,16,0.95)',
-  border: '1px solid rgba(184,115,51,0.3)',
+  backgroundColor: 'var(--rs-well-solid)',
+  border: '1px solid rgba(var(--rs-edge-rgb),0.3)',
   borderRadius: 6,
-  color: 'var(--copper-tan)',
+  color: 'var(--rs-accent)',
   fontSize: 12,
   padding: '8px 12px',
 };
@@ -164,7 +164,7 @@ export const tooltipBox: React.CSSProperties = {
 export function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="block text-xs mb-1" style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }}>{label}</label>
+      <label className="block text-xs mb-1" style={{ color: 'rgba(var(--rs-accent-rgb),0.7)' }}>{label}</label>
       {children}
     </div>
   );
@@ -173,9 +173,9 @@ export function Field({ label, children }: { label: string; children: React.Reac
 export function Stat({ label, value, sub, color }: { label: string; value: string; sub?: string; color?: string }) {
   return (
     <div className="rounded-md p-3" style={panelStyle}>
-      <div className="text-[11px] uppercase tracking-wide" style={{ color: 'rgba(var(--copper-tan-rgb),0.6)' }}>{label}</div>
-      <div className="text-xl font-bold mt-0.5" style={{ color: color ?? 'var(--copper-tan)' }}>{value}</div>
-      {sub && <div className="text-[11px] mt-0.5" style={{ color: 'rgba(var(--copper-tan-rgb),0.55)' }}>{sub}</div>}
+      <div className="text-[11px] uppercase tracking-wide" style={{ color: 'rgba(var(--rs-accent-rgb),0.6)' }}>{label}</div>
+      <div className="text-xl font-bold mt-0.5" style={{ color: color ?? 'var(--rs-accent)' }}>{value}</div>
+      {sub && <div className="text-[11px] mt-0.5" style={{ color: 'rgba(var(--rs-accent-rgb),0.55)' }}>{sub}</div>}
     </div>
   );
 }
@@ -183,15 +183,15 @@ export function Stat({ label, value, sub, color }: { label: string; value: strin
 export function ModuleHeader({ title, blurb, error }: { title: string; blurb: string; error?: string | null }) {
   return (
     <div className="mb-3">
-      <h2 className="text-xl font-bold" style={{ color: 'var(--copper-tan)', textShadow: '0 0 16px rgba(var(--copper-bold-rgb),0.3)' }}>{title}</h2>
-      <p className="text-xs mt-1" style={{ color: 'rgba(var(--copper-tan-rgb),0.6)' }}>{blurb}</p>
-      {error && <p className="text-xs mt-1 text-red-400">{error}</p>}
+      <h2 className="text-xl font-bold" style={{ color: 'var(--rs-accent)', textShadow: '0 0 16px rgba(var(--rs-edge-rgb),0.3)' }}>{title}</h2>
+      <p className="text-xs mt-1" style={{ color: 'rgba(var(--rs-accent-rgb),0.6)' }}>{blurb}</p>
+      {error && <p className="text-xs mt-1 text-[color:var(--rs-bad)]">{error}</p>}
     </div>
   );
 }
 
 export function Loading() {
-  return <div className="py-12 text-center" style={{ color: 'var(--copper-tan)' }}>Loading…</div>;
+  return <div className="py-12 text-center" style={{ color: 'var(--rs-accent)' }}>Loading…</div>;
 }
 
 // ── Lock / grouped history (same behaviour as BloodPressureTracker) ───────────
@@ -204,8 +204,8 @@ export function LockToggle({ locked, onToggle, noun }: { locked: boolean; onTogg
       title={locked ? `Unlock to edit or delete ${noun}` : 'Lock editing'}
       className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold border"
       style={{
-        borderColor: locked ? 'rgba(var(--copper-bold-rgb),0.3)' : 'rgba(76,175,80,0.5)',
-        color: locked ? 'var(--copper-tan)' : '#4caf50',
+        borderColor: locked ? 'rgba(var(--rs-edge-rgb),0.3)' : 'color-mix(in srgb, var(--rs-ok) 50%, transparent)',
+        color: locked ? 'var(--rs-accent)' : 'var(--rs-ok)',
       }}
     >
       {locked ? <Lock size={14} /> : <Unlock size={14} />}
@@ -297,13 +297,13 @@ export function GroupedRows<T>({
         const count = month.weeks.reduce((n, w) => n + w.rows.length, 0);
         return (
           <Fragment key={month.key}>
-            <tr style={{ borderBottom: '1px solid rgba(var(--copper-bold-rgb),0.15)' }}>
+            <tr style={{ borderBottom: '1px solid rgba(var(--rs-edge-rgb),0.15)' }}>
               <td colSpan={colSpan} className="px-3 py-1.5">
                 <button type="button" onClick={() => toggle(collapsedMonths, setCollapsedMonths, month.key)}
-                  className="flex items-center gap-1.5 w-full text-left font-semibold text-sm" style={{ color: 'var(--copper-tan)' }}>
+                  className="flex items-center gap-1.5 w-full text-left font-semibold text-sm" style={{ color: 'var(--rs-accent)' }}>
                   {mCollapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}
                   {month.label}
-                  <span className="text-xs font-normal" style={{ color: 'rgba(var(--copper-tan-rgb),0.5)' }}>({count} {noun}{count === 1 ? '' : 's'})</span>
+                  <span className="text-xs font-normal" style={{ color: 'rgba(var(--rs-accent-rgb),0.5)' }}>({count} {noun}{count === 1 ? '' : 's'})</span>
                 </button>
               </td>
             </tr>
@@ -311,13 +311,13 @@ export function GroupedRows<T>({
               const wCollapsed = collapsedWeeks.has(week.key);
               return (
                 <Fragment key={week.key}>
-                  <tr style={{ borderBottom: '1px solid rgba(var(--copper-bold-rgb),0.08)' }}>
+                  <tr style={{ borderBottom: '1px solid rgba(var(--rs-edge-rgb),0.08)' }}>
                     <td colSpan={colSpan} className="pl-8 pr-3 py-1">
                       <button type="button" onClick={() => toggle(collapsedWeeks, setCollapsedWeeks, week.key)}
-                        className="flex items-center gap-1.5 w-full text-left text-xs" style={{ color: 'rgba(var(--copper-tan-rgb),0.75)' }}>
+                        className="flex items-center gap-1.5 w-full text-left text-xs" style={{ color: 'rgba(var(--rs-accent-rgb),0.75)' }}>
                         {wCollapsed ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
                         {week.label}
-                        <span style={{ color: 'rgba(var(--copper-tan-rgb),0.45)' }}>({week.rows.length})</span>
+                        <span style={{ color: 'rgba(var(--rs-accent-rgb),0.45)' }}>({week.rows.length})</span>
                       </button>
                     </td>
                   </tr>
