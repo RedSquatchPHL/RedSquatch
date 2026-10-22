@@ -22,6 +22,7 @@
   /* Tracker/applet interiors: hairlines, recessed wells, solid buttons */
   --rs-edge-rgb: 184, 115, 51;
   --rs-well: rgba(20, 18, 16, 0.6);
+  --rs-row: rgba(255, 255, 255, 0.05);
   --rs-well-solid: rgba(20, 18, 16, 0.95);
   --rs-btn: #D97A38;
   --rs-btn-ink: #0F1720;

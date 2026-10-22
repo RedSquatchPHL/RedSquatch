@@ -72,15 +72,15 @@ export default function HSMexicanPage() {
         </div>
       </div>
 
-      <AppletModal isOpen={activeApplet === 'spanishtutor'} title="Spanish Tutor" onClose={() => setActiveApplet(null)}>
+      <AppletModal isOpen={activeApplet === 'spanishtutor'} title="Spanish Tutor" onClose={() => setActiveApplet(null)} themed>
         <SpanishTutor />
       </AppletModal>
 
-      <AppletModal isOpen={activeApplet === 'citizenship'} title="Mexico Citizenship Tracker" onClose={() => setActiveApplet(null)} wide>
+      <AppletModal isOpen={activeApplet === 'citizenship'} title="Mexico Citizenship Tracker" onClose={() => setActiveApplet(null)} wide themed>
         <MexicoCitizenshipTracker />
       </AppletModal>
 
-      <AppletModal isOpen={activeApplet === 'fantracker'} title="Pedro Fan Tracker" onClose={() => setActiveApplet(null)} wide>
+      <AppletModal isOpen={activeApplet === 'fantracker'} title="Pedro Fan Tracker" onClose={() => setActiveApplet(null)} wide themed>
         <PedroFanTracker />
       </AppletModal>
     </div>

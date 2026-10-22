@@ -25,21 +25,21 @@ interface RecordItem {
 }
 
 const TYPE_ACCENT: Record<PersonType, string> = {
-  family: 'var(--copper-bold)',
+  family: 'var(--rs-btn)',
   associate: '#2a95a3',
   neighbor: '#3f8a86',
-  other: 'rgba(var(--copper-tan-rgb),0.4)',
+  other: 'rgba(var(--rs-accent-rgb),0.4)',
 };
 
 const STATUS_STYLE: Record<StatusClass, { bg: string; color: string }> = {
-  searched: { bg: 'rgba(76,175,80,0.18)', color: '#4caf50' },
-  pending: { bg: 'rgba(var(--copper-bold-rgb),0.18)', color: 'var(--copper-tan)' },
+  searched: { bg: 'color-mix(in srgb, var(--rs-ok) 18%, transparent)', color: 'var(--rs-ok)' },
+  pending: { bg: 'rgba(var(--rs-edge-rgb),0.18)', color: 'var(--rs-accent)' },
   breakthrough: { bg: 'rgba(42,149,163,0.18)', color: '#2a95a3' },
 };
 
 const GROUP_ORDER = ['Mexican Records (Jalisco)', 'US Census & Immigration Records', 'California County Records'];
 const GROUP_ACCENT: Record<string, string> = {
-  'Mexican Records (Jalisco)': 'var(--copper-bold)',
+  'Mexican Records (Jalisco)': 'var(--rs-btn)',
   'US Census & Immigration Records': '#2a95a3',
   'California County Records': '#3f8a86',
 };
@@ -97,10 +97,10 @@ function PersonCard({ person }: { person: Person }) {
   return (
     <div
       className="rounded-md p-3 mb-2 transition-colors"
-      style={{ background: 'rgba(20,18,16,0.6)', borderLeft: `3px solid ${accent}` }}
+      style={{ background: 'var(--rs-well)', borderLeft: `3px solid ${accent}` }}
     >
-      <div className="text-sm font-semibold mb-1" style={{ color: 'var(--copper-tan)' }}>{person.name}</div>
-      <div className="text-xs mb-2 leading-relaxed" style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }}>
+      <div className="text-sm font-semibold mb-1" style={{ color: 'var(--rs-accent)' }}>{person.name}</div>
+      <div className="text-xs mb-2 leading-relaxed" style={{ color: 'rgba(var(--rs-accent-rgb),0.7)' }}>
         {person.details.map((line, i) => <div key={i}>{line}</div>)}
       </div>
       <span
@@ -236,25 +236,25 @@ export default function PedroFanTracker() {
   ];
 
   const inputStyle: React.CSSProperties = {
-    borderColor: 'rgba(var(--copper-bold-rgb),0.3)',
-    color: 'var(--copper-tan)',
+    borderColor: 'rgba(var(--rs-edge-rgb),0.3)',
+    color: 'var(--rs-accent)',
     background: 'transparent',
   };
 
   if (loading) {
-    return <div className="py-12 text-center" style={{ color: 'var(--copper-tan)' }}>Loading…</div>;
+    return <div className="py-12 text-center" style={{ color: 'var(--rs-accent)' }}>Loading…</div>;
   }
 
   return (
-    <div style={{ color: 'var(--copper-tan)' }}>
+    <div style={{ color: 'var(--rs-accent)' }}>
       <div className="mb-1">
-        <h2 className="text-xl font-bold" style={{ color: 'var(--copper-tan)', textShadow: '0 0 16px rgba(var(--copper-bold-rgb),0.3)' }}>
+        <h2 className="text-xl font-bold" style={{ color: 'var(--rs-accent)', textShadow: '0 0 16px rgba(var(--rs-edge-rgb),0.3)' }}>
           Pedro Ortiz Preciado — FAN Tracker
         </h2>
-        <p className="text-xs mt-1" style={{ color: 'rgba(var(--copper-tan-rgb),0.6)' }}>
+        <p className="text-xs mt-1" style={{ color: 'rgba(var(--rs-accent-rgb),0.6)' }}>
           Friends, Associates & Neighbors Research System | Ahualulco, Jalisco → California
         </p>
-        {error && <p className="text-xs mt-1 text-red-400">{error}</p>}
+        {error && <p className="text-xs mt-1 text-[color:var(--rs-bad)]">{error}</p>}
       </div>
 
       {/* Tabs */}
@@ -266,9 +266,9 @@ export default function PedroFanTracker() {
             onClick={() => setTab(key)}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold border transition-colors"
             style={{
-              background: tab === key ? 'rgba(var(--copper-bold-rgb),0.28)' : 'transparent',
-              borderColor: 'var(--copper-bold)',
-              color: tab === key ? '#fff' : 'var(--copper-tan)',
+              background: tab === key ? 'rgba(var(--rs-edge-rgb),0.28)' : 'transparent',
+              borderColor: 'var(--rs-btn)',
+              color: tab === key ? 'var(--rs-btn-ink)' : 'var(--rs-accent)',
             }}
           >
             <Icon size={13} /> {label}
@@ -279,17 +279,17 @@ export default function PedroFanTracker() {
       {/* FAN CIRCLE */}
       {tab === 'circle' && (
         <div>
-          <div className="flex items-center gap-2 text-sm font-bold mb-2 pb-2" style={{ color: 'var(--copper-tan)', borderBottom: '2px solid rgba(var(--copper-bold-rgb),0.2)' }}>
+          <div className="flex items-center gap-2 text-sm font-bold mb-2 pb-2" style={{ color: 'var(--rs-accent)', borderBottom: '2px solid rgba(var(--rs-edge-rgb),0.2)' }}>
             <Users size={16} /> Direct Family (Core Research Targets)
           </div>
           {family.map(p => <PersonCard key={p.id} person={p} />)}
 
-          <div className="flex items-center gap-2 text-sm font-bold mt-6 mb-2 pb-2" style={{ color: 'var(--copper-tan)', borderBottom: '2px solid rgba(var(--copper-bold-rgb),0.2)' }}>
+          <div className="flex items-center gap-2 text-sm font-bold mt-6 mb-2 pb-2" style={{ color: 'var(--rs-accent)', borderBottom: '2px solid rgba(var(--rs-edge-rgb),0.2)' }}>
             <HeartHandshake size={16} /> Associates & Extended Family
           </div>
           {associates.map(p => <PersonCard key={p.id} person={p} />)}
 
-          <div className="flex items-center gap-2 text-sm font-bold mt-6 mb-2 pb-2" style={{ color: 'var(--copper-tan)', borderBottom: '2px solid rgba(var(--copper-bold-rgb),0.2)' }}>
+          <div className="flex items-center gap-2 text-sm font-bold mt-6 mb-2 pb-2" style={{ color: 'var(--rs-accent)', borderBottom: '2px solid rgba(var(--rs-edge-rgb),0.2)' }}>
             <MapPin size={16} /> Geographic Anchors
           </div>
           {neighbors.map(p => <PersonCard key={p.id} person={p} />)}
@@ -308,10 +308,10 @@ export default function PedroFanTracker() {
                     key={record.id}
                     onClick={() => toggleRecord(record)}
                     className="flex items-center gap-2 px-3 py-2 rounded-md text-xs cursor-pointer"
-                    style={{ background: record.checked ? 'rgba(76,175,80,0.12)' : 'rgba(20,18,16,0.6)' }}
+                    style={{ background: record.checked ? 'color-mix(in srgb, var(--rs-ok) 12%, transparent)' : 'var(--rs-well)' }}
                   >
                     <input type="checkbox" checked={record.checked} readOnly className="flex-shrink-0" />
-                    <span style={{ color: record.checked ? '#4caf50' : 'rgba(var(--copper-tan-rgb),0.85)' }}>{record.label}</span>
+                    <span style={{ color: record.checked ? 'var(--rs-ok)' : 'rgba(var(--rs-accent-rgb),0.85)' }}>{record.label}</span>
                   </label>
                 ))}
               </div>
@@ -323,8 +323,8 @@ export default function PedroFanTracker() {
       {/* FAMILY TREE */}
       {tab === 'tree' && (
         <div>
-          <h3 className="text-sm font-bold mb-3" style={{ color: 'var(--copper-tan)' }}>Family Connections (What We Know)</h3>
-          <div className="rounded-md p-4 overflow-x-auto" style={{ background: 'rgba(20,18,16,0.6)' }}>
+          <h3 className="text-sm font-bold mb-3" style={{ color: 'var(--rs-accent)' }}>Family Connections (What We Know)</h3>
+          <div className="rounded-md p-4 overflow-x-auto" style={{ background: 'var(--rs-well)' }}>
             {[
               [{ name: 'Jose', dates: '~1862' }, { name: 'Cecilia', dates: '~1870' }],
               null,
@@ -337,8 +337,8 @@ export default function PedroFanTracker() {
                 { name: '3 Siblings', dates: 'Details TBD' },
               ],
             ].map((row, i) => {
-              if (row === null) return <div key={i} className="text-center text-xs my-3" style={{ color: 'rgba(var(--copper-tan-rgb),0.4)' }}>↓ Children ↓</div>;
-              if (typeof row === 'string') return <div key={i} className="text-center text-xs my-3" style={{ color: 'rgba(var(--copper-tan-rgb),0.4)' }}>{row} ↓</div>;
+              if (row === null) return <div key={i} className="text-center text-xs my-3" style={{ color: 'rgba(var(--rs-accent-rgb),0.4)' }}>↓ Children ↓</div>;
+              if (typeof row === 'string') return <div key={i} className="text-center text-xs my-3" style={{ color: 'rgba(var(--rs-accent-rgb),0.4)' }}>{row} ↓</div>;
               return (
                 <div key={i} className="flex flex-wrap gap-3 justify-center my-2">
                   {row.map(card => (
@@ -346,12 +346,12 @@ export default function PedroFanTracker() {
                       key={card.name}
                       className="rounded-md px-4 py-2 text-center min-w-[160px]"
                       style={{
-                        background: card.focus ? 'rgba(var(--copper-bold-rgb),0.15)' : 'rgba(0,0,0,0.2)',
-                        border: `2px solid ${card.focus ? '#2a95a3' : 'var(--copper-bold)'}`,
+                        background: card.focus ? 'rgba(var(--rs-edge-rgb),0.15)' : 'var(--rs-well)',
+                        border: `2px solid ${card.focus ? '#2a95a3' : 'var(--rs-btn)'}`,
                       }}
                     >
-                      <div className="text-sm font-bold" style={{ color: 'var(--copper-tan)' }}>{card.name}</div>
-                      <div className="text-xs mt-1" style={{ color: 'rgba(var(--copper-tan-rgb),0.6)' }}>{card.dates}</div>
+                      <div className="text-sm font-bold" style={{ color: 'var(--rs-accent)' }}>{card.name}</div>
+                      <div className="text-xs mt-1" style={{ color: 'rgba(var(--rs-accent-rgb),0.6)' }}>{card.dates}</div>
                     </div>
                   ))}
                 </div>
@@ -359,16 +359,16 @@ export default function PedroFanTracker() {
             })}
           </div>
 
-          <div className="rounded-md p-4 mt-4" style={{ background: 'rgba(20,18,16,0.6)', borderLeft: '3px solid var(--copper-bold)' }}>
-            <h3 className="text-sm font-bold mb-2" style={{ color: 'var(--copper-tan)' }}>Key Data Gaps</h3>
+          <div className="rounded-md p-4 mt-4" style={{ background: 'var(--rs-well)', borderLeft: '3px solid var(--rs-btn)' }}>
+            <h3 className="text-sm font-bold mb-2" style={{ color: 'var(--rs-accent)' }}>Key Data Gaps</h3>
             {[
               ['Pedro’s exact birth year', '1932 vs 1886 discrepancy must be resolved via 1940 Census age check'],
               ['Pedro’s parents', 'Is he Arcadio’s biological son, or son of María from another relationship?'],
               ['Siblings', 'Names, birth dates, and current locations unknown'],
               ['Arcadio’s death', 'Date & location unconfirmed'],
             ].map(([label, text]) => (
-              <div key={label} className="text-xs rounded-md p-2 mb-2" style={{ background: 'rgba(0,0,0,0.2)' }}>
-                <strong style={{ color: 'var(--copper-tan)' }}>{label}:</strong> <span style={{ color: 'rgba(var(--copper-tan-rgb),0.75)' }}>{text}</span>
+              <div key={label} className="text-xs rounded-md p-2 mb-2" style={{ background: 'var(--rs-well)' }}>
+                <strong style={{ color: 'var(--rs-accent)' }}>{label}:</strong> <span style={{ color: 'rgba(var(--rs-accent-rgb),0.75)' }}>{text}</span>
               </div>
             ))}
           </div>
@@ -378,13 +378,13 @@ export default function PedroFanTracker() {
       {/* INSIGHTS */}
       {tab === 'insights' && (
         <div>
-          <h3 className="text-sm font-bold mb-3" style={{ color: 'var(--copper-tan)' }}>Research Strategy & Breakthrough Opportunities</h3>
+          <h3 className="text-sm font-bold mb-3" style={{ color: 'var(--rs-accent)' }}>Research Strategy & Breakthrough Opportunities</h3>
           {INSIGHTS.map(section => (
-            <div key={section.title} className="rounded-md p-4 mb-3" style={{ background: 'rgba(20,18,16,0.6)', borderLeft: '3px solid var(--copper-bold)' }}>
-              <h4 className="text-sm font-semibold mb-2" style={{ color: 'var(--copper-tan)' }}>{section.title}</h4>
+            <div key={section.title} className="rounded-md p-4 mb-3" style={{ background: 'var(--rs-well)', borderLeft: '3px solid var(--rs-btn)' }}>
+              <h4 className="text-sm font-semibold mb-2" style={{ color: 'var(--rs-accent)' }}>{section.title}</h4>
               {section.items.map(item => (
-                <div key={item.label} className="text-xs rounded-md p-2 mb-2" style={{ background: 'rgba(0,0,0,0.2)' }}>
-                  <strong style={{ color: 'var(--copper-tan)' }}>{item.label}:</strong> <span style={{ color: 'rgba(var(--copper-tan-rgb),0.75)' }}>{item.text}</span>
+                <div key={item.label} className="text-xs rounded-md p-2 mb-2" style={{ background: 'var(--rs-well)' }}>
+                  <strong style={{ color: 'var(--rs-accent)' }}>{item.label}:</strong> <span style={{ color: 'rgba(var(--rs-accent-rgb),0.75)' }}>{item.text}</span>
                 </div>
               ))}
             </div>
@@ -395,16 +395,16 @@ export default function PedroFanTracker() {
       {/* ADD PERSON */}
       {tab === 'add' && (
         <div>
-          <h3 className="text-sm font-bold mb-3" style={{ color: 'var(--copper-tan)' }}>Add a New Person to Your FAN Circle</h3>
-          <div className="rounded-md p-4 space-y-3" style={{ background: 'rgba(20,18,16,0.6)' }}>
+          <h3 className="text-sm font-bold mb-3" style={{ color: 'var(--rs-accent)' }}>Add a New Person to Your FAN Circle</h3>
+          <div className="rounded-md p-4 space-y-3" style={{ background: 'var(--rs-well)' }}>
             <div>
-              <label className="block text-xs mb-1" style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }}>Full Name</label>
+              <label className="block text-xs mb-1" style={{ color: 'rgba(var(--rs-accent-rgb),0.7)' }}>Full Name</label>
               <input value={newName} onChange={e => setNewName(e.target.value)} placeholder="e.g., Juan García Martínez" className="w-full border px-2 py-1.5 text-sm rounded" style={inputStyle} />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs mb-1" style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }}>Relationship to Pedro</label>
+                <label className="block text-xs mb-1" style={{ color: 'rgba(var(--rs-accent-rgb),0.7)' }}>Relationship to Pedro</label>
                 <select value={newRelation} onChange={e => setNewRelation(e.target.value as PersonType | '')} className="w-full border px-2 py-1.5 text-sm rounded" style={inputStyle}>
                   <option value="" style={{ color: '#000' }}>-- Select --</option>
                   <option value="family" style={{ color: '#000' }}>Family Member</option>
@@ -414,29 +414,29 @@ export default function PedroFanTracker() {
                 </select>
               </div>
               <div>
-                <label className="block text-xs mb-1" style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }}>Birth Year</label>
+                <label className="block text-xs mb-1" style={{ color: 'rgba(var(--rs-accent-rgb),0.7)' }}>Birth Year</label>
                 <input value={newBirth} onChange={e => setNewBirth(e.target.value)} placeholder="e.g., 1900" className="w-full border px-2 py-1.5 text-sm rounded" style={inputStyle} />
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs mb-1" style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }}>Birthplace</label>
+                <label className="block text-xs mb-1" style={{ color: 'rgba(var(--rs-accent-rgb),0.7)' }}>Birthplace</label>
                 <input value={newPlace} onChange={e => setNewPlace(e.target.value)} placeholder="e.g., Ahualulco, Jalisco" className="w-full border px-2 py-1.5 text-sm rounded" style={inputStyle} />
               </div>
               <div>
-                <label className="block text-xs mb-1" style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }}>Location in US (if applicable)</label>
+                <label className="block text-xs mb-1" style={{ color: 'rgba(var(--rs-accent-rgb),0.7)' }}>Location in US (if applicable)</label>
                 <input value={newUSLocation} onChange={e => setNewUSLocation(e.target.value)} placeholder="e.g., Riverside, CA" className="w-full border px-2 py-1.5 text-sm rounded" style={inputStyle} />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs mb-1" style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }}>Notes & Details</label>
+              <label className="block text-xs mb-1" style={{ color: 'rgba(var(--rs-accent-rgb),0.7)' }}>Notes & Details</label>
               <textarea value={newNotes} onChange={e => setNewNotes(e.target.value)} rows={3} placeholder="Where you found them, what records mention them, next steps..." className="w-full border px-2 py-1.5 text-sm rounded resize-vertical" style={inputStyle} />
             </div>
 
             <div>
-              <label className="block text-xs mb-1" style={{ color: 'rgba(var(--copper-tan-rgb),0.7)' }}>Search Status</label>
+              <label className="block text-xs mb-1" style={{ color: 'rgba(var(--rs-accent-rgb),0.7)' }}>Search Status</label>
               <select value={newStatus} onChange={e => setNewStatus(e.target.value as StatusClass)} className="w-full border px-2 py-1.5 text-sm rounded" style={inputStyle}>
                 <option value="pending" style={{ color: '#000' }}>Pending Search</option>
                 <option value="searched" style={{ color: '#000' }}>Already Searched</option>
@@ -448,14 +448,14 @@ export default function PedroFanTracker() {
               type="button"
               onClick={addPerson}
               className="flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-semibold"
-              style={{ background: 'var(--copper-bold)', color: 'var(--stone-0)' }}
+              style={{ background: 'var(--rs-btn)', color: 'var(--rs-btn-ink)' }}
             >
               <UserPlus size={14} /> Add to FAN Circle
             </button>
           </div>
 
           {confirmMsg && (
-            <div className="mt-3 text-xs rounded-md p-2" style={{ background: 'rgba(76,175,80,0.15)', color: '#4caf50' }}>
+            <div className="mt-3 text-xs rounded-md p-2" style={{ background: 'color-mix(in srgb, var(--rs-ok) 15%, transparent)', color: 'var(--rs-ok)' }}>
               {confirmMsg}
             </div>
           )}
