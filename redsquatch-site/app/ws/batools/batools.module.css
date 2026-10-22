@@ -10,11 +10,11 @@
 .page {
   --hacienda-wall: #1a3a52;
   --hacienda-wall-deep: #0F151B;
-  --panel-bg: rgba(22, 30, 40, 0.72);
-  --panel-border: rgba(255, 255, 255, 0.1);
-  --copper-accent: #D97A38;
-  --ink-main: #E2E8F0;
-  --ink-muted: #93A4B8;
+  --panel-bg: var(--rs-surface);
+  --panel-border: var(--rs-border);
+  --copper-accent: var(--rs-accent);
+  --ink-main: var(--rs-ink);
+  --ink-muted: var(--rs-ink-muted);
 
   position: relative;
   width: 100%;

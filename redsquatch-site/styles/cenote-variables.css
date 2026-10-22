@@ -26,6 +26,6 @@
   --glass-border: rgba(184, 115, 51, 0.2);
 
   /* Typography */
-  --font-mono: 'JetBrains Mono', 'Courier New', monospace;
-  --font-display: 'Stardom', serif;
+  --font-mono: var(--rs-font-mono);
+  --font-display: var(--rs-font-heading);
 }

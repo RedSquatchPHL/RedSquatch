@@ -12,16 +12,16 @@
 .page {
   --hacienda-wall: #1a3a52;
   --hacienda-wall-deep: #0F151B;
-  --panel-bg: rgba(22, 30, 40, 0.72);
-  --panel-border: rgba(255, 255, 255, 0.1);
+  --panel-bg: var(--rs-surface);
+  --panel-border: var(--rs-border);
   --wood-frame: #161E28;
-  --copper-accent: #D97A38;
-  --ink-main: #E2E8F0;
-  --ink-muted: #93A4B8;
-  --ink-faint: rgba(226, 232, 240, 0.45);
-  --status-green: #5FBF8F;
-  --status-yellow: #D4AF37;
-  --status-red: #E34C7A;
+  --copper-accent: var(--rs-accent);
+  --ink-main: var(--rs-ink);
+  --ink-muted: var(--rs-ink-muted);
+  --ink-faint: var(--rs-ink-faint);
+  --status-green: var(--rs-ok);
+  --status-yellow: var(--rs-warn);
+  --status-red: var(--rs-bad);
 
   position: relative;
   width: 100%;

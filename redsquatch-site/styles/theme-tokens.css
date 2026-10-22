@@ -1,0 +1,42 @@
+/* Shared semantic tokens — the one layer both sides of the site read from.
+   WorkSquatch (Tōnatiuh slate + copper-orange) is the :root default because the
+   login/home pages and every /ws page use it. HomeSquatch re-points the same names
+   under .hs-root (app/hs/layout.tsx) at the time-of-day phase tokens defined in
+   homesquatch-theme.css, so HS surfaces, accents and ink follow dusk/midnight/predawn
+   automatically instead of staying one fixed copper.
+
+   Structure (radius, spacing, type scale, motion) is shared; only colour and mood
+   differ per side. Prefer these over hardcoded hex or per-module copies. */
+
+:root {
+  /* Colour */
+  --rs-accent: #D97A38;
+  --rs-accent-hi: #E8935A;
+  --rs-accent-rgb: 217, 122, 56;
+  --rs-surface: rgba(22, 30, 40, 0.72);
+  --rs-border: rgba(255, 255, 255, 0.1);
+  --rs-ink: #E2E8F0;
+  --rs-ink-muted: #93A4B8;
+  --rs-ink-faint: rgba(226, 232, 240, 0.45);
+
+  /* Status — same on both sides so "ok / watch / bad" always reads the same */
+  --rs-ok: #5FBF8F;
+  --rs-warn: #D4AF37;
+  --rs-bad: #E34C7A;
+
+  /* Type — Cabinet Grotesk headings, Satoshi body, JetBrains Mono data */
+  --rs-font-heading: 'Cabinet Grotesk', 'Satoshi', system-ui, sans-serif;
+  --rs-font-body: 'Satoshi', var(--font-inter), system-ui, sans-serif;
+  --rs-font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.hs-root {
+  --rs-accent: var(--copper-tan);
+  --rs-accent-hi: color-mix(in srgb, var(--copper-tan) 78%, white);
+  --rs-accent-rgb: var(--copper-tan-rgb);
+  --rs-surface: color-mix(in srgb, var(--stone-0) 72%, transparent);
+  --rs-border: rgba(var(--copper-glow-rgb), 0.28);
+  --rs-ink: var(--copper-2);
+  --rs-ink-muted: color-mix(in srgb, var(--copper-2) 68%, transparent);
+  --rs-ink-faint: color-mix(in srgb, var(--copper-2) 45%, transparent);
+}

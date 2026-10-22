@@ -5,6 +5,7 @@ import "@/styles/globals.css";
 import "@/styles/cenote-variables.css";
 import "@/styles/cenote-background.css";
 import "@/styles/cenote-tokens.css";
+import "@/styles/theme-tokens.css";
 import "@/styles/cenote-elements.css";
 import "@/styles/homesquatch-theme.css";
 import { ThemeProvider } from "@/components/ThemeContext";
@@ -12,7 +13,8 @@ import { HomeSquatchGateProvider } from "@/components/HomeSquatchGate";
 import GlobalEffects from "@/components/effects/GlobalEffects";
 import { GATE_BOOT_SCRIPT } from "@/lib/homesquatch-gate";
 
-const inter = Inter({ subsets: ["latin"] });
+// Fallback only: Satoshi (Fontshare) is the body face, see --rs-font-body in theme-tokens.css.
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
   title: "RedSquatch",
@@ -25,8 +27,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" className={inter.variable} suppressHydrationWarning>
       <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
         {/* Cabinet Grotesk + Satoshi — Tonatiuh OS reskin typography for /ws/*,
             sourced from Fontshare the same way the SuperDesign draft does. */}
         <link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@800,700,500,400&f[]=satoshi@500,400&display=swap" rel="stylesheet" />
@@ -36,7 +41,7 @@ export default function RootLayout({
           {GATE_BOOT_SCRIPT}
         </Script>
       </head>
-      <body className={inter.className}>
+      <body>
         <ThemeProvider>
           <HomeSquatchGateProvider>
             <GlobalEffects />

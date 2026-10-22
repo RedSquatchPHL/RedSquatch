@@ -2,14 +2,14 @@
    onto the same glass/diamond-wall language as the other /ws pages. */
 
 .page {
-  --panel-bg: rgba(22, 30, 40, 0.72);
-  --panel-border: rgba(255, 255, 255, 0.1);
-  --copper-accent: #D97A38;
-  --ink-main: #E2E8F0;
-  --ink-muted: #93A4B8;
-  --green: #5FBF8F;
-  --gold: #D4AF37;
-  --pink: #E34C7A;
+  --panel-bg: var(--rs-surface);
+  --panel-border: var(--rs-border);
+  --copper-accent: var(--rs-accent);
+  --ink-main: var(--rs-ink);
+  --ink-muted: var(--rs-ink-muted);
+  --green: var(--rs-ok);
+  --gold: var(--rs-warn);
+  --pink: var(--rs-bad);
 
   position: relative;
   min-height: 100vh;

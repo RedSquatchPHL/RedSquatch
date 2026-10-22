@@ -45,10 +45,10 @@
   --gold-relief: #996515;
 
   /* Typography */
-  --font-header: 'Stardom', serif;
-  --font-ui: 'Inter', sans-serif;
-  --font-data: 'JetBrains Mono', monospace;
-  --font-console: 'JetBrains Mono', monospace;
+  --font-header: var(--rs-font-heading);
+  --font-ui: var(--rs-font-body);
+  --font-data: var(--rs-font-mono);
+  --font-console: var(--rs-font-mono);
 
   /* Spacing & Rhythm */
   --space-xs: 4px;

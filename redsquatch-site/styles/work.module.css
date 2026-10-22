@@ -17,7 +17,7 @@
 
 .title {
   color: #8e633f;
-  font-family: 'Stardom', serif;
+  font-family: var(--rs-font-heading);
   text-transform: uppercase;
   font-size: 2.5rem;
   margin: 0 0 0.5rem;
