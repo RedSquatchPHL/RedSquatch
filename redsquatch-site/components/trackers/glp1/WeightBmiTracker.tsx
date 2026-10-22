@@ -181,7 +181,7 @@ export default function WeightBmiTracker() {
       {chartData.length > 1 && (
         <div className="rounded-lg mb-4" style={{ padding: '12px 4px 4px', background: 'var(--rs-well)' }}>
           <ResponsiveContainer width="100%" height={220}>
-            <LineChart data={chartData} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
+            <LineChart data={chartData} margin={{ top: 8, right: lanes ? 54 : 16, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" {...gridStyle} />
               <XAxis dataKey="label" tick={axisStyle} axisLine={false} tickLine={false} />
               <YAxis tick={axisStyle} axisLine={false} tickLine={false} width={36} domain={lanes ? [lanes.lo, lanes.hi] : ['auto', 'auto']} allowDataOverflow={!!lanes} />
@@ -208,10 +208,11 @@ export default function WeightBmiTracker() {
                   fill={`color-mix(in srgb, ${b.color} ${b.alpha}%, transparent)`}
                   stroke="none"
                   shapeRendering="crispEdges"
-                  label={{ value: b.short, position: 'insideTopLeft', fill: 'var(--rs-ink-faint)', fontSize: 10 }}
+                  label={{ value: b.short, position: 'insideLeft', offset: 8, fill: 'var(--rs-ink-faint)', fontSize: 11 }}
                 />
               ))}
-              {/* A crisp line at every category limit, so neighbouring lanes never blend into each other */}
+              {/* A crisp line at every category limit; its BMI label sits in the right gutter, lane names at
+                  each lane's midpoint, weight ticks on the left — so no two labels share a position. */}
               {lanes?.bands.filter(b => b.bmiLo > 0 && b.y1 > lanes.lo).map(b => (
                 <ReferenceLine
                   key={`cut-${b.bmiLo}`}
@@ -219,12 +220,12 @@ export default function WeightBmiTracker() {
                   stroke="var(--rs-ink-faint)"
                   strokeDasharray="2 3"
                   strokeWidth={1}
-                  label={{ value: `BMI ${b.bmiLo}`, position: 'insideTopRight', fill: 'var(--rs-ink-faint)', fontSize: 9 }}
+                  label={{ value: `BMI ${b.bmiLo}`, position: 'right', fill: 'var(--rs-ink-faint)', fontSize: 10 }}
                 />
               ))}
               <Legend wrapperStyle={{ fontSize: 11, color: 'rgba(var(--rs-accent-rgb),0.7)' }} />
               {profile.target_weight_lb && (
-                <ReferenceLine y={profile.target_weight_lb} stroke="var(--rs-ok)" strokeDasharray="4 4" label={{ value: 'Target', fill: 'var(--rs-ok)', fontSize: 11, position: 'insideBottomRight' }} />
+                <ReferenceLine y={profile.target_weight_lb} stroke="var(--rs-ok)" strokeDasharray="4 4" label={{ value: 'Target', fill: 'var(--rs-ok)', fontSize: 11, fontWeight: 600, position: 'right' }} />
               )}
               <Line type="monotone" dataKey="weight" stroke="var(--rs-accent)" strokeWidth={2} dot={{ r: 3, fill: 'var(--rs-accent)' }} activeDot={{ r: 6 }} name="Weight" />
               <Line type="monotone" dataKey="average" stroke="var(--rs-info)" strokeWidth={2} strokeDasharray="5 3" dot={false} name="7-entry avg" />
