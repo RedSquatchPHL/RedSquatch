@@ -3,9 +3,9 @@
 import { useMemo, useState } from 'react';
 import { Plus, Pencil, Trash2, Check, X } from 'lucide-react';
 import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ReferenceLine, ResponsiveContainer,
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ReferenceLine, ReferenceArea, ResponsiveContainer,
 } from 'recharts';
-import { DRUGS, bmi, bmiCategory, levelAt, movingAverage, weightSlopePerDay, type DoseEvent } from '@/lib/glp1';
+import { DRUGS, BMI_BANDS, weightAtBmi, bmi, bmiCategory, levelAt, movingAverage, weightSlopePerDay, type DoseEvent } from '@/lib/glp1';
 import {
   useEntries, useProfile, num, toLocalInput, fmtDateTime, fmtShort,
   inputStyle, panelStyle, primaryBtn, ghostBtn, axisStyle, gridStyle, tooltipBox,
@@ -87,6 +87,30 @@ export default function WeightBmiTracker() {
     if (days < 3650) goalDate = new Date(Date.now() + days * 86400000).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
   }
 
+  // BMI swimlanes: pad the y-range around the data, then stretch it to take in the nearest
+  // category limit on each side (capped) so the boundary you're heading toward is always visible.
+  const lanes = (() => {
+    const h = profile.height_in;
+    if (!h || chartData.length < 2) return null;
+    const vals = chartData.flatMap(d => [d.weight, d.average]);
+    if (profile.target_weight_lb) vals.push(profile.target_weight_lb);
+    const dMin = Math.min(...vals), dMax = Math.max(...vals);
+    const pad = Math.max(3, (dMax - dMin) * 0.08);
+    const cuts = BMI_BANDS.slice(1).map(b => weightAtBmi(b.bmiLo, h));
+    const below = cuts.filter(c => c < dMin).pop();
+    const above = cuts.find(c => c > dMax);
+    const lo = Math.floor(Math.min(dMin - pad, below !== undefined && dMin - below <= 30 ? below - 2 : Infinity));
+    const hi = Math.ceil(Math.max(dMax + pad, above !== undefined && above - dMax <= 30 ? above + 2 : -Infinity));
+    const bands = BMI_BANDS.map(b => ({
+      ...b,
+      y1: Math.max(lo, b.bmiLo === 0 ? lo : weightAtBmi(b.bmiLo, h)),
+      y2: Math.min(hi, Number.isFinite(b.bmiHi) ? weightAtBmi(b.bmiHi, h) : hi),
+      lbLo: b.bmiLo === 0 ? null : Math.round(weightAtBmi(b.bmiLo, h)),
+      lbHi: Number.isFinite(b.bmiHi) ? Math.round(weightAtBmi(b.bmiHi, h)) : null,
+    })).filter(b => b.y2 > b.y1);
+    return { lo, hi, bands };
+  })();
+
   function startEdit(r: WeightRow) {
     setEditingId(r.id);
     setForm({ weight_lb: String(num(r.weight_lb) ?? ''), measured_at: toLocalInput(r.measured_at), notes: r.notes ?? '' });
@@ -160,7 +184,7 @@ export default function WeightBmiTracker() {
             <LineChart data={chartData} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" {...gridStyle} />
               <XAxis dataKey="label" tick={axisStyle} axisLine={false} tickLine={false} />
-              <YAxis tick={axisStyle} axisLine={false} tickLine={false} width={36} domain={['auto', 'auto']} />
+              <YAxis tick={axisStyle} axisLine={false} tickLine={false} width={36} domain={lanes ? [lanes.lo, lanes.hi] : ['auto', 'auto']} allowDataOverflow={!!lanes} />
               <Tooltip
                 cursor={{ stroke: 'rgba(var(--rs-edge-rgb),0.25)', strokeWidth: 1 }}
                 content={({ active, payload }) => {
@@ -175,6 +199,17 @@ export default function WeightBmiTracker() {
                   );
                 }}
               />
+              {lanes?.bands.map(b => (
+                <ReferenceArea
+                  key={b.label}
+                  y1={b.y1}
+                  y2={b.y2}
+                  ifOverflow="hidden"
+                  fill={`color-mix(in srgb, ${b.color} ${b.alpha}%, transparent)`}
+                  stroke="none"
+                  label={{ value: b.short, position: 'insideTopLeft', fill: 'var(--rs-ink-faint)', fontSize: 10 }}
+                />
+              ))}
               <Legend wrapperStyle={{ fontSize: 11, color: 'rgba(var(--rs-accent-rgb),0.7)' }} />
               {profile.target_weight_lb && (
                 <ReferenceLine y={profile.target_weight_lb} stroke="var(--rs-ok)" strokeDasharray="4 4" label={{ value: 'Target', fill: 'var(--rs-ok)', fontSize: 11, position: 'insideBottomRight' }} />
@@ -183,6 +218,19 @@ export default function WeightBmiTracker() {
               <Line type="monotone" dataKey="average" stroke="var(--rs-info)" strokeWidth={2} strokeDasharray="5 3" dot={false} name="7-entry avg" />
             </LineChart>
           </ResponsiveContainer>
+          {lanes ? (
+            <div className="flex flex-wrap gap-x-3 gap-y-1 justify-center text-[10px] px-2 pb-2 pt-1" style={{ color: 'var(--rs-ink-faint)' }}>
+              {lanes.bands.map(b => (
+                <span key={b.label}>
+                  <i className="inline-block w-2 h-2 rounded-sm mr-1" style={{ background: `color-mix(in srgb, ${b.color} ${Math.min(100, b.alpha * 3)}%, transparent)` }} />
+                  {b.short}{' '}
+                  {b.lbLo === null ? `< ${b.lbHi} lb` : b.lbHi === null ? `${b.lbLo}+ lb` : `${b.lbLo}–${b.lbHi} lb`}
+                </span>
+              ))}
+            </div>
+          ) : (
+            !profile.height_in && <p className="text-[10px] text-center px-2 pb-2" style={{ color: 'var(--rs-ink-faint)' }}>Set your height below to see BMI swimlanes.</p>
+          )}
         </div>
       )}
 

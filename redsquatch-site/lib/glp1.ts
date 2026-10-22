@@ -63,12 +63,27 @@ export function bmi(weightLb: number, heightIn: number): number | null {
 }
 
 export function bmiCategory(value: number): { label: string; color: string } {
-  if (value < 18.5) return { label: 'Underweight', color: '#d9a036' };
-  if (value < 25) return { label: 'Normal', color: '#4caf50' };
-  if (value < 30) return { label: 'Overweight', color: '#d9a036' };
-  if (value < 35) return { label: 'Obese (Class 1)', color: '#d97a5c' };
-  if (value < 40) return { label: 'Obese (Class 2)', color: '#c85050' };
-  return { label: 'Obese (Class 3)', color: '#c85050' };
+  if (value < 18.5) return { label: 'Underweight', color: 'var(--rs-warn)' };
+  if (value < 25) return { label: 'Normal', color: 'var(--rs-ok)' };
+  if (value < 30) return { label: 'Overweight', color: 'var(--rs-warn)' };
+  if (value < 35) return { label: 'Obese (Class 1)', color: 'var(--rs-bad)' };
+  if (value < 40) return { label: 'Obese (Class 2)', color: 'var(--rs-bad)' };
+  return { label: 'Obese (Class 3)', color: 'var(--rs-bad)' };
+}
+
+// BMI swimlanes for the weight chart: the category cut-offs as weight bands for a given height.
+// `bmiLo`/`bmiHi` are the BMI limits; `lb(b)` converts one to pounds (inverse of bmi()).
+export const BMI_BANDS = [
+  { label: 'Underweight', short: 'Under', bmiLo: 0, bmiHi: 18.5, color: 'var(--rs-info)', alpha: 14 },
+  { label: 'Normal', short: 'Normal', bmiLo: 18.5, bmiHi: 25, color: 'var(--rs-ok)', alpha: 14 },
+  { label: 'Overweight', short: 'Over', bmiLo: 25, bmiHi: 30, color: 'var(--rs-warn)', alpha: 14 },
+  { label: 'Obese Class 1', short: 'Obese I', bmiLo: 30, bmiHi: 35, color: 'var(--rs-bad)', alpha: 10 },
+  { label: 'Obese Class 2', short: 'Obese II', bmiLo: 35, bmiHi: 40, color: 'var(--rs-bad)', alpha: 17 },
+  { label: 'Obese Class 3', short: 'Obese III', bmiLo: 40, bmiHi: Infinity, color: 'var(--rs-bad)', alpha: 24 },
+] as const;
+
+export function weightAtBmi(b: number, heightIn: number): number {
+  return (b * heightIn * heightIn) / 703;
 }
 
 export interface WeightPoint { t: number; lb: number }
