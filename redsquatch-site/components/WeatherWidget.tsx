@@ -62,7 +62,7 @@ export function WeatherWidget() {
           <div
             className="absolute inset-0 pointer-events-none"
             style={{
-              background: 'linear-gradient(to bottom, rgba(6,6,6,0.55) 0%, rgba(6,6,6,0.15) 45%, rgba(6,6,6,0.45) 100%)',
+              background: 'linear-gradient(to bottom, rgba(var(--rs-scrim-rgb),0.55) 0%, rgba(var(--rs-scrim-rgb),0.15) 45%, rgba(var(--rs-scrim-rgb),0.45) 100%)',
             }}
           />
         </>
@@ -74,11 +74,11 @@ export function WeatherWidget() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <span className="text-[11px] font-semibold uppercase tracking-widest" style={{ color: 'rgba(184,115,51,0.9)' }}>
+            <span className="text-[11px] font-semibold uppercase tracking-widest" style={{ color: 'rgba(var(--rs-accent-rgb),0.9)' }}>
               Weather
             </span>
             {data?.location && (
-              <span className="text-[11px] ml-1.5" style={{ color: 'rgba(255,255,255,0.6)' }}>· {data.location}</span>
+              <span className="text-[11px] ml-1.5" style={{ color: 'color-mix(in srgb, var(--rs-ink) 60%, transparent)' }}>· {data.location}</span>
             )}
           </div>
           <button
@@ -96,7 +96,7 @@ export function WeatherWidget() {
             <span className="text-muted-foreground text-sm animate-pulse">Loading…</span>
           </div>
         ) : error ? (
-          <p className="text-red-400 text-xs">{error}</p>
+          <p className="text-[color:var(--rs-bad)] text-xs">{error}</p>
         ) : data && cur ? (
           <div className="flex-1 flex flex-col gap-3">
             {/* Today — big row */}
@@ -104,7 +104,7 @@ export function WeatherWidget() {
               <span className="text-4xl leading-none">{cur.emoji}</span>
               <div>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-bold" style={{ color: '#d4a373', textShadow: '0 0 12px rgba(184,115,51,0.5)' }}>
+                  <span className="text-3xl font-bold" style={{ color: 'var(--rs-accent)', textShadow: '0 0 12px rgba(var(--rs-accent-rgb),0.5)' }}>
                     {cur.tempF}°
                   </span>
                   <span className="text-sm text-muted-foreground">F</span>
@@ -114,9 +114,9 @@ export function WeatherWidget() {
               <div className="ml-auto text-right text-xs text-muted-foreground space-y-0.5">
                 {cur.highF !== null && (
                   <p>
-                    <span style={{ color: '#b87333' }}>H</span> {cur.highF}°
+                    <span style={{ color: 'var(--rs-accent)' }}>H</span> {cur.highF}°
                     <span className="mx-1 opacity-50">·</span>
-                    <span className="text-blue-400/70">L</span> {cur.lowF}°
+                    <span className="text-[color:var(--rs-info)]">L</span> {cur.lowF}°
                   </p>
                 )}
                 <p>💧 {cur.humidity}%</p>
@@ -133,16 +133,16 @@ export function WeatherWidget() {
                 <div
                   key={i}
                   className="flex items-center gap-2 rounded-lg px-3 py-2"
-                  style={{ backgroundColor: 'rgba(184,115,51,0.06)', border: '1px solid rgba(184,115,51,0.12)' }}
+                  style={{ backgroundColor: 'rgba(var(--rs-accent-rgb),0.06)', border: '1px solid rgba(var(--rs-accent-rgb),0.12)' }}
                 >
                   <span className="text-xl leading-none">{day.emoji}</span>
                   <div className="min-w-0">
                     <p className="text-xs font-semibold text-muted-foreground">{day.label}</p>
                     <p className="text-xs text-foreground/70 truncate">{day.condition}</p>
                     <p className="text-xs tabular-nums">
-                      <span style={{ color: '#b87333' }}>{day.highF}°</span>
+                      <span style={{ color: 'var(--rs-accent)' }}>{day.highF}°</span>
                       <span className="text-muted-foreground mx-1">/</span>
-                      <span className="text-blue-400/70">{day.lowF}°</span>
+                      <span className="text-[color:var(--rs-info)]">{day.lowF}°</span>
                     </p>
                   </div>
                 </div>
@@ -160,7 +160,7 @@ export function WeatherWidget() {
       {/* Copper accent line */}
       <div
         className="absolute bottom-0 left-6 right-6 h-px rounded z-10"
-        style={{ background: 'linear-gradient(90deg, transparent, #b87333 50%, transparent)' }}
+        style={{ background: 'linear-gradient(90deg, transparent, var(--rs-accent) 50%, transparent)' }}
       />
     </div>
   );

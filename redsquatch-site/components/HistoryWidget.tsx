@@ -37,11 +37,11 @@ export function HistoryWidget() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <span className="text-[11px] font-semibold uppercase tracking-widest" style={{ color: 'rgba(184,115,51,0.8)' }}>
+          <span className="text-[11px] font-semibold uppercase tracking-widest" style={{ color: 'rgba(var(--rs-accent-rgb),0.8)' }}>
             This Day in History
           </span>
           {data?.dateLabel && (
-            <span className="text-[11px] ml-1.5" style={{ color: 'rgba(255,255,255,0.6)' }}>· {data.dateLabel}</span>
+            <span className="text-[11px] ml-1.5" style={{ color: 'color-mix(in srgb, var(--rs-ink) 60%, transparent)' }}>· {data.dateLabel}</span>
           )}
         </div>
         <button
@@ -60,7 +60,7 @@ export function HistoryWidget() {
           <span className="text-muted-foreground text-sm animate-pulse">Loading…</span>
         </div>
       ) : error ? (
-        <p className="text-red-400 text-xs">{error}</p>
+        <p className="text-[color:var(--rs-bad)] text-xs">{error}</p>
       ) : data ? (
         <div className="flex-1 space-y-3">
           {data.events.map((ev, i) => (
@@ -68,7 +68,7 @@ export function HistoryWidget() {
               {/* Year pill */}
               <span
                 className="shrink-0 text-xs font-bold px-2 py-0.5 rounded border self-start mt-0.5"
-                style={{ color: '#b87333', borderColor: '#b8733340', backgroundColor: 'rgba(184,115,51,0.08)' }}
+                style={{ color: 'var(--rs-accent)', borderColor: 'rgba(var(--rs-accent-rgb),0.25)', backgroundColor: 'rgba(var(--rs-accent-rgb),0.08)' }}
               >
                 {ev.year}
               </span>
@@ -81,7 +81,7 @@ export function HistoryWidget() {
       {/* Copper accent line */}
       <div
         className="absolute bottom-0 left-6 right-6 h-px rounded"
-        style={{ background: 'linear-gradient(90deg, transparent, #b87333 50%, transparent)' }}
+        style={{ background: 'linear-gradient(90deg, transparent, var(--rs-accent) 50%, transparent)' }}
       />
     </div>
   );

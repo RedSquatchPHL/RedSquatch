@@ -43,7 +43,7 @@ export function QuoteWidget() {
     <div className="glass-card relative rounded-2xl p-5 flex flex-col gap-3 min-h-[160px]">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <span className="text-[11px] font-semibold uppercase tracking-widest" style={{ color: 'rgba(184,115,51,0.8)' }}>
+        <span className="text-[11px] font-semibold uppercase tracking-widest" style={{ color: 'rgba(var(--rs-accent-rgb),0.8)' }}>
           Quote of the Day
         </span>
         <button
@@ -62,12 +62,12 @@ export function QuoteWidget() {
           <span className="text-muted-foreground text-sm animate-pulse">Loading…</span>
         </div>
       ) : error ? (
-        <p className="text-red-400 text-xs">{error}</p>
+        <p className="text-[color:var(--rs-bad)] text-xs">{error}</p>
       ) : data ? (
         <div className="flex-1 flex flex-col justify-between gap-3">
           <p
             className="text-base italic leading-relaxed"
-            style={{ color: '#d4a373' }}
+            style={{ color: 'var(--rs-accent)' }}
           >
             &ldquo;{data.text}&rdquo;
           </p>
@@ -85,7 +85,7 @@ export function QuoteWidget() {
       {/* Copper accent line */}
       <div
         className="absolute bottom-0 left-6 right-6 h-px rounded"
-        style={{ background: 'linear-gradient(90deg, transparent, #b87333 50%, transparent)' }}
+        style={{ background: 'linear-gradient(90deg, transparent, var(--rs-accent) 50%, transparent)' }}
       />
     </div>
   );

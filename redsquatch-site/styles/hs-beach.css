@@ -11,6 +11,12 @@
 
 /* ── Tone 1 · day (morning / midday): light sea-glass, coral accent ───────── */
 .hs-root[data-hs-theme="beach"][data-band="day"] {
+  /* shadcn HSL tokens, so text-foreground / text-muted-foreground / border-primary/* follow the band */
+  --background: 192 33% 94%;  --foreground: 190 65% 17%;  --muted: 193 31% 85%;  --muted-foreground: 193 31% 34%;
+  --popover: 0 0% 100%;  --popover-foreground: 190 65% 17%;  --border: 193 25% 70%;  --input: 0 0% 100%;
+  --card: 0 0% 100%;  --card-foreground: 190 65% 17%;  --primary: 11 66% 43%;  --primary-foreground: 0 0% 100%;
+  --secondary: 193 31% 34%;  --secondary-foreground: 0 0% 100%;  --accent: 11 66% 43%;  --accent-foreground: 0 0% 100%;  --ring: 11 66% 43%;
+  --rs-scrim-rgb: 255, 255, 255;
   --rs-accent: #b83f25;  --rs-accent-hi: #e0623f;  --rs-accent-rgb: 184, 63, 37;
   --rs-surface: rgba(255, 255, 255, 0.74);
   --rs-border: rgba(255, 255, 255, 0.9);
@@ -28,6 +34,11 @@
 
 /* ── Tone 2 · warm (dawn / golden hour / sunset): warm light glass, brick accent ── */
 .hs-root[data-hs-theme="beach"][data-band="warm"] {
+  --background: 27 55% 91%;  --foreground: 325 27% 17%;  --muted: 22 40% 84%;  --muted-foreground: 349 18% 36%;
+  --popover: 30 100% 97%;  --popover-foreground: 325 27% 17%;  --border: 17 22% 62%;  --input: 30 100% 97%;
+  --card: 30 100% 96%;  --card-foreground: 325 27% 17%;  --primary: 6 59% 41%;  --primary-foreground: 0 0% 100%;
+  --secondary: 349 18% 36%;  --secondary-foreground: 0 0% 100%;  --accent: 6 59% 41%;  --accent-foreground: 0 0% 100%;  --ring: 6 59% 41%;
+  --rs-scrim-rgb: 255, 245, 234;
   --rs-accent: #a8372a;  --rs-accent-hi: #d4573f;  --rs-accent-rgb: 168, 55, 42;
   --rs-surface: rgba(255, 245, 234, 0.82);
   --rs-border: rgba(255, 236, 214, 0.95);
@@ -43,6 +54,11 @@
 
 /* ── Tone 3 · night (moonlit): dark glass, sand-gold accent ──────────────── */
 .hs-root[data-hs-theme="beach"][data-band="night"] {
+  --background: 222 50% 9%;  --foreground: 222 60% 93%;  --muted: 218 33% 15%;  --muted-foreground: 222 31% 74%;
+  --popover: 222 50% 12%;  --popover-foreground: 222 60% 93%;  --border: 222 40% 60%;  --input: 222 50% 14%;
+  --card: 218 40% 13%;  --card-foreground: 222 60% 93%;  --primary: 27 83% 70%;  --primary-foreground: 20 30% 8%;
+  --secondary: 222 31% 74%;  --secondary-foreground: 222 50% 9%;  --accent: 27 83% 70%;  --accent-foreground: 20 30% 8%;  --ring: 27 83% 70%;
+  --rs-scrim-rgb: 6, 6, 12;
   --rs-accent: #f0b27a;  --rs-accent-hi: #f6c797;  --rs-accent-rgb: 240, 178, 122;
   --rs-surface: rgba(10, 18, 40, 0.70);
   --rs-border: rgba(160, 180, 230, 0.28);
@@ -133,6 +149,11 @@
   --rs-field: rgba(255, 255, 255, 0.06);  --rs-field-edge: rgba(212, 163, 115, 0.3);
   --rs-row: rgba(255, 255, 255, 0.05);
   --rs-btn: #b87333;  --rs-btn-ink: #ffffff;
+  --background: 209 37% 12%;  --foreground: 34 69% 84%;  --muted: 200 34% 21%;  --muted-foreground: 30 21% 57%;
+  --popover: 209 37% 12%;  --popover-foreground: 34 69% 84%;  --border: 28 66% 67%;  --input: 205 35% 13%;
+  --card: 204 35% 17%;  --card-foreground: 34 69% 84%;  --primary: 13 70% 62%;  --primary-foreground: 207 39% 9%;
+  --secondary: 28 66% 67%;  --secondary-foreground: 207 39% 9%;  --accent: 13 70% 62%;  --accent-foreground: 36 73% 88%;  --ring: 13 70% 62%;
+  --rs-scrim-rgb: 6, 6, 6;
   --rs-edge-rgb: 184, 115, 51;  --rs-well: rgba(20, 18, 16, 0.6);  --rs-well-solid: rgba(20, 18, 16, 0.95);
   --rs-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
   --rs-ok: #5fbf8f;  --rs-warn: #d4af37;  --rs-bad: #e34c7a;  --rs-info: #7fb3d5;
