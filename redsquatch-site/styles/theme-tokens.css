@@ -133,3 +133,52 @@
 .rs-loader-label { margin: 0; font-size: 0.875rem; color: var(--rs-ink-muted); }
 @keyframes rsSpin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .rs-loader-spinner { animation-duration: 3s; } }
+
+/* Orbiting glow ring — two comet pulses circle the card edge on hover. Shared by the
+   /ws launcher cards (ws-fx.css targets them by module class) and any element that
+   opts in with .rs-orbit (the /hs applet cards). Coloured by --rs-accent-hi, so it is
+   orange on /ws and the sun/copper accent of the current band on /hs. Only runs while
+   hovered or keyboard-focused, so idle pages animate nothing. */
+@property --fx-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@keyframes wsOrbit { to { --fx-angle: 360deg; } }
+
+.rs-orbit { position: relative; }
+
+.rs-orbit::after,
+.ws-fx [class*="_launcherCard__"]::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 2px;                      /* ring thickness */
+  pointer-events: none;
+  /* two heads 180deg apart; each trails a tail that fades in behind it */
+  background: conic-gradient(from var(--fx-angle),
+    transparent 0deg, var(--rs-accent-hi) 100deg, transparent 102deg,
+    transparent 180deg, var(--rs-accent-hi) 280deg, transparent 282deg,
+    transparent 360deg);
+  /* punch out the middle so only the ring remains */
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  filter: drop-shadow(0 0 4px rgba(var(--rs-accent-rgb), 0.8));
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.rs-orbit:hover::after,
+.rs-applet-trigger:focus-visible .rs-orbit::after,
+.ws-fx [class*="_launcherCard__"]:hover::after {
+  opacity: 1;
+  animation: wsOrbit 2.6s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rs-orbit::after { display: none; }
+}

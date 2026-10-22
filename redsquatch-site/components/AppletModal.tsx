@@ -38,10 +38,20 @@ export default function AppletModal({ isOpen, title, onClose, children, wide, to
 
   return (
     <>
-      <div className="fixed inset-0 z-50 bg-black/70" onClick={onClose} />
+      {/* HS (default tone): a soft tinted blur so the scene stays visible behind the panel,
+          not a full black dim. /ws keeps its darker overlay. */}
+      <div
+        className={`fixed inset-0 z-50 ${tone === 'tonatiuh' ? 'bg-black/70' : ''}`}
+        style={tone === 'tonatiuh' ? undefined : {
+          background: 'color-mix(in srgb, var(--stone-0) 38%, transparent)',
+          backdropFilter: 'blur(6px)',
+          WebkitBackdropFilter: 'blur(6px)',
+        }}
+        onClick={onClose}
+      />
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
         <div
-          className={`rounded-2xl w-full ${wide ? 'max-w-6xl' : 'max-w-4xl'} max-h-[85vh] flex flex-col pointer-events-auto overflow-hidden`}
+          className={`rounded-2xl w-full ${wide ? (tone === 'tonatiuh' ? 'max-w-6xl' : 'max-w-[1040px]') : 'max-w-4xl'} max-h-[85vh] flex flex-col pointer-events-auto overflow-hidden`}
           style={{
             border: t.border,
             background: t.background,

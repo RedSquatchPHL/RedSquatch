@@ -57,7 +57,7 @@ export default function HSMexicanPage() {
               onClick={() => setActiveApplet(t.key)}
               className="rs-applet-trigger"
             >
-              <div className="rs-applet-card">
+              <div className="rs-applet-card rs-orbit">
                 <div className="rs-applet-icon">
                   <Zap size={24} />
                 </div>

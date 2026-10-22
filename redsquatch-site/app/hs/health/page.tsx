@@ -61,7 +61,7 @@ export default function HSHealthPage() {
               onClick={() => setActiveApplet(t.key)}
               className="rs-applet-trigger"
             >
-              <div className="rs-applet-card">
+              <div className="rs-applet-card rs-orbit">
                 <div className="rs-applet-icon">
                   <t.icon size={24} />
                 </div>

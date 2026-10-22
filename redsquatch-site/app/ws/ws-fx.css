@@ -47,16 +47,6 @@
 }
 
 /* ---- 2b. Orbiting ring: two comet pulses circle the card perimeter on hover ---- */
-@property --fx-angle {
-  syntax: '<angle>';
-  inherits: false;
-  initial-value: 0deg;
-}
-
-@keyframes wsOrbit {
-  to { --fx-angle: 360deg; }
-}
-
 .ws-fx :is(
   [class*="_statCard__"], [class*="_launcherCard__"], [class*="_miniPanel__"],
   [class*="_entryCard__"], [class*="_toggleCard__"], [class*="jobsearch_card__"],
@@ -65,35 +55,8 @@
   position: relative;   /* .aside is already sticky, which also anchors the ring */
 }
 
-/* Orbiting ring is reserved for the launcher cards (the hero tiles); every other card
-   keeps the lift + glow above. The animation only runs while hovered, so idle pages
-   aren't animating a conic gradient on dozens of hidden pseudo-elements. */
-.ws-fx [class*="_launcherCard__"]::after {
-  content: "";
-  position: absolute;
-  inset: -1px;
-  border-radius: inherit;
-  padding: 2px;                      /* ring thickness */
-  pointer-events: none;
-  /* two heads 180deg apart; each trails a tail that fades in behind it */
-  background: conic-gradient(from var(--fx-angle),
-    transparent 0deg, #E8935A 100deg, transparent 102deg,
-    transparent 180deg, #E8935A 280deg, transparent 282deg,
-    transparent 360deg);
-  /* punch out the middle so only the ring remains */
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  mask-composite: exclude;
-  filter: drop-shadow(0 0 4px rgba(217, 122, 56, 0.8));
-  opacity: 0;
-  transition: opacity 0.25s ease;
-}
-
-.ws-fx [class*="_launcherCard__"]:hover::after {
-  opacity: 1;
-  animation: wsOrbit 2.6s linear infinite;
-}
+/* The orbiting ring itself lives in styles/theme-tokens.css (.rs-orbit) so /hs can use it
+   too. It is reserved for the launcher cards here; every other card keeps lift + glow. */
 
 /* ---- 3. The sun: copper by day (Work), setting/moon/dawn in Downtime ------- */
 .ws-sun {
