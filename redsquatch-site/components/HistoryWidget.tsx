@@ -41,7 +41,7 @@ export function HistoryWidget() {
             This Day in History
           </span>
           {data?.dateLabel && (
-            <span className="text-[11px] ml-1.5" style={{ color: 'rgba(255,255,255,0.35)' }}>· {data.dateLabel}</span>
+            <span className="text-[11px] ml-1.5" style={{ color: 'rgba(255,255,255,0.6)' }}>· {data.dateLabel}</span>
           )}
         </div>
         <button

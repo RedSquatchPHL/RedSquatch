@@ -106,7 +106,7 @@ export default function SettingsPage() {
           className="w-8 h-8 rounded-full border-2 mx-auto mb-4 animate-spin"
           style={{ borderColor: 'rgba(184,115,51,0.2)', borderTopColor: '#b87333' }}
         />
-        <p className="text-sm" style={{ color: 'rgba(255,255,255,0.45)' }}>Loading settings…</p>
+        <p className="text-sm" style={{ color: 'rgba(255,255,255,0.6)' }}>Loading settings…</p>
       </div>
     </div>
   );
@@ -122,7 +122,7 @@ export default function SettingsPage() {
           >
             Two-Factor Authentication
           </h1>
-          <p className="text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>
+          <p className="text-xs" style={{ color: 'rgba(255,255,255,0.6)' }}>
             {enabled ? 'Currently enabled' : 'Currently disabled'}
           </p>
         </div>
@@ -165,7 +165,7 @@ export default function SettingsPage() {
 
         {qr && (
           <div className="space-y-4">
-            <p className="text-xs text-center" style={{ color: 'rgba(255,255,255,0.5)' }}>
+            <p className="text-xs text-center" style={{ color: 'rgba(255,255,255,0.6)' }}>
               Scan this with your authenticator app, then enter the 6-digit code below.
             </p>
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -204,7 +204,7 @@ export default function SettingsPage() {
         <button
           onClick={() => router.back()}
           className="w-full text-xs text-center py-1"
-          style={{ color: 'rgba(255,255,255,0.4)' }}
+          style={{ color: 'rgba(255,255,255,0.6)' }}
         >
           ← Back
         </button>

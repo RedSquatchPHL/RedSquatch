@@ -29,7 +29,7 @@ export default function HSHeader() {
         {current && (
           <span
             className="hidden sm:inline text-sm truncate"
-            style={{ color: 'rgba(255,255,255,0.5)' }}
+            style={{ color: 'rgba(255,255,255,0.6)' }}
           >
             / {current.label}
           </span>

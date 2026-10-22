@@ -214,13 +214,13 @@
 }
 
 .placeholder {
-  color: rgba(255, 255, 255, 0.25);
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .deleteBtn {
   background: none;
   border: none;
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.6);
   cursor: pointer;
   font-size: 0.9rem;
   padding: 0.2rem 0.4rem;
@@ -231,7 +231,7 @@
 }
 
 .emptyRow {
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.6);
   padding: 2rem 1rem;
   text-align: center;
 }
@@ -293,7 +293,7 @@
 .dismissBtn {
   background: none;
   border: none;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.6);
   cursor: pointer;
   font-size: 1rem;
   line-height: 1;
@@ -372,7 +372,7 @@
 }
 
 .carouselEmpty {
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.6);
   padding: 3rem 1rem;
   text-align: center;
 }
@@ -492,7 +492,7 @@
 .toggleBtn {
   background: transparent;
   border: 1px solid rgba(184, 115, 51, 0.3);
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.6);
   cursor: pointer;
   font-size: 0.8rem;
   font-weight: 600;
@@ -571,7 +571,7 @@
 }
 
 .backburnerEmpty {
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.6);
   font-size: 0.8rem;
 }
 

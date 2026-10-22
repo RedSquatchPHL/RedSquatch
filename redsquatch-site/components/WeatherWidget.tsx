@@ -78,7 +78,7 @@ export function WeatherWidget() {
               Weather
             </span>
             {data?.location && (
-              <span className="text-[11px] ml-1.5" style={{ color: 'rgba(255,255,255,0.4)' }}>· {data.location}</span>
+              <span className="text-[11px] ml-1.5" style={{ color: 'rgba(255,255,255,0.6)' }}>· {data.location}</span>
             )}
           </div>
           <button

@@ -17,7 +17,7 @@
   --rs-border: rgba(255, 255, 255, 0.1);
   --rs-ink: #E2E8F0;
   --rs-ink-muted: #93A4B8;
-  --rs-ink-faint: rgba(226, 232, 240, 0.45);
+  --rs-ink-faint: rgba(226, 232, 240, 0.62);
 
   /* Status — same on both sides so "ok / watch / bad" always reads the same */
   --rs-ok: #5FBF8F;
@@ -38,7 +38,7 @@
   --rs-border: rgba(var(--copper-glow-rgb), 0.28);
   --rs-ink: var(--copper-2);
   --rs-ink-muted: color-mix(in srgb, var(--copper-2) 68%, transparent);
-  --rs-ink-faint: color-mix(in srgb, var(--copper-2) 45%, transparent);
+  --rs-ink-faint: color-mix(in srgb, var(--copper-2) 62%, transparent);
 }
 
 /* Applet launcher card — the Health / Mexican tool cards. Hover and focus live in
@@ -99,4 +99,12 @@
   .rs-applet-card, .rs-applet-icon, .rs-applet-bar { transition: none; }
   .rs-applet-trigger:hover .rs-applet-card,
   .rs-applet-trigger:hover .rs-applet-icon { transform: none; }
+}
+
+/* Global keyboard focus ring. :where() keeps specificity at zero, so any component
+   that styles its own :focus-visible (SideRail, Gates, Roadmap, Tasks...) still wins
+   and this only fills the gaps. :focus-visible means mouse clicks never show it. */
+:where(a, button, summary, select, textarea, input, [role="button"], [tabindex]:not([tabindex="-1"])):focus-visible {
+  outline: 2px solid var(--rs-accent);
+  outline-offset: 2px;
 }

@@ -336,7 +336,7 @@ export default function WorkLogsWidget({ defaultTab = 'demand', excludeTypes = [
                   placeholder={form.intake_type === 'research' ? 'e.g. API Migration Research' : 'Project name'}
                   value={form.project}
                   onChange={e => handleField('project', e.target.value)}
-                  className="bg-[rgba(255,255,255,0.04)] border-[rgba(184,115,51,0.2)] text-white placeholder:text-white/20 focus:border-copper"
+                  className="bg-[rgba(255,255,255,0.04)] border-[rgba(184,115,51,0.2)] text-white placeholder:text-white/60 focus:border-copper"
                 />
               </div>
               <div className="space-y-1">
@@ -349,7 +349,7 @@ export default function WorkLogsWidget({ defaultTab = 'demand', excludeTypes = [
                   placeholder="0.00"
                   value={form.hours}
                   onChange={e => handleField('hours', e.target.value)}
-                  className="bg-[rgba(255,255,255,0.04)] border-[rgba(184,115,51,0.2)] text-white placeholder:text-white/20 focus:border-copper"
+                  className="bg-[rgba(255,255,255,0.04)] border-[rgba(184,115,51,0.2)] text-white placeholder:text-white/60 focus:border-copper"
                 />
               </div>
               <div className="space-y-1">
@@ -377,7 +377,7 @@ export default function WorkLogsWidget({ defaultTab = 'demand', excludeTypes = [
                 value={form.notes}
                 onChange={e => handleField('notes', e.target.value)}
                 rows={3}
-                className="bg-[rgba(255,255,255,0.04)] border-[rgba(184,115,51,0.2)] text-white placeholder:text-white/20 focus:border-copper resize-none font-mono text-sm"
+                className="bg-[rgba(255,255,255,0.04)] border-[rgba(184,115,51,0.2)] text-white placeholder:text-white/60 focus:border-copper resize-none font-mono text-sm"
               />
             </div>
 
@@ -386,14 +386,14 @@ export default function WorkLogsWidget({ defaultTab = 'demand', excludeTypes = [
               <div className="space-y-1">
                 <label className="text-xs text-light-copper">
                   Findings
-                  <span className="text-white/30 ml-1">(methodology, recommendations, output)</span>
+                  <span className="text-white/60 ml-1">(methodology, recommendations, output)</span>
                 </label>
                 <Textarea
                   placeholder="Research findings, methodology, recommendations..."
                   value={form.findings}
                   onChange={e => handleField('findings', e.target.value)}
                   rows={4}
-                  className="bg-[rgba(255,255,255,0.04)] border-[rgba(184,115,51,0.2)] text-white placeholder:text-white/20 focus:border-copper resize-none font-mono text-sm"
+                  className="bg-[rgba(255,255,255,0.04)] border-[rgba(184,115,51,0.2)] text-white placeholder:text-white/60 focus:border-copper resize-none font-mono text-sm"
                 />
               </div>
             )}
@@ -448,7 +448,7 @@ export default function WorkLogsWidget({ defaultTab = 'demand', excludeTypes = [
               <div className="flex-shrink-0 pt-0.5">
                 <span className={`
                   inline-block px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider
-                  ${INTAKE_TYPE_COLORS[log.intake_type] ?? 'bg-white/5 text-white/50 border border-white/10'}
+                  ${INTAKE_TYPE_COLORS[log.intake_type] ?? 'bg-white/5 text-white/60 border border-white/10'}
                 `}>
                   {log.intake_type}
                 </span>
@@ -458,20 +458,20 @@ export default function WorkLogsWidget({ defaultTab = 'demand', excludeTypes = [
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1 flex-wrap">
                   <span className="text-white text-sm font-medium truncate">
-                    {log.project || <span className="text-white/30 italic">No project</span>}
+                    {log.project || <span className="text-white/60 italic">No project</span>}
                   </span>
-                  <span className={`text-xs ${STATUS_COLORS[log.status] ?? 'text-white/40'}`}>
+                  <span className={`text-xs ${STATUS_COLORS[log.status] ?? 'text-white/60'}`}>
                     · {STATUS_LABELS[log.status] ?? log.status}
                   </span>
                   {log.hours && (
                     <span className="text-xs text-light-copper">· {parseFloat(log.hours).toFixed(1)}h</span>
                   )}
                 </div>
-                <div className="text-xs text-white/30">
+                <div className="text-xs text-white/60">
                   {new Date(log.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                 </div>
                 {log.notes && (
-                  <p className="text-xs text-white/50 mt-1.5 line-clamp-2 font-mono whitespace-pre-wrap">
+                  <p className="text-xs text-white/60 mt-1.5 line-clamp-2 font-mono whitespace-pre-wrap">
                     {log.notes}
                   </p>
                 )}
@@ -492,7 +492,7 @@ export default function WorkLogsWidget({ defaultTab = 'demand', excludeTypes = [
                 </button>
                 <button
                   onClick={() => handleDelete(log.id)}
-                  className="text-xs text-white/30 hover:text-red-400 px-2 py-1 rounded hover:bg-red-400/5 transition-colors"
+                  className="text-xs text-white/60 hover:text-red-400 px-2 py-1 rounded hover:bg-red-400/5 transition-colors"
                 >
                   Del
                 </button>

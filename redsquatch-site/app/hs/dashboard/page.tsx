@@ -37,7 +37,7 @@ export default function HSDashboardPage() {
           className="w-8 h-8 rounded-full border-2 mx-auto mb-4 animate-spin"
           style={{ borderColor: 'rgba(184,115,51,0.2)', borderTopColor: '#b87333' }}
         />
-        <p className="text-sm" style={{ color: 'rgba(255,255,255,0.45)' }}>Loading dashboard…</p>
+        <p className="text-sm" style={{ color: 'rgba(255,255,255,0.6)' }}>Loading dashboard…</p>
       </div>
     </div>
   );

@@ -65,7 +65,7 @@ export default function BookReader({ book, onClose }: { book: Book; onClose: () 
           </h2>
         </div>
         <div className="flex items-center gap-4">
-          <span className="text-xs" style={{ color: 'rgba(255,255,255,0.45)' }}>
+          <span className="text-xs" style={{ color: 'rgba(255,255,255,0.6)' }}>
             Page {index + 1} of {book.pages.length}
           </span>
           <button onClick={onClose} title="Close" style={{ color: '#d4a373' }}>

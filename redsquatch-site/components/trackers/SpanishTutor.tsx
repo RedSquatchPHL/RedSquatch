@@ -446,7 +446,7 @@ export default function SpanishTutor() {
           <span className="font-bold text-sm" style={{ color: 'var(--copper-tan)' }}>
             {streak.current} day{streak.current === 1 ? '' : 's'}
           </span>
-          <span className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>(best {streak.longest})</span>
+          <span className="text-xs" style={{ color: 'rgba(255,255,255,0.6)' }}>(best {streak.longest})</span>
         </div>
       </div>
 
@@ -471,7 +471,7 @@ export default function SpanishTutor() {
             style={
               mode === m.key
                 ? { background: 'rgba(var(--copper-bold-rgb),0.18)', border: '1px solid var(--copper-bold)', color: 'var(--copper-tan)' }
-                : { background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(var(--copper-bold-rgb),0.15)', color: 'rgba(255,255,255,0.5)' }
+                : { background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(var(--copper-bold-rgb),0.15)', color: 'rgba(255,255,255,0.6)' }
             }
           >
             {m.label}
@@ -491,14 +491,14 @@ export default function SpanishTutor() {
                 style={
                   difficulty === d
                     ? { background: 'rgba(var(--copper-bold-rgb),0.2)', color: 'var(--copper-tan)' }
-                    : { background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.5)' }
+                    : { background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.6)' }
                 }
               >
                 {d}
               </button>
             ))}
             {(mode === 'vocab' || mode === 'cloze') && (
-              <label className="flex items-center gap-1.5 text-xs ml-2" style={{ color: 'rgba(255,255,255,0.5)' }}>
+              <label className="flex items-center gap-1.5 text-xs ml-2" style={{ color: 'rgba(255,255,255,0.6)' }}>
                 <input type="checkbox" checked={dueOnly} onChange={(e) => setDueOnly(e.target.checked)} />
                 Due for review only
               </label>
@@ -509,16 +509,16 @@ export default function SpanishTutor() {
           {mode === 'vocab' && (
             <div className="glass-surface rounded-xl p-6" style={{ border: '1px solid rgba(var(--copper-bold-rgb),0.3)' }}>
               {poolLoading ? (
-                <p className="text-center text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>Loading…</p>
+                <p className="text-center text-sm" style={{ color: 'rgba(255,255,255,0.6)' }}>Loading…</p>
               ) : pool.length === 0 ? (
-                <p className="text-center text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                <p className="text-center text-sm" style={{ color: 'rgba(255,255,255,0.6)' }}>
                   Nothing to drill right now — try a different filter.
                 </p>
               ) : drillComplete ? (
                 <div className="text-center py-6">
                   <BarChart3 size={28} className="mx-auto mb-2" style={{ color: 'var(--copper-tan)' }} />
                   <h3 className="text-lg font-semibold mb-1" style={{ color: 'var(--copper-tan)' }}>Session Complete</h3>
-                  <p className="text-sm mb-4" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                  <p className="text-sm mb-4" style={{ color: 'rgba(255,255,255,0.6)' }}>
                     {pool.length} word{pool.length === 1 ? '' : 's'} reviewed
                   </p>
                   <button onClick={loadDrillPool} className="glass-btn px-4 py-2 rounded-lg text-sm font-semibold">
@@ -527,7 +527,7 @@ export default function SpanishTutor() {
                 </div>
               ) : currentCard ? (
                 <>
-                  <div className="flex items-center justify-between text-xs mb-4" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                  <div className="flex items-center justify-between text-xs mb-4" style={{ color: 'rgba(255,255,255,0.6)' }}>
                     <span>Card {drillIndex + 1} of {pool.length}</span>
                     <span className="capitalize">{currentCard.difficulty_level}</span>
                   </div>
@@ -552,10 +552,10 @@ export default function SpanishTutor() {
           {mode === 'conjugations' && (
             <div className="glass-surface rounded-xl p-6" style={{ border: '1px solid rgba(var(--copper-bold-rgb),0.3)' }}>
               {!conjugation ? (
-                <p className="text-center text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>Loading…</p>
+                <p className="text-center text-sm" style={{ color: 'rgba(255,255,255,0.6)' }}>Loading…</p>
               ) : (
                 <>
-                  <div className="flex items-center justify-between text-xs mb-4" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                  <div className="flex items-center justify-between text-xs mb-4" style={{ color: 'rgba(255,255,255,0.6)' }}>
                     <span>{conjugation.verb} — {conjugation.tense}</span>
                     <span>Form {conjIndex + 1} of {conjugation.forms.length}</span>
                   </div>
@@ -573,7 +573,7 @@ export default function SpanishTutor() {
                   />
                   {conjFeedback && <FeedbackBanner feedback={conjFeedback} />}
                   {!conjFeedback && (
-                    <button onClick={loadConjugation} className="w-full mt-3 text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                    <button onClick={loadConjugation} className="w-full mt-3 text-xs" style={{ color: 'rgba(255,255,255,0.6)' }}>
                       Skip to a new verb
                     </button>
                   )}
@@ -586,16 +586,16 @@ export default function SpanishTutor() {
           {mode === 'cloze' && (
             <div className="glass-surface rounded-xl p-6" style={{ border: '1px solid rgba(var(--copper-bold-rgb),0.3)' }}>
               {clozeLoading ? (
-                <p className="text-center text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>Loading…</p>
+                <p className="text-center text-sm" style={{ color: 'rgba(255,255,255,0.6)' }}>Loading…</p>
               ) : clozePool.length === 0 ? (
-                <p className="text-center text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                <p className="text-center text-sm" style={{ color: 'rgba(255,255,255,0.6)' }}>
                   No words with a usable example sentence for this filter yet.
                 </p>
               ) : clozeComplete ? (
                 <div className="text-center py-6">
                   <BarChart3 size={28} className="mx-auto mb-2" style={{ color: 'var(--copper-tan)' }} />
                   <h3 className="text-lg font-semibold mb-1" style={{ color: 'var(--copper-tan)' }}>Session Complete</h3>
-                  <p className="text-sm mb-4" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                  <p className="text-sm mb-4" style={{ color: 'rgba(255,255,255,0.6)' }}>
                     {clozePool.length} sentence{clozePool.length === 1 ? '' : 's'} reviewed
                   </p>
                   <button onClick={loadClozePool} className="glass-btn px-4 py-2 rounded-lg text-sm font-semibold">
@@ -604,7 +604,7 @@ export default function SpanishTutor() {
                 </div>
               ) : currentClozeCard ? (
                 <>
-                  <div className="flex items-center justify-between text-xs mb-4" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                  <div className="flex items-center justify-between text-xs mb-4" style={{ color: 'rgba(255,255,255,0.6)' }}>
                     <span>Sentence {clozeIndex + 1} of {clozePool.length}</span>
                     <span className="capitalize">{currentClozeCard.difficulty_level}</span>
                   </div>
@@ -612,7 +612,7 @@ export default function SpanishTutor() {
                     <div className="text-xl font-semibold mb-2" style={{ color: 'var(--copper-tan)' }}>
                       {buildCloze(currentClozeCard).sentence}
                     </div>
-                    <div className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                    <div className="text-sm" style={{ color: 'rgba(255,255,255,0.6)' }}>
                       ({currentClozeCard.front})
                     </div>
                   </div>
@@ -634,7 +634,7 @@ export default function SpanishTutor() {
             <div className="glass-surface rounded-xl p-6" style={{ border: '1px solid rgba(var(--copper-bold-rgb),0.3)' }}>
               {!immersionActive && !immersionDone && (
                 <div className="text-center py-6">
-                  <p className="text-sm mb-4" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                  <p className="text-sm mb-4" style={{ color: 'rgba(255,255,255,0.6)' }}>
                     Rapid-fire: 5 seconds per word, type the English translation. No hints.
                   </p>
                   <button onClick={startImmersion} className="glass-btn px-6 py-2 rounded-lg text-sm font-semibold">
@@ -645,14 +645,14 @@ export default function SpanishTutor() {
 
               {immersionActive && immersionWord && (
                 <>
-                  <div className="flex items-center justify-between text-xs mb-4" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                  <div className="flex items-center justify-between text-xs mb-4" style={{ color: 'rgba(255,255,255,0.6)' }}>
                     <span>Score: {immersionScore.correct}/{immersionScore.total}</span>
                     <span style={{ color: immersionTimer <= 2 ? '#e07856' : 'rgba(255,255,255,0.4)' }}>⏱ {immersionTimer}s</span>
                   </div>
                   <div className="text-center py-6">
                     <div className="text-3xl font-bold mb-2" style={{ color: 'var(--copper-tan)' }}>{immersionWord.back}</div>
                     {immersionWord.example_sentence && (
-                      <div className="text-sm italic" style={{ color: 'rgba(255,255,255,0.5)' }}>{immersionWord.example_sentence}</div>
+                      <div className="text-sm italic" style={{ color: 'rgba(255,255,255,0.6)' }}>{immersionWord.example_sentence}</div>
                     )}
                     {immersionFeedback && (
                       <div className="mt-3 text-sm font-semibold" style={{ color: immersionFeedback === 'correct' ? '#4ade80' : '#e07856' }}>
@@ -679,7 +679,7 @@ export default function SpanishTutor() {
                     >
                       <SkipForward size={14} /> Pass
                     </button>
-                    <button onClick={endImmersion} className="px-4 py-2 rounded-lg text-sm" style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.5)' }}>
+                    <button onClick={endImmersion} className="px-4 py-2 rounded-lg text-sm" style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.6)' }}>
                       End Session
                     </button>
                   </div>
@@ -690,7 +690,7 @@ export default function SpanishTutor() {
                 <div className="text-center py-6">
                   <BarChart3 size={28} className="mx-auto mb-2" style={{ color: 'var(--copper-tan)' }} />
                   <h3 className="text-lg font-semibold mb-1" style={{ color: 'var(--copper-tan)' }}>Session Complete</h3>
-                  <p className="text-sm mb-4" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                  <p className="text-sm mb-4" style={{ color: 'rgba(255,255,255,0.6)' }}>
                     {immersionScore.correct}/{immersionScore.total} correct
                   </p>
                   <button onClick={startImmersion} className="glass-btn px-4 py-2 rounded-lg text-sm font-semibold">
@@ -705,7 +705,7 @@ export default function SpanishTutor() {
         {/* Sidebar */}
         <div className="space-y-3">
           <div className="glass-surface rounded-xl p-3" style={{ border: '1px solid rgba(var(--copper-bold-rgb),0.25)' }}>
-            <div className="flex justify-between text-xs mb-1" style={{ color: 'rgba(255,255,255,0.5)' }}>
+            <div className="flex justify-between text-xs mb-1" style={{ color: 'rgba(255,255,255,0.6)' }}>
               <span>Mastered</span>
               <span>{stats.mastered} / {stats.total}</span>
             </div>
@@ -784,12 +784,12 @@ export default function SpanishTutor() {
                   <div key={v.id} className="flex items-center justify-between px-2 py-1.5 rounded text-xs" style={{ background: 'rgba(255,255,255,0.03)' }}>
                     <div className="flex-1 min-w-0 truncate">
                       <span style={{ color: 'rgba(255,255,255,0.8)' }}>{v.front}</span>
-                      <span style={{ color: 'rgba(255,255,255,0.4)' }}> → {v.back}</span>
+                      <span style={{ color: 'rgba(255,255,255,0.6)' }}> → {v.back}</span>
                     </div>
                     <div className="flex items-center gap-1.5 flex-shrink-0">
                       <span className="text-[10px] px-1.5 py-0.5 rounded" style={c}>Box {v.box}</span>
                       <button onClick={() => deleteWord(v.id)} title="Delete">
-                        <Trash2 size={12} style={{ color: 'rgba(255,255,255,0.3)' }} />
+                        <Trash2 size={12} style={{ color: 'rgba(255,255,255,0.6)' }} />
                       </button>
                     </div>
                   </div>

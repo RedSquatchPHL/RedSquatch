@@ -78,7 +78,7 @@ export default function BodyMap({
             tabIndex={onSelect ? 0 : -1}
             aria-label={`${SITE_LABEL[site]}, last used ${daysLabel(st?.lastUsed ?? null, now)}${isRec ? ', recommended next' : ''}`}
             aria-pressed={isSel}
-            style={{ cursor: onSelect ? 'pointer' : 'default', outline: 'none' }}
+            style={{ cursor: onSelect ? 'pointer' : 'default' }}
             onClick={() => onSelect?.(site)}
             onKeyDown={e => { if (onSelect && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onSelect(site); } }}
           >

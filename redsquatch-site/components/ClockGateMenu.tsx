@@ -185,7 +185,7 @@ export default function ClockGateMenu() {
                 <button
                   onClick={cancelClockOut}
                   title="Cancel"
-                  style={{ display: 'flex', border: 'none', background: 'transparent', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', padding: 2 }}
+                  style={{ display: 'flex', border: 'none', background: 'transparent', color: 'rgba(255,255,255,0.6)', cursor: 'pointer', padding: 2 }}
                 >
                   <X style={{ width: 11, height: 11 }} />
                 </button>
@@ -210,7 +210,7 @@ export default function ClockGateMenu() {
                   Clock out now
                 </button>
 
-                <p style={{ fontSize: 9.5, color: 'rgba(255,255,255,0.35)', margin: '4px 2px 0', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                <p style={{ fontSize: 9.5, color: 'rgba(255,255,255,0.6)', margin: '4px 2px 0', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                   or in…
                 </p>
 

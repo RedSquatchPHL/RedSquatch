@@ -46,7 +46,7 @@ export default function HSDowntimePage() {
                 <h2 className="text-xl font-bold" style={{ color: '#d4a373', textShadow: '0 0 16px rgba(184,115,51,0.3)' }}>
                   Games
                 </h2>
-                <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.6)' }}>
                   2048 and Wordle
                 </p>
               </div>
