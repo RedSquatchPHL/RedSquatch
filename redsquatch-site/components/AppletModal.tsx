@@ -11,12 +11,9 @@ interface AppletModalProps {
   // 'tonatiuh' = the /ws dark-glass look. Default keeps the original copper-on-black
   // modal, now driven by the --rs-* tokens so it follows the HS time-of-day phase.
   tone?: 'default' | 'tonatiuh';
-  // Interior already reads --rs-* tokens, so it can follow the beach bands instead of the
-  // legacy-dark island. Drop this prop (and data-hs-legacy) once every applet is migrated.
-  themed?: boolean;
 }
 
-export default function AppletModal({ isOpen, title, onClose, children, wide, tone = 'default', themed }: AppletModalProps) {
+export default function AppletModal({ isOpen, title, onClose, children, wide, tone = 'default' }: AppletModalProps) {
   if (!isOpen) return null;
 
   const t = tone === 'tonatiuh'
@@ -54,7 +51,6 @@ export default function AppletModal({ isOpen, title, onClose, children, wide, to
       />
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
         <div
-          data-hs-legacy={tone === 'tonatiuh' || themed ? undefined : ''}
           className={`rounded-2xl w-full ${wide ? (tone === 'tonatiuh' ? 'max-w-6xl' : 'max-w-[1040px]') : 'max-w-4xl'} max-h-[85vh] flex flex-col pointer-events-auto overflow-hidden`}
           style={{
             border: t.border,

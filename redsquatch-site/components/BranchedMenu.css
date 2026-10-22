@@ -3,9 +3,9 @@
    inline --bm-* overrides from BranchedMenu.tsx apply. */
 .branched-menu {
   --bm-w: 220px;
-  --bm-ink: rgba(255, 255, 255, 0.6);
-  --bm-accent: #d4a373;
-  --bm-line: rgba(184, 115, 51, 0.25);
+  --bm-ink: color-mix(in srgb, var(--rs-ink, #fff) 60%, transparent);
+  --bm-accent: var(--rs-accent, #d4a373);
+  --bm-line: rgba(var(--rs-edge-rgb, 184, 115, 51), 0.25);
   --bm-font: 12px;
   --bm-row: 32px;
   --bm-indent: 34px;

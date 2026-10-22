@@ -36,7 +36,7 @@ export default function OceanBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const overrideRef = useRef<Override>('auto');
   // Beach theme is light, so it needs far less of the dark readability scrim by day.
-  const beachRef = useRef(false);
+  const beachRef = useRef(true);
 
   useEffect(() => {
     overrideRef.current = loadOverride();

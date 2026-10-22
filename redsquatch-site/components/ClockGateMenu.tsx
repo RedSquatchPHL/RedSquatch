@@ -133,7 +133,7 @@ export default function ClockGateMenu({ placement = 'floating' }: { placement?: 
       children: [
         { value: 'switch', label: 'Switch', icon: ArrowLeftRight },
         // Preview flag for the light HomeSquatch theme; only offered from the /hs header.
-        ...(inHeaderSlot ? [{ value: 'beach', label: beach ? 'Beach theme: on' : 'Beach theme (preview)', icon: Waves }] : []),
+        ...(inHeaderSlot ? [{ value: 'beach', label: beach ? 'Beach theme: on' : 'Beach theme: off', icon: Waves }] : []),
         { value: '/settings', label: 'Settings', icon: Settings },
         { value: 'logout', label: 'Log out', icon: LogOut },
       ],
@@ -156,12 +156,12 @@ export default function ClockGateMenu({ placement = 'floating' }: { placement?: 
   // and [data-theme="day"]), instead of the hardcoded hex this file used to have —
   // so the menu recolors along with Work Mode / Downtime phases automatically.
   const pillBase: React.CSSProperties = {
-    background: 'rgba(10,10,10,0.50)',
+    background: 'var(--rs-surface)',
     backdropFilter: 'blur(24px) saturate(150%)',
     WebkitBackdropFilter: 'blur(24px) saturate(150%)',
     border: 'var(--border-copper)',
     borderRadius: 10,
-    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05), 0 8px 32px rgba(0,0,0,0.45)',
+    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05), var(--rs-shadow, 0 8px 32px rgba(0,0,0,0.45))',
   };
 
   return (
@@ -173,7 +173,6 @@ export default function ClockGateMenu({ placement = 'floating' }: { placement?: 
       {open && (
         <div
           className={inDock ? wsDock.panel : undefined}
-          data-hs-legacy=""
           style={{
             position: 'absolute',
             bottom: 'calc(100% + 6px)',
@@ -196,7 +195,7 @@ export default function ClockGateMenu({ placement = 'floating' }: { placement?: 
                 <button
                   onClick={cancelClockOut}
                   title="Cancel"
-                  style={{ display: 'flex', border: 'none', background: 'transparent', color: 'rgba(255,255,255,0.6)', cursor: 'pointer', padding: 2 }}
+                  style={{ display: 'flex', border: 'none', background: 'transparent', color: 'color-mix(in srgb, var(--rs-ink) 60%, transparent)', cursor: 'pointer', padding: 2 }}
                 >
                   <X style={{ width: 11, height: 11 }} />
                 </button>
@@ -221,7 +220,7 @@ export default function ClockGateMenu({ placement = 'floating' }: { placement?: 
                   Clock out now
                 </button>
 
-                <p style={{ fontSize: 9.5, color: 'rgba(255,255,255,0.6)', margin: '4px 2px 0', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                <p style={{ fontSize: 9.5, color: 'color-mix(in srgb, var(--rs-ink) 60%, transparent)', margin: '4px 2px 0', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                   or in…
                 </p>
 
@@ -236,7 +235,7 @@ export default function ClockGateMenu({ placement = 'floating' }: { placement?: 
                         padding: '5px 0',
                         fontSize: 11,
                         fontWeight: 500,
-                        color: 'rgba(255,255,255,0.6)',
+                        color: 'color-mix(in srgb, var(--rs-ink) 60%, transparent)',
                         background: 'transparent',
                         cursor: 'pointer',
                       }}
@@ -275,7 +274,7 @@ export default function ClockGateMenu({ placement = 'floating' }: { placement?: 
             active={activeValue}
             onSelect={handleBranchSelect}
             width={200}
-            color="rgba(255,255,255,0.6)"
+            color="color-mix(in srgb, var(--rs-ink) 60%, transparent)"
             accentColor="var(--copper-2)"
             lineColor="rgba(var(--copper-glow-rgb), 0.3)"
           />
@@ -299,7 +298,7 @@ export default function ClockGateMenu({ placement = 'floating' }: { placement?: 
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          color: open ? 'var(--copper-2)' : 'rgba(255,255,255,0.5)',
+          color: open ? 'var(--copper-2)' : 'color-mix(in srgb, var(--rs-ink) 50%, transparent)',
           background: open ? 'rgba(var(--copper-glow-rgb), 0.18)' : pillBase.background,
           cursor: 'pointer',
         }}

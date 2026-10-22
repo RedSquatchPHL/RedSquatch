@@ -40,7 +40,7 @@ export function useHsBand(): HsBand {
   return band;
 }
 
-// ---- opt-in flag (the beach theme is a preview until the tracker interiors are migrated) ----
+// ---- beach theme flag: on by default; Settings (or ?beach=0) switches back to the classic phase look ----
 const BEACH_KEY = 'rs.hs.beach.v1';
 const BEACH_EVT = 'rs-hs-beach';
 
@@ -48,8 +48,8 @@ export function loadBeach(): boolean {
   try {
     const q = new URLSearchParams(window.location.search).get('beach');
     if (q === '1' || q === '0') { localStorage.setItem(BEACH_KEY, q); return q === '1'; }
-    return localStorage.getItem(BEACH_KEY) === '1';
-  } catch { return false; }
+    return localStorage.getItem(BEACH_KEY) !== '0';
+  } catch { return true; }
 }
 
 export function saveBeach(on: boolean) {
@@ -58,7 +58,7 @@ export function saveBeach(on: boolean) {
 }
 
 export function useHsBeach(): boolean {
-  const [on, setOn] = useState(false);
+  const [on, setOn] = useState(true);
   useEffect(() => {
     setOn(loadBeach());
     const h = (e: Event) => setOn((e as CustomEvent<boolean>).detail);

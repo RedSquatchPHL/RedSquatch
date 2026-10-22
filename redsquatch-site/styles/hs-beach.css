@@ -6,8 +6,8 @@
    Panels are translucent sea-glass; ink/accent pairs were picked for >=4.5:1 on their own
    panel. Legacy tokens (--copper-*, --stone-*, --color-copper-*) are re-pointed too, so
    components that read those instead of --rs-* follow the band. Components with hardcoded
-   dark-theme colours (most tracker interiors) are NOT fixed by this file — they are migrated
-   separately, which is why the theme is opt-in for now. */
+   dark-theme colours are not covered by this file; migrate them to --rs-* instead. The theme is
+   the HS default; Settings → Beach theme switches back to the classic phase look. */
 
 /* ── Tone 1 · day (morning / midday): light sea-glass, coral accent ───────── */
 .hs-root[data-hs-theme="beach"][data-band="day"] {
@@ -132,31 +132,3 @@
 .hs-root[data-hs-theme="beach"][data-band="warm"] { --rs-text-shadow: 0 1px 8px rgba(255, 255, 255, 0.55); }
 .hs-root[data-hs-theme="beach"][data-band="night"] { --rs-text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6); }
 
-/* Legacy-dark islands. Tracker/applet interiors still hardcode dark-theme colours, so the modal
-   and the Settings dropdown restore the original dark tokens inside themselves (instead of
-   inheriting the light-band remap above). Delete this block, and the data-hs-legacy attributes,
-   once the interiors are migrated to --rs-* tokens. */
-.hs-root[data-hs-theme="beach"] [data-hs-legacy] {
-  --stone-0: #0f1b24;  --stone-1: #16242e;  --stone-2: #33505c;  --stone-3: #5c7d84;
-  --copper-0: #c98a5e;  --copper-1: #e2a672;  --copper-2: #f2d9b8;
-  --copper-glow-rgb: 226, 121, 92;
-  --copper-tan: #d4a373;  --copper-tan-rgb: 212, 163, 115;
-  --copper-bold: #b87333;  --copper-bold-rgb: 184, 115, 51;
-  --color-copper: #c98a5e;  --color-copper-light: #e2a672;  --color-copper-bright: #f2d9b8;
-  --rs-accent: #d4a373;  --rs-accent-hi: #e6bd90;  --rs-accent-rgb: 212, 163, 115;
-  --rs-surface: rgba(15, 27, 36, 0.72);  --rs-border: rgba(226, 121, 92, 0.28);
-  --rs-ink: #f2d9b8;  --rs-ink-muted: rgba(242, 217, 184, 0.68);  --rs-ink-faint: rgba(242, 217, 184, 0.62);
-  --rs-field: rgba(255, 255, 255, 0.06);  --rs-field-edge: rgba(212, 163, 115, 0.3);
-  --rs-row: rgba(255, 255, 255, 0.05);
-  --rs-btn: #b87333;  --rs-btn-ink: #ffffff;
-  --background: 209 37% 12%;  --foreground: 34 69% 84%;  --muted: 200 34% 21%;  --muted-foreground: 30 21% 57%;
-  --popover: 209 37% 12%;  --popover-foreground: 34 69% 84%;  --border: 28 66% 67%;  --input: 205 35% 13%;
-  --card: 204 35% 17%;  --card-foreground: 34 69% 84%;  --primary: 13 70% 62%;  --primary-foreground: 207 39% 9%;
-  --secondary: 28 66% 67%;  --secondary-foreground: 207 39% 9%;  --accent: 13 70% 62%;  --accent-foreground: 36 73% 88%;  --ring: 13 70% 62%;
-  --rs-scrim-rgb: 6, 6, 6;
-  --rs-edge-rgb: 184, 115, 51;  --rs-well: rgba(20, 18, 16, 0.6);  --rs-well-solid: rgba(20, 18, 16, 0.95);
-  --rs-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
-  --rs-ok: #5fbf8f;  --rs-warn: #d4af37;  --rs-bad: #e34c7a;  --rs-info: #7fb3d5;
-  --rs-text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6);
-  color: var(--rs-ink);
-}
