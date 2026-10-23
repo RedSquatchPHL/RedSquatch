@@ -2,9 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import { HS_NAV } from '@/lib/menuConfig';
-import ThemeToggle from '@/components/ThemeToggle';
 import ClockGateMenu from '@/components/ClockGateMenu';
-import { useHsBeach } from '@/lib/hsBand';
 import BrandMark from './BrandMark';
 import LocationWidgets from './LocationWidgets';
 
@@ -15,7 +13,6 @@ import LocationWidgets from './LocationWidgets';
 // Fixed 64px (h-16) so full-height pages can subtract it: calc(100vh - 4rem).
 export default function HSHeader() {
   const pathname = usePathname() ?? '';
-  const beach = useHsBeach();
   const current = HS_NAV.find(i => i.type === 'internal' && (pathname === i.path || pathname.startsWith(i.path + '/')));
 
   return (
@@ -34,8 +31,6 @@ export default function HSHeader() {
 
       <div className="flex items-center gap-3">
         <LocationWidgets />
-        {/* Beach theme follows the ocean scene (picked from Settings), so the Auto/Day/Night switch only shows in classic mode. */}
-        {!beach && <ThemeToggle />}
         <ClockGateMenu placement="header" />
       </div>
     </header>
