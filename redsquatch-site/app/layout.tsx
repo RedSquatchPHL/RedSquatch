@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import Script from "next/script";
+import "@/styles/fonts.css";
 import "@/styles/globals.css";
 import "@/styles/cenote-variables.css";
 import "@/styles/cenote-background.css";
@@ -39,12 +40,10 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.variable} suppressHydrationWarning>
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
-        {/* Cabinet Grotesk + Satoshi — Tonatiuh OS reskin typography for /ws/*,
-            sourced from Fontshare the same way the SuperDesign draft does. */}
-        <link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@800,700,500,400&f[]=satoshi@500,400&display=swap" rel="stylesheet" />
+        {/* Self-hosted faces (styles/fonts.css). Preload only what paints first:
+            body copy and the heading weight. */}
+        <link rel="preload" href="/fonts/satoshi-400.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+        <link rel="preload" href="/fonts/cabinet-grotesk-700.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
         {/* Runs before hydration so Work Mode / Downtime Mode is correct on first
             paint — avoids a flash of the wrong palette. See lib/homesquatch-gate.ts. */}
         <Script id="hs-gate-boot" strategy="beforeInteractive">
