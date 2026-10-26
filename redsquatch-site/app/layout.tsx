@@ -19,7 +19,16 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
   title: "RedSquatch",
-  description: "Command center",
+  description: "RedSquatch command center: work, goals, health and home in one private dashboard.",
+  robots: { index: false, follow: false },
+  openGraph: {
+    title: "RedSquatch",
+    description: "Private command center.",
+    siteName: "RedSquatch",
+    type: "website",
+  },
+  // Matches the Tōnatiuh slate default (--rs-btn-ink); the downtime phases are set at runtime by the gate script.
+  themeColor: "#0F1720",
 };
 
 export default function RootLayout({
