@@ -2,7 +2,7 @@
 // No CSP script-src yet: the inline theme boot script + Next's inline bootstrap
 // need nonce middleware. frame-ancestors covers the clickjacking half now.
 const securityHeaders = [
-  { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains' },
+  { key: 'Strict-Transport-Security', value: 'max-age=31536000' },
   { key: 'X-Content-Type-Options', value: 'nosniff' },
   // SAMEORIGIN, not DENY: PDFReaderApplet embeds a same-origin PDF in an iframe.
   { key: 'X-Frame-Options', value: 'SAMEORIGIN' },

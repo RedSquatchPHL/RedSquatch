@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const PROTECTED_PREFIXES = ['/hs/', '/ws/', '/settings'];
+const PROTECTED_PREFIXES = ['/hs', '/ws', '/settings'];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  const isProtected = PROTECTED_PREFIXES.some(prefix => pathname.startsWith(prefix));
+  const isProtected = PROTECTED_PREFIXES.some(
+    prefix => pathname === prefix || pathname.startsWith(prefix + '/'),
+  );
   if (!isProtected) return NextResponse.next();
 
   // express-session stores the session cookie as connect.sid
