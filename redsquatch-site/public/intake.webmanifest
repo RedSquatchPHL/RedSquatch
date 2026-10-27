@@ -1,0 +1,17 @@
+{
+  "name": "Nutrition Intake",
+  "short_name": "Intake",
+  "description": "Log food and drinks with macros into the Hydration & Protein tracker.",
+  "id": "/hs/health/intake",
+  "start_url": "/hs/health/intake",
+  "scope": "/hs/health/intake",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#14110e",
+  "theme_color": "#0F1720",
+  "icons": [
+    { "src": "/intake/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/intake/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/intake/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

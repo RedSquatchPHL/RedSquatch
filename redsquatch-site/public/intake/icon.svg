@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#14110e"/>
+  <circle cx="256" cy="256" r="196" fill="#241d17"/>
+  <!-- steak: fat rim, then the meat, then marbling and the bone -->
+  <path d="M146 196C146 122 250 98 324 128C396 158 428 232 402 304C376 376 292 416 214 394C146 376 146 258 146 196Z" fill="#efd7b0"/>
+  <path d="M166 200C166 138 252 118 316 146C378 172 404 234 382 296C360 358 288 392 222 374C168 358 166 258 166 200Z" fill="#b8402f"/>
+  <path d="M200 176C236 160 280 170 304 196M214 330C248 352 298 348 332 316M338 232C352 256 350 282 338 300M196 262C206 240 224 228 244 224" fill="none" stroke="#e59b86" stroke-width="9" stroke-linecap="round" opacity=".75"/>
+  <circle cx="288" cy="256" r="36" fill="#f6ead2"/>
+  <circle cx="288" cy="256" r="19" fill="#7e2a1e"/>
+</svg>
