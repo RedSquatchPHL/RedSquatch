@@ -23,7 +23,6 @@ const { runMigrations: runCocinaMigrations, makeRouter: makeCocinaRouter } = req
 const { runMigrations: runWorkRoadmapMigrations, makeRouter: makeWorkRoadmapRouter } = require('./routes/work-roadmap');
 const { runMigrations: runCareerTrajectoryMigrations, makeRouter: makeCareerTrajectoryRouter } = require('./routes/career-trajectory');
 const { runMigrations: runSnowCareerMigrations, makeRouter: makeSnowCareerRouter } = require('./routes/snow-career');
-const { runMigrations: runTirzepatideMigrations, makeRouter: makeTirzepatideRouter } = require('./routes/tirzepatide');
 const { runMigrations: runTaskBoardMigrations, makeRouter: makeTaskBoardRouter } = require('./routes/task-board');
 const { runMigrations: runBloodPressureMigrations, makeRouter: makeBloodPressureRouter } = require('./routes/blood-pressure');
 const { runMigrations: runGlp1Migrations, makeRouter: makeGlp1Router } = require('./routes/glp1');
@@ -1059,7 +1058,6 @@ app.use('/api/client/cocina', makeCocinaRouter(db));
 app.use('/api/client/work-roadmap', makeWorkRoadmapRouter(db));
 app.use('/api/client/career-trajectory', makeCareerTrajectoryRouter(db));
 app.use('/api/client/snow-career', makeSnowCareerRouter(db));
-app.use('/api/client/tirzepatide', makeTirzepatideRouter(db));
 app.use('/api/client/task-board', makeTaskBoardRouter(db));
 app.use('/api/client/blood-pressure', makeBloodPressureRouter(db));
 app.use('/api/client/glp1', makeGlp1Router(db));
@@ -1127,7 +1125,6 @@ async function initializeApp() {
     await runWorkRoadmapMigrations(db);
     await runCareerTrajectoryMigrations(db);
     await runSnowCareerMigrations(db);
-    await runTirzepatideMigrations(db);
     await runTaskBoardMigrations(db);
     await runBloodPressureMigrations(db);
     await runGlp1Migrations(db);
