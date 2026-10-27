@@ -1,20 +1,19 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { ChevronLeft, ChevronRight, Droplets, Drumstick, Trash2, Pencil, Check, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Droplets, Drumstick } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, ResponsiveContainer } from 'recharts';
 import {
-  useEntries, useProfile, num, dayKey, toLocalInput, fmtShort,
+  useEntries, useProfile, num, dayKey, fmtShort,
   inputStyle, panelStyle, primaryBtn, ghostBtn, axisStyle, gridStyle, tooltipBox,
-  Field, ModuleHeader, Loading,
+  Field, Stat, ModuleHeader, Loading,
 } from './shared';
-
-interface HydrationRow { id: number; logged_at: string; ounces: string | number; notes: string | null }
-interface ProteinRow { id: number; logged_at: string; grams: string | number; notes: string | null }
+import NutritionDayLog, { type HydrationRow, type ProteinRow } from './NutritionDayLog';
 
 const HYDRATION_QUICK = [8, 12, 16, 24];
 const PROTEIN_QUICK = [10, 20, 30, 40];
 const TREND_DAYS = 14;
+const CAL_COLOR = 'var(--rs-warn, var(--rs-accent))';
 
 function shiftDay(key: string, delta: number): string {
   const [y, m, d] = key.split('-').map(Number);
@@ -38,24 +37,19 @@ function ProgressBar({ value, goal, color }: { value: number; goal: number | nul
   );
 }
 
-// One logger (hydration or protein) — same shape, different unit and quick amounts.
-function Logger<T extends { id: number; logged_at: string; notes: string | null }>({
-  title, unit, color, icon: Icon, quick, goal, rows, day, amountOf, onAdd, onUpdate, onRemove,
+// Quick-add card (hydration or protein): running total, progress bar and one-tap amounts.
+// Itemised entries (and their edit/delete) live in the merged day log below.
+function Logger({
+  title, unit, color, icon: Icon, quick, goal, total, day, onAdd,
 }: {
   title: string; unit: string; color: string; icon: typeof Droplets; quick: number[]; goal: number | null;
-  rows: T[]; day: string; amountOf: (r: T) => number;
+  total: number; day: string;
   onAdd: (amount: number, at: Date) => Promise<void>;
-  onUpdate: (id: number, amount: number, at: Date) => Promise<void>;
-  onRemove: (id: number) => Promise<void>;
 }) {
   const [custom, setCustom] = useState('');
   // HH:MM for the entry's time of day; empty means "auto" (see stampFor).
   const [time, setTime] = useState('');
-  const [editing, setEditing] = useState<{ id: number; amount: string; at: string } | null>(null);
   const [err, setErr] = useState<string | null>(null);
-
-  const dayRows = rows.filter(r => dayKey(r.logged_at) === day);
-  const total = dayRows.reduce((s, r) => s + amountOf(r), 0);
 
   // An explicit time wins. Otherwise a past day is stamped at noon and today at "now".
   const stampFor = () => {
@@ -107,35 +101,6 @@ function Logger<T extends { id: number; logged_at: string; notes: string | null 
           className="px-2.5 py-1 rounded-md text-xs font-semibold disabled:opacity-40" style={primaryBtn}>Add</button>
       </div>
       {err && <p className="text-xs mt-2 text-[color:var(--rs-bad)]">{err}</p>}
-
-      <ul className="mt-3 space-y-1">
-        {dayRows.length === 0 && <li className="text-xs" style={{ color: 'rgba(var(--rs-accent-rgb),0.5)' }}>Nothing logged.</li>}
-        {dayRows.map(r => (
-          <li key={r.id} className="flex items-center gap-2 text-xs py-1" style={{ borderBottom: '1px solid rgba(var(--rs-edge-rgb),0.1)' }}>
-            {editing?.id === r.id ? (
-              <>
-                <input type="datetime-local" value={editing.at} onChange={e => setEditing(x => x && ({ ...x, at: e.target.value }))} className="border px-1 py-0.5 rounded" style={inputStyle} />
-                <input value={editing.amount} onChange={e => setEditing(x => x && ({ ...x, amount: e.target.value }))} inputMode="decimal" className="w-16 border px-1 py-0.5 rounded" style={inputStyle} />
-                <button type="button" aria-label="Save" onClick={() => {
-                  const n = Number(editing.amount);
-                  if (!Number.isFinite(n) || n <= 0) { setErr(`Enter a positive number of ${unit}.`); return; }
-                  run(async () => { await onUpdate(r.id, n, new Date(editing.at)); setEditing(null); });
-                }}><Check size={14} /></button>
-                <button type="button" aria-label="Cancel" onClick={() => setEditing(null)}><X size={14} /></button>
-              </>
-            ) : (
-              <>
-                <span style={{ color: 'rgba(var(--rs-accent-rgb),0.6)' }}>{new Date(r.logged_at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}</span>
-                <span className="font-semibold">{amountOf(r)} {unit}</span>
-                <span className="ml-auto flex gap-1">
-                  <button type="button" aria-label="Edit" onClick={() => setEditing({ id: r.id, amount: String(amountOf(r)), at: toLocalInput(r.logged_at) })}><Pencil size={12} /></button>
-                  <button type="button" aria-label="Delete" onClick={() => run(() => onRemove(r.id))}><Trash2 size={12} /></button>
-                </span>
-              </>
-            )}
-          </li>
-        ))}
-      </ul>
     </div>
   );
 }
@@ -155,14 +120,27 @@ export default function NutritionTracker() {
     for (let i = TREND_DAYS - 1; i >= 0; i--) days.push(shiftDay(today, -i));
     const oz = new Map<string, number>();
     const g = new Map<string, number>();
+    const cal = new Map<string, number>();
     for (const r of hydration.entries) oz.set(dayKey(r.logged_at), (oz.get(dayKey(r.logged_at)) ?? 0) + (num(r.ounces) ?? 0));
-    for (const r of protein.entries) g.set(dayKey(r.logged_at), (g.get(dayKey(r.logged_at)) ?? 0) + (num(r.grams) ?? 0));
-    return days.map(d => ({ day: d, label: fmtShort(`${d}T12:00`), ounces: Math.round((oz.get(d) ?? 0) * 10) / 10, grams: Math.round((g.get(d) ?? 0) * 10) / 10 }));
+    for (const r of protein.entries) {
+      g.set(dayKey(r.logged_at), (g.get(dayKey(r.logged_at)) ?? 0) + (num(r.grams) ?? 0));
+      cal.set(dayKey(r.logged_at), (cal.get(dayKey(r.logged_at)) ?? 0) + (num(r.calories) ?? 0));
+    }
+    const r1 = (n: number) => Math.round(n * 10) / 10;
+    return days.map(d => ({ day: d, label: fmtShort(`${d}T12:00`), ounces: r1(oz.get(d) ?? 0), grams: r1(g.get(d) ?? 0), calories: r1(cal.get(d) ?? 0) }));
   }, [hydration.entries, protein.entries]);
 
   if (hydration.loading || protein.loading || !profile) return <Loading />;
 
   const isToday = day === dayKey(new Date());
+
+  // Day totals for the macros the intake form records. Rows without macros (quick-adds) add nothing.
+  const dayOunces = hydration.entries.filter(r => dayKey(r.logged_at) === day).reduce((t, r) => t + (num(r.ounces) ?? 0), 0);
+  const dayGrams = protein.entries.filter(r => dayKey(r.logged_at) === day).reduce((t, r) => t + (num(r.grams) ?? 0), 0);
+  const dayMacros = protein.entries.filter(r => dayKey(r.logged_at) === day).reduce(
+    (t, r) => ({ calories: t.calories + (num(r.calories) ?? 0), fat: t.fat + (num(r.fat_g) ?? 0), carbs: t.carbs + (num(r.carbs_g) ?? 0) }),
+    { calories: 0, fat: 0, carbs: 0 },
+  );
 
   async function submitGoals() {
     if (!goalDraft) return;
@@ -178,7 +156,7 @@ export default function NutritionTracker() {
     }
   }
 
-  const chart = (key: 'ounces' | 'grams', color: string, goal: number | null, unit: string) => (
+  const chart = (key: 'ounces' | 'grams' | 'calories', color: string, goal: number | null, unit: string) => (
     <div className="rounded-lg" style={{ padding: '12px 4px 4px', background: 'var(--rs-well)' }}>
       <ResponsiveContainer width="100%" height={150}>
         <BarChart data={trend} margin={{ top: 8, right: 16, left: 0, bottom: 0 }} barCategoryGap="25%">
@@ -199,7 +177,7 @@ export default function NutritionTracker() {
 
   return (
     <div style={{ color: 'var(--rs-accent)' }}>
-      <ModuleHeader title="Hydration & Protein" blurb="Daily running totals against your goals. Tap a quick amount or enter your own." error={hydration.error ?? protein.error ?? goalErr} />
+      <ModuleHeader title="Hydration & Protein" blurb="Daily running totals against your goals. Tap a quick amount or enter your own; edit or delete any entry in the day log. Use Nutrition Intake for foods with macros." error={hydration.error ?? protein.error ?? goalErr} />
 
       <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
         <div className="flex items-center gap-1">
@@ -225,19 +203,25 @@ export default function NutritionTracker() {
         <Logger
           key={`h-${day}`}
           title="Hydration" unit="oz" color="var(--rs-info)" icon={Droplets} quick={HYDRATION_QUICK} goal={profile.hydration_goal_oz}
-          rows={hydration.entries} day={day} amountOf={r => num(r.ounces) ?? 0}
+          total={dayOunces} day={day}
           onAdd={(ounces, at) => hydration.add({ ounces, logged_at: at.toISOString(), notes: null })}
-          onUpdate={(id, ounces, at) => hydration.update(id, { ounces, logged_at: at.toISOString(), notes: null })}
-          onRemove={hydration.remove}
         />
         <Logger
           key={`p-${day}`}
           title="Protein" unit="g" color="var(--rs-accent)" icon={Drumstick} quick={PROTEIN_QUICK} goal={profile.protein_goal_g}
-          rows={protein.entries} day={day} amountOf={r => num(r.grams) ?? 0}
+          total={dayGrams} day={day}
           onAdd={(grams, at) => protein.add({ grams, logged_at: at.toISOString(), notes: null })}
-          onUpdate={(id, grams, at) => protein.update(id, { grams, logged_at: at.toISOString(), notes: null })}
-          onRemove={protein.remove}
         />
+      </div>
+
+      <div className="grid grid-cols-3 gap-3 mb-5">
+        <Stat label="Calories" value={String(Math.round(dayMacros.calories))} sub={labelDay(day)} color={CAL_COLOR} />
+        <Stat label="Fat" value={`${Math.round(dayMacros.fat * 10) / 10} g`} sub={labelDay(day)} />
+        <Stat label="Carbs" value={`${Math.round(dayMacros.carbs * 10) / 10} g`} sub={labelDay(day)} />
+      </div>
+
+      <div className="mb-5">
+        <NutritionDayLog key={day} day={day} hydration={hydration} protein={protein} />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -248,6 +232,10 @@ export default function NutritionTracker() {
         <div>
           <div className="text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: 'rgba(var(--rs-accent-rgb),0.7)' }}>Protein · last {TREND_DAYS} days</div>
           {chart('grams', 'var(--rs-accent)', profile.protein_goal_g, 'g')}
+        </div>
+        <div className="md:col-span-2">
+          <div className="text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: 'rgba(var(--rs-accent-rgb),0.7)' }}>Calories · last {TREND_DAYS} days</div>
+          {chart('calories', CAL_COLOR, null, 'cal')}
         </div>
       </div>
     </div>
