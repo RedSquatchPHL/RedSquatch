@@ -1,5 +1,5 @@
 /** @type {import('next').NextConfig} */
-// No CSP script-src yet: the inline theme boot script + Next's inline bootstrap
+// (Deploy webhook check 2026-10-27.) No CSP script-src yet: the inline theme boot script + Next's inline bootstrap
 // need nonce middleware. frame-ancestors covers the clickjacking half now.
 const securityHeaders = [
   { key: 'Strict-Transport-Security', value: 'max-age=31536000' },
