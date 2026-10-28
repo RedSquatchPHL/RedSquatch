@@ -330,8 +330,8 @@ function makeRouter(db) {
       res.status(201).json({ saved: items.length });
     } catch (err) {
       await client.query('ROLLBACK').catch(() => {});
-      console.error('GLP-1 intake error:', err.message);
-      res.status(500).json({ error: 'Failed to save intake' });
+      console.error('GLP-1 intake error:', err.message, err.detail ?? '');
+      res.status(500).json({ error: `Failed to save intake: ${err.message}` });
     } finally {
       client.release();
     }
