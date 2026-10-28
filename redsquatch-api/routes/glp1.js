@@ -299,7 +299,7 @@ function makeRouter(db) {
             await client.query(
               `INSERT INTO glp1_foods (client_id, name, volume_oz, protein_g, fat_g, carbs_g, calories)
                SELECT $1, $2, $3, $4, $5, $6, $7
-               WHERE NOT EXISTS (SELECT 1 FROM glp1_foods WHERE client_id = $1 AND lower(name) = lower($2))`,
+               WHERE NOT EXISTS (SELECT 1 FROM glp1_foods WHERE client_id = $1 AND lower(name) = lower($2::varchar))`,
               [clientId, f.name ?? it.drink_name, f.volume_oz, f.protein_g, f.fat_g, f.carbs_g, f.calories]
             );
           }
@@ -317,7 +317,7 @@ function makeRouter(db) {
           await client.query(
             `INSERT INTO glp1_foods (client_id, name, serving, protein_g, fat_g, carbs_g, calories)
              SELECT $1, $2, $3, $4, $5, $6, $7
-             WHERE NOT EXISTS (SELECT 1 FROM glp1_foods WHERE client_id = $1 AND lower(name) = lower($2))`,
+             WHERE NOT EXISTS (SELECT 1 FROM glp1_foods WHERE client_id = $1 AND lower(name) = lower($2::varchar))`,
             [clientId, it.name, f.serving ?? null, f.protein_g, f.fat_g, f.carbs_g, f.calories]
           );
         }
@@ -330,8 +330,8 @@ function makeRouter(db) {
       res.status(201).json({ saved: items.length });
     } catch (err) {
       await client.query('ROLLBACK').catch(() => {});
-      console.error('GLP-1 intake error:', err.message, err.detail ?? '');
-      res.status(500).json({ error: `Failed to save intake: ${err.message}` });
+      console.error('GLP-1 intake error:', err.message);
+      res.status(500).json({ error: 'Failed to save intake' });
     } finally {
       client.release();
     }
