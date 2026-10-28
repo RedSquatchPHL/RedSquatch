@@ -138,9 +138,7 @@ export default function NutritionIntakeForm({ onViewLog }: { onViewLog?: () => v
     setSearch(''); setPickedId(null); setServings('1');
   }
 
-  // A staged-only Submit is allowed when the form is untouched, so unticking
-  // "add more items?" on a blank form submits what is already in the list.
-  const canSubmit = !busy && (current !== null || (kind === null && staged.length > 0));
+  const canSubmit = !busy && (more ? current !== null : current !== null || staged.length > 0);
 
   function stageCurrent(): Staged[] {
     return current ? [...staged, current] : staged;
@@ -149,11 +147,7 @@ export default function NutritionIntakeForm({ onViewLog }: { onViewLog?: () => v
   function onPrimary() {
     setErr(null);
     setDoneCount(null);
-    if (more && current) {
-      setStaged(stageCurrent());
-      resetItem();
-      return;
-    }
+    if (more) { if (current) { setStaged(stageCurrent()); resetItem(); } return; }
     submit(stageCurrent());
   }
 
