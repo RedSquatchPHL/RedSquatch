@@ -1,7 +1,9 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Plus, Pencil, Trash2, Check, X } from 'lucide-react';
+import { Plus, Pencil, Trash2, Check, X, FileDown } from 'lucide-react';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ReferenceLine, ReferenceArea, ResponsiveContainer,
 } from 'recharts';
@@ -154,6 +156,48 @@ export default function WeightBmiTracker() {
 
   const sign = (n: number) => `${n > 0 ? '+' : ''}${n.toFixed(1)}`;
 
+  function exportPdf() {
+    const doc = new jsPDF();
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(16);
+    doc.text('Weight & BMI Log', 14, 18);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 24);
+    const summary = [
+      current !== null ? `Current: ${current.toFixed(1)} lb` : null,
+      currentBmi !== null ? `BMI: ${currentBmi.toFixed(1)}${cat ? ` (${cat.label})` : ''}` : null,
+      current !== null && start !== null ? `Since start: ${sign(current - start)} lb` : null,
+      profile!.height_in ? `Height: ${profile!.height_in} in` : null,
+      profile!.target_weight_lb ? `Target: ${profile!.target_weight_lb} lb` : null,
+    ].filter(Boolean).join('   |   ');
+    if (summary) doc.text(summary, 14, 30);
+
+    const rows = [...entries].sort((a, b) => new Date(b.measured_at).getTime() - new Date(a.measured_at).getTime());
+    autoTable(doc, {
+      startY: 36,
+      head: [['Date/Time', 'Weight', 'BMI', 'Last injection', 'Est. GLP-1 level', 'Notes']],
+      body: rows.map(r => {
+        const lb = num(r.weight_lb);
+        const b = lb !== null && profile!.height_in ? bmi(lb, profile!.height_in) : null;
+        const link = linkById.get(r.id);
+        const days = link?.last ? Math.floor((new Date(r.measured_at).getTime() - link.last.t) / DAY) : null;
+        return [
+          fmtDateTime(r.measured_at),
+          lb !== null ? `${lb.toFixed(1)} lb` : '—',
+          b !== null ? b.toFixed(1) : '—',
+          link?.last ? `${fmtShort(link.last.t)} · ${link.last.mg} mg ${DRUGS[link.last.medication].label} (${days === 0 ? 'same day' : `${days}d before`})` : '—',
+          link?.level != null ? `${link.level.toFixed(2)} mg` : '—',
+          r.notes ?? '',
+        ];
+      }),
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [184, 115, 51] },
+    });
+
+    doc.save(`weight-bmi-log-${new Date().toISOString().split('T')[0]}.pdf`);
+  }
+
   return (
     <div style={{ color: 'var(--rs-accent)' }}>
       <ModuleHeader title="Weight & BMI" blurb="Weigh-ins in pounds, with BMI from your height and a trend toward your target." error={error ?? formError} />
@@ -301,6 +345,11 @@ export default function WeightBmiTracker() {
             <Plus size={14} /> Log weigh-in
           </button>
           {entries.length > 0 && <LockToggle locked={locked} onToggle={toggleLock} noun="weigh-ins" />}
+          {entries.length > 0 && (
+            <button type="button" onClick={exportPdf} className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold border" style={ghostBtn}>
+              <FileDown size={14} /> Export PDF
+            </button>
+          )}
         </div>
       )}
 
