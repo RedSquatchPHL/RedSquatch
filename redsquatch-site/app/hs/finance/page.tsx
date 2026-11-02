@@ -16,7 +16,7 @@ const PEOPLE: { key: Person; label: string }[] = [
 ];
 
 const SUGGESTED_CATEGORIES = [
-  'Income', 'Commission', 'Expenses', 'Mileage', 'Travel',
+  'Income', 'Commission', 'Expenses', 'Lodging', 'Mileage', 'Travel',
   'Software', 'Marketing', 'Office', '1099', 'Tax Document',
   'Receipt', 'Invoice', 'Other',
 ];
