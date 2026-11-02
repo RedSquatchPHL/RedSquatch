@@ -50,7 +50,8 @@ const emptyDraft = (date?: string): EntryDraft => ({
 });
 
 function fmtDate(iso: string) {
-  return new Date(iso + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  if (!iso) return '—';
+  return new Date(iso.slice(0, 10) + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
 function fmtAmount(val: string | null) {
