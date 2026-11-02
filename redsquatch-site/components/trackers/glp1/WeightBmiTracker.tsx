@@ -11,7 +11,7 @@ import { DRUGS, BMI_BANDS, weightAtBmi, bmi, bmiCategory, levelAt, movingAverage
 import {
   useEntries, useProfile, num, toLocalInput, fmtDateTime, fmtShort,
   inputStyle, panelStyle, primaryBtn, ghostBtn, axisStyle, gridStyle, tooltipBox,
-  Field, Stat, ModuleHeader, Loading, GroupedRows, LockToggle,
+  Field, Stat, ModuleHeader, Loading, GroupedRows, LockToggle, RangeToggle, rangeCutoff, type RangeKey,
 } from './shared';
 import type { InjectionRow } from './InjectionTracker';
 
@@ -31,6 +31,7 @@ export default function WeightBmiTracker() {
   const [form, setForm] = useState(emptyForm());
   const [formError, setFormError] = useState<string | null>(null);
   const [locked, setLocked] = useState(true);
+  const [range, setRange] = useState<RangeKey>('all');
   const [reveal, setReveal] = useState<{ t: number; nonce: number } | null>(null);
   const [profileDraft, setProfileDraft] = useState<{ height_in: string; target_weight_lb: string } | null>(null);
 
@@ -42,15 +43,21 @@ export default function WeightBmiTracker() {
     [entries]
   );
 
+  // The 7-entry average is computed over all history first, then the window is cut, so the
+  // average at the left edge of a short range still reflects the entries before it.
   const chartData = useMemo(() => {
     const ma = movingAverage(points, 7);
-    return points.map((p, i) => ({
-      label: fmtShort(p.t),
-      fullLabel: fmtDateTime(new Date(p.t).toISOString()),
-      weight: p.lb,
-      average: Math.round(ma[i] * 10) / 10,
-    }));
-  }, [points]);
+    const cutoff = rangeCutoff(range);
+    return points
+      .map((p, i) => ({
+        t: p.t,
+        label: fmtShort(p.t),
+        fullLabel: fmtDateTime(new Date(p.t).toISOString()),
+        weight: p.lb,
+        average: Math.round(ma[i] * 10) / 10,
+      }))
+      .filter(d => cutoff === null || d.t >= cutoff);
+  }, [points, range]);
 
   const doses: DoseEvent[] = useMemo(
     () => injections.entries
@@ -222,8 +229,14 @@ export default function WeightBmiTracker() {
         />
       </div>
 
-      {chartData.length > 1 && (
+      {points.length > 1 && (
         <div className="rounded-lg mb-4" style={{ padding: '12px 4px 4px', background: 'var(--rs-well)' }}>
+          <div className="px-2 pb-2"><RangeToggle value={range} onChange={setRange} /></div>
+          {chartData.length < 2 ? (
+            <div className="text-center text-xs py-16" style={{ color: 'var(--rs-ink-faint)' }}>
+              {chartData.length === 0 ? 'No weigh-ins' : 'Only one weigh-in'} in this range — pick a longer one.
+            </div>
+          ) : (<>
           <ResponsiveContainer width="100%" height={220}>
             <LineChart data={chartData} margin={{ top: 8, right: lanes ? 54 : 16, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" {...gridStyle} />
@@ -288,6 +301,7 @@ export default function WeightBmiTracker() {
           ) : (
             !profile.height_in && <p className="text-[10px] text-center px-2 pb-2" style={{ color: 'var(--rs-ink-faint)' }}>Set your height below to see BMI swimlanes.</p>
           )}
+          </>)}
         </div>
       )}
 

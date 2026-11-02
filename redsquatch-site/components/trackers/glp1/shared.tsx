@@ -161,6 +161,48 @@ export const tooltipBox: React.CSSProperties = {
   padding: '8px 12px',
 };
 
+// ── Chart range toggle (shared by Weight & BMI and Blood Pressure) ────────────
+
+export type RangeKey = 'all' | '365' | '180' | '90' | '30';
+
+export const RANGES: { key: RangeKey; label: string; days: number | null }[] = [
+  { key: 'all', label: 'All Time', days: null },
+  { key: '365', label: '1 Year', days: 365 },
+  { key: '180', label: '180 Days', days: 180 },
+  { key: '90', label: '90 Days', days: 90 },
+  { key: '30', label: '30 Days', days: 30 },
+];
+
+/** Earliest timestamp (ms) included in the range, or null for All Time. */
+export function rangeCutoff(range: RangeKey): number | null {
+  const days = RANGES.find(r => r.key === range)?.days;
+  return days ? Date.now() - days * 86400000 : null;
+}
+
+export function RangeToggle({ value, onChange }: { value: RangeKey; onChange: (r: RangeKey) => void }) {
+  return (
+    <div role="group" aria-label="Chart range" style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+      {RANGES.map(r => {
+        const active = r.key === value;
+        return (
+          <button
+            key={r.key}
+            type="button"
+            aria-pressed={active}
+            onClick={() => onChange(r.key)}
+            style={{
+              padding: '4px 10px', borderRadius: 6, fontSize: 11, fontWeight: 600, border: '1px solid', cursor: 'pointer',
+              background: active ? 'var(--rs-btn)' : 'transparent',
+              borderColor: active ? 'var(--rs-btn)' : 'rgba(var(--rs-edge-rgb),0.3)',
+              color: active ? 'var(--rs-btn-ink)' : 'var(--rs-accent)',
+            }}
+          >{r.label}</button>
+        );
+      })}
+    </div>
+  );
+}
+
 export function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>

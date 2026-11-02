@@ -9,6 +9,7 @@ import {
   Legend, ResponsiveContainer,
 } from 'recharts';
 import { API } from '@/lib/api';
+import { RangeToggle, rangeCutoff, type RangeKey } from '@/components/trackers/glp1/shared';
 
 type Position = 'sitting' | 'lying_down' | 'standing';
 type Arm = 'upper_left' | 'upper_right' | 'left_forearm' | 'right_forearm';
@@ -223,11 +224,13 @@ function BPTooltip({ active, payload }: { active?: boolean; payload?: TooltipEnt
 function BPChart({ readings }: { readings: Reading[] }) {
   const [chartType, setChartType] = useState<ChartType>('line');
   const [showHR, setShowHR] = useState(false);
+  const [range, setRange] = useState<RangeKey>('all');
 
   // Oldest-first for the chart x-axis
   const data: ChartPoint[] = useMemo(
     () =>
-      [...readings]
+      readings
+        .filter(r => { const c = rangeCutoff(range); return c === null || new Date(r.reading_at).getTime() >= c; })
         .sort((a, b) => new Date(a.reading_at).getTime() - new Date(b.reading_at).getTime())
         .map(r => ({
           label: formatDateShort(r.reading_at),
@@ -236,7 +239,7 @@ function BPChart({ readings }: { readings: Reading[] }) {
           diastolic: r.diastolic,
           heart_rate: r.heart_rate,
         })),
-    [readings]
+    [readings, range]
   );
 
   const btnBase: React.CSSProperties = {
@@ -288,7 +291,12 @@ function BPChart({ readings }: { readings: Reading[] }) {
         </div>
       </div>
 
+      <div style={{ marginBottom: '10px' }}><RangeToggle value={range} onChange={setRange} /></div>
+
       <div style={{ borderRadius: '8px', padding: '12px 4px 4px', background: 'var(--rs-well)', overflow: 'hidden' }}>
+        {data.length === 0 ? (
+          <div style={{ textAlign: 'center', fontSize: 12, padding: '64px 0', color: 'var(--rs-ink-faint)' }}>No readings in this range — pick a longer one.</div>
+        ) : (
         <ResponsiveContainer width="100%" height={220}>
           {chartType === 'line' ? (
             <LineChart {...sharedProps}>
@@ -314,6 +322,7 @@ function BPChart({ readings }: { readings: Reading[] }) {
             </BarChart>
           )}
         </ResponsiveContainer>
+        )}
       </div>
     </div>
   );
