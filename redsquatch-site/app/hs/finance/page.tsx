@@ -120,15 +120,15 @@ function coversDate(entry: FinanceEntry, date: string): boolean {
 }
 
 const inputStyle: React.CSSProperties = {
-  borderColor: 'rgba(var(--rs-edge-rgb),0.3)',
-  color: 'var(--rs-accent)',
-  background: 'transparent',
+  borderColor: 'var(--rs-field-edge)',
+  color: 'var(--rs-ink)',
+  background: 'var(--rs-field)',
 };
 
 function TripBadge({ name }: { name: string }) {
   return (
     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono whitespace-nowrap"
-      style={{ background: 'rgba(var(--rs-accent-rgb),0.08)', border: '1px solid rgba(var(--rs-accent-rgb),0.2)', color: 'rgba(var(--rs-accent-rgb),0.6)' }}>
+      style={{ background: 'rgba(var(--rs-accent-rgb),0.08)', border: '1px solid rgba(var(--rs-accent-rgb),0.2)', color: 'var(--rs-ink-muted)' }}>
       <Plane size={9} />
       {name}
     </span>
@@ -320,12 +320,12 @@ export default function HSFinancePage() {
   const DateFields = ({ d, set }: { d: EntryDraft; set: (fn: (prev: EntryDraft) => EntryDraft) => void }) => (
     <div className="flex gap-2 flex-wrap">
       <div className="flex flex-col gap-0.5 flex-1 min-w-[120px]">
-        <label className="text-xs font-mono" style={{ color: 'rgba(var(--rs-accent-rgb),0.45)' }}>Start date</label>
+        <label className="text-xs font-mono" style={{ color: 'var(--rs-ink-muted)' }}>Start date</label>
         <input type="date" className="border px-2 py-1.5 text-sm rounded" style={inputStyle}
           value={d.entry_date} onChange={e => set(p => ({ ...p, entry_date: e.target.value }))} />
       </div>
       <div className="flex flex-col gap-0.5 flex-1 min-w-[120px]">
-        <label className="text-xs font-mono" style={{ color: 'rgba(var(--rs-accent-rgb),0.45)' }}>End date <span style={{ color: 'rgba(var(--rs-accent-rgb),0.3)' }}>(optional)</span></label>
+        <label className="text-xs font-mono" style={{ color: 'var(--rs-ink-muted)' }}>End date <span style={{ color: 'var(--rs-ink-faint)' }}>(optional)</span></label>
         <input type="date" className="border px-2 py-1.5 text-sm rounded" style={inputStyle}
           min={d.entry_date} value={d.end_date}
           onChange={e => set(p => ({ ...p, end_date: e.target.value }))} />
@@ -337,15 +337,15 @@ export default function HSFinancePage() {
   const EntryRow = ({ entry, idx }: { entry: FinanceEntry; idx: number }) => (
     <tr className="group transition-colors"
       style={{ background: idx % 2 === 0 ? 'rgba(var(--rs-accent-rgb),0.02)' : 'transparent', borderBottom: '1px solid rgba(var(--rs-edge-rgb),0.08)' }}>
-      <td className="px-3 py-2.5 text-xs font-mono whitespace-nowrap" style={{ color: 'rgba(var(--rs-accent-rgb),0.5)' }}>
+      <td className="px-3 py-2.5 text-xs font-mono whitespace-nowrap" style={{ color: 'var(--rs-ink-muted)' }}>
         {fmtDateRange(entry.entry_date, entry.end_date)}
       </td>
-      <td className="px-3 py-2.5 font-medium" style={{ color: 'var(--rs-text, rgba(255,255,255,0.88))' }}>
+      <td className="px-3 py-2.5 font-medium" style={{ color: 'var(--rs-ink)' }}>
         {entry.title}
       </td>
       <td className="px-3 py-2.5">
         <span className="text-xs px-2 py-0.5 rounded font-mono"
-          style={{ background: 'rgba(var(--rs-accent-rgb),0.1)', border: '1px solid rgba(var(--rs-accent-rgb),0.2)', color: 'rgba(var(--rs-accent-rgb),0.75)' }}>
+          style={{ background: 'rgba(var(--rs-accent-rgb),0.1)', border: '1px solid rgba(var(--rs-accent-rgb),0.2)', color: 'var(--rs-ink-muted)' }}>
           {entry.category}
         </span>
       </td>
@@ -354,12 +354,12 @@ export default function HSFinancePage() {
         {fmtAmount(entry.amount) ?? '—'}
       </td>
       <td className="px-3 py-2.5 max-w-[160px]">
-        {entry.notes && <span className="text-xs truncate block" style={{ color: 'rgba(var(--rs-accent-rgb),0.45)' }}>{entry.notes}</span>}
+        {entry.notes && <span className="text-xs truncate block" style={{ color: 'var(--rs-ink-muted)' }}>{entry.notes}</span>}
       </td>
       <td className="px-3 py-2.5">
         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity justify-end">
-          <button onClick={() => startEdit(entry)} className="p-1 rounded hover:bg-white/10 transition-colors" style={{ color: 'rgba(var(--rs-accent-rgb),0.6)' }} title="Edit"><Pencil size={13} /></button>
-          <button onClick={() => deleteEntry(entry.id)} className="p-1 rounded hover:bg-red-500/20 transition-colors" style={{ color: 'rgba(var(--rs-accent-rgb),0.4)' }} title="Delete"><Trash2 size={13} /></button>
+          <button onClick={() => startEdit(entry)} className="p-1 rounded hover:bg-white/10 transition-colors" style={{ color: 'var(--rs-ink-muted)' }} title="Edit"><Pencil size={13} /></button>
+          <button onClick={() => deleteEntry(entry.id)} className="p-1 rounded hover:bg-red-500/20 transition-colors" style={{ color: 'var(--rs-ink-muted)' }} title="Delete"><Trash2 size={13} /></button>
         </div>
       </td>
     </tr>
@@ -388,7 +388,7 @@ export default function HSFinancePage() {
         </div>
         <div className="flex gap-2 justify-end">
           <button onClick={() => setEditingId(null)} className="flex items-center gap-1 px-3 py-1 text-xs font-mono rounded"
-            style={{ border: '1px solid rgba(var(--rs-accent-rgb),0.2)', color: 'rgba(var(--rs-accent-rgb),0.5)' }}><X size={11} /> Cancel</button>
+            style={{ border: '1px solid rgba(var(--rs-accent-rgb),0.2)', color: 'var(--rs-ink-muted)' }}><X size={11} /> Cancel</button>
           <button onClick={submitEdit} disabled={saving} className="flex items-center gap-1 px-3 py-1 text-xs font-mono rounded disabled:opacity-40"
             style={{ background: 'rgba(var(--rs-accent-rgb),0.2)', border: '1px solid rgba(var(--rs-accent-rgb),0.5)', color: 'var(--rs-accent)' }}><Check size={11} /> Save</button>
         </div>
@@ -412,7 +412,7 @@ export default function HSFinancePage() {
                   style={selectedPerson === key ? {
                     background: 'rgba(var(--rs-accent-rgb),0.2)', border: '1px solid rgba(var(--rs-accent-rgb),0.6)',
                     color: 'var(--rs-accent)', textShadow: '0 0 8px rgba(var(--rs-accent-rgb),0.4)',
-                  } : { background: 'transparent', border: '1px solid rgba(var(--rs-accent-rgb),0.2)', color: 'rgba(var(--rs-accent-rgb),0.5)' }}>
+                  } : { background: 'transparent', border: '1px solid rgba(var(--rs-accent-rgb),0.2)', color: 'var(--rs-ink-muted)' }}>
                   {label}
                 </button>
               ))}
@@ -425,16 +425,16 @@ export default function HSFinancePage() {
       <div className="w-full max-w-5xl">
         <CopperPanel>
           <div className="flex items-center justify-between mb-3">
-            <button onClick={prevMonth} className="p-1.5 rounded hover:bg-white/10 transition-colors" style={{ color: 'rgba(var(--rs-accent-rgb),0.7)' }}><ChevronLeft size={18} /></button>
+            <button onClick={prevMonth} className="p-1.5 rounded hover:bg-white/10 transition-colors" style={{ color: 'var(--rs-ink-muted)' }}><ChevronLeft size={18} /></button>
             <span className="font-mono text-sm font-semibold" style={{ color: 'var(--rs-accent)' }}>{monthLabel}</span>
-            <button onClick={nextMonth} className="p-1.5 rounded hover:bg-white/10 transition-colors" style={{ color: 'rgba(var(--rs-accent-rgb),0.7)' }}><ChevronRight size={18} /></button>
+            <button onClick={nextMonth} className="p-1.5 rounded hover:bg-white/10 transition-colors" style={{ color: 'var(--rs-ink-muted)' }}><ChevronRight size={18} /></button>
           </div>
           <div className="grid grid-cols-7 mb-1">
-            {WEEKDAYS.map(w => <div key={w} className="text-center text-xs font-mono py-1" style={{ color: 'rgba(var(--rs-accent-rgb),0.4)' }}>{w}</div>)}
+            {WEEKDAYS.map(w => <div key={w} className="text-center text-xs font-mono py-1" style={{ color: 'var(--rs-ink-muted)' }}>{w}</div>)}
           </div>
           <div className="grid grid-cols-7" style={{ gap: '1px', background: 'rgba(var(--rs-edge-rgb),0.08)' }}>
             {calDays.map((dateStr, gridIdx) => {
-              if (!dateStr) return <div key={`pad-${gridIdx}`} className="min-h-[56px]" style={{ background: 'rgba(var(--rs-bg-rgb,0,0,0),0.4)' }} />;
+              if (!dateStr) return <div key={`pad-${gridIdx}`} className="min-h-[56px]" style={{ background: 'var(--rs-row)' }} />;
 
               const colIndex = gridIdx % 7;
               const cov = dayCoverage.get(dateStr);
@@ -453,7 +453,7 @@ export default function HSFinancePage() {
                   onClick={() => handleDayClick(dateStr)}
                   className="relative min-h-[56px] flex flex-col p-1.5 transition-colors"
                   style={{
-                    background: isSelected ? 'rgba(var(--rs-accent-rgb),0.22)' : 'rgba(var(--rs-bg-rgb,0,0,0),0.55)',
+                    background: isSelected ? 'rgba(var(--rs-accent-rgb),0.22)' : 'var(--rs-field)',
                     outline: isToday ? '1px solid rgba(var(--rs-accent-rgb),0.55)' : 'none',
                     outlineOffset: '-1px',
                   }}>
@@ -479,7 +479,7 @@ export default function HSFinancePage() {
                       {Array.from({ length: Math.min(entryCount, 3) }).map((_, i) => (
                         <span key={i} className="inline-block w-1.5 h-1.5 rounded-full" style={{ background: 'var(--rs-accent)', opacity: 0.85 }} />
                       ))}
-                      {entryCount > 3 && <span className="text-[9px] font-mono" style={{ color: 'rgba(var(--rs-accent-rgb),0.5)' }}>+{entryCount - 3}</span>}
+                      {entryCount > 3 && <span className="text-[9px] font-mono" style={{ color: 'var(--rs-ink-muted)' }}>+{entryCount - 3}</span>}
                     </div>
                   )}
                 </button>
@@ -488,7 +488,7 @@ export default function HSFinancePage() {
           </div>
 
           {(selectedDate || filterTrip) && (
-            <p className="mt-2 text-xs font-mono text-center" style={{ color: 'rgba(var(--rs-accent-rgb),0.45)' }}>
+            <p className="mt-2 text-xs font-mono text-center" style={{ color: 'var(--rs-ink-muted)' }}>
               {filterTrip ? <>Trip: <em>{filterTrip}</em></> : <>Showing {fmtDate(selectedDate!)}</>}
               {' — '}
               <button onClick={() => { setSelectedDate(null); setFilterTrip(null); }} className="underline underline-offset-2 hover:opacity-80">clear</button>
@@ -507,7 +507,7 @@ export default function HSFinancePage() {
               style={filterTrip === trip.name ? {
                 background: 'rgba(var(--rs-accent-rgb),0.2)', border: '1px solid rgba(var(--rs-accent-rgb),0.6)', color: 'var(--rs-accent)',
               } : {
-                background: 'rgba(var(--rs-accent-rgb),0.05)', border: '1px solid rgba(var(--rs-accent-rgb),0.2)', color: 'rgba(var(--rs-accent-rgb),0.6)',
+                background: 'rgba(var(--rs-accent-rgb),0.05)', border: '1px solid rgba(var(--rs-accent-rgb),0.2)', color: 'var(--rs-ink-muted)',
               }}>
               <Plane size={10} />
               {trip.name}
@@ -523,11 +523,12 @@ export default function HSFinancePage() {
       )}
 
       {/* ── Ledger ── */}
-      <div className="w-full max-w-5xl space-y-3">
+      <div className="w-full max-w-5xl space-y-3 rounded-[22px] p-4"
+        style={{ background: 'var(--rs-surface)', border: '1px solid var(--rs-border)', boxShadow: 'var(--rs-shadow)', backdropFilter: 'blur(10px)' }}>
 
         {/* Toolbar */}
         <div className="flex items-center gap-3 justify-between">
-          <span className="text-sm font-mono flex items-center gap-1.5" style={{ color: 'rgba(var(--rs-accent-rgb),0.5)' }}>
+          <span className="text-sm font-mono flex items-center gap-1.5" style={{ color: 'var(--rs-ink-muted)' }}>
             {filterTrip && <Plane size={12} />}
             {filterTrip ? filterTrip : selectedDate ? fmtDate(selectedDate) : monthLabel}
             {' '}({ledgerEntries.length})
@@ -538,7 +539,7 @@ export default function HSFinancePage() {
               className="flex items-center gap-1 px-3 py-2 text-sm font-mono rounded transition-all"
               style={showCatManager ? {
                 background: 'rgba(var(--rs-accent-rgb),0.15)', border: '1px solid rgba(var(--rs-accent-rgb),0.5)', color: 'var(--rs-accent)',
-              } : { background: 'transparent', border: '1px solid rgba(var(--rs-accent-rgb),0.25)', color: 'rgba(var(--rs-accent-rgb),0.55)' }}
+              } : { background: 'transparent', border: '1px solid rgba(var(--rs-accent-rgb),0.25)', color: 'var(--rs-ink-muted)' }}
               title="Manage categories">
               <Settings2 size={14} />
             </button>
@@ -553,22 +554,22 @@ export default function HSFinancePage() {
         {/* Category manager */}
         {showCatManager && (
           <CopperPanel>
-            <p className="text-xs font-mono mb-3" style={{ color: 'rgba(var(--rs-accent-rgb),0.5)' }}>
+            <p className="text-xs font-mono mb-3" style={{ color: 'var(--rs-ink-muted)' }}>
               Categories — {selectedPerson === 'me' ? 'Me' : 'Denise'}
             </p>
             <div className="flex flex-wrap gap-2 mb-3">
               {categories.map(cat => (
                 <span key={cat.id} className="flex items-center gap-1 px-2.5 py-1 rounded text-xs font-mono"
-                  style={{ background: 'rgba(var(--rs-accent-rgb),0.1)', border: '1px solid rgba(var(--rs-accent-rgb),0.25)', color: 'rgba(var(--rs-accent-rgb),0.8)' }}>
+                  style={{ background: 'rgba(var(--rs-accent-rgb),0.1)', border: '1px solid rgba(var(--rs-accent-rgb),0.25)', color: 'var(--rs-ink-muted)' }}>
                   {cat.name}
                   <button onClick={() => deleteCategory(cat.id)}
                     className="ml-0.5 rounded hover:text-red-400 transition-colors leading-none"
-                    style={{ color: 'rgba(var(--rs-accent-rgb),0.4)' }} title={`Remove "${cat.name}"`}>
+                    style={{ color: 'var(--rs-ink-muted)' }} title={`Remove "${cat.name}"`}>
                     <X size={11} />
                   </button>
                 </span>
               ))}
-              {categories.length === 0 && <span className="text-xs font-mono" style={{ color: 'rgba(var(--rs-accent-rgb),0.3)' }}>No categories yet.</span>}
+              {categories.length === 0 && <span className="text-xs font-mono" style={{ color: 'var(--rs-ink-faint)' }}>No categories yet.</span>}
             </div>
             <div className="flex gap-2">
               <input ref={newCatRef} className="border px-2 py-1.5 text-sm rounded flex-1" style={inputStyle}
@@ -588,7 +589,7 @@ export default function HSFinancePage() {
         {showAddForm && (
           <CopperPanel>
             <div className="space-y-3">
-              <p className="text-xs font-mono" style={{ color: 'rgba(var(--rs-accent-rgb),0.6)' }}>New entry — {selectedPerson === 'me' ? 'Me' : 'Denise'}</p>
+              <p className="text-xs font-mono" style={{ color: 'var(--rs-ink-muted)' }}>New entry — {selectedPerson === 'me' ? 'Me' : 'Denise'}</p>
               <datalist id="cat-list">{categoryNames.map(c => <option key={c} value={c} />)}</datalist>
               <datalist id="trip-list">{tripNames.map(t => <option key={t} value={t} />)}</datalist>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -609,7 +610,7 @@ export default function HSFinancePage() {
               </div>
               <div className="flex gap-2 justify-end">
                 <button onClick={() => setShowAddForm(false)} className="px-3 py-1 text-sm font-mono rounded"
-                  style={{ border: '1px solid rgba(var(--rs-accent-rgb),0.2)', color: 'rgba(var(--rs-accent-rgb),0.5)' }}>Cancel</button>
+                  style={{ border: '1px solid rgba(var(--rs-accent-rgb),0.2)', color: 'var(--rs-ink-muted)' }}>Cancel</button>
                 <button onClick={submitAdd} disabled={saving || !draft.title.trim()}
                   className="flex items-center gap-1 px-4 py-1 text-sm font-mono rounded disabled:opacity-40"
                   style={{ background: 'rgba(var(--rs-accent-rgb),0.2)', border: '1px solid rgba(var(--rs-accent-rgb),0.5)', color: 'var(--rs-accent)' }}>
@@ -622,7 +623,7 @@ export default function HSFinancePage() {
 
         {/* Ledger table */}
         {ledgerEntries.length === 0 ? (
-          <div className="text-center py-12" style={{ color: 'rgba(var(--rs-accent-rgb),0.35)' }}>
+          <div className="text-center py-12" style={{ color: 'var(--rs-ink-faint)' }}>
             <DollarSign size={32} className="mx-auto mb-2 opacity-25" />
             <p className="font-mono text-sm">
               {filterTrip ? `No entries for trip "${filterTrip}".`
@@ -636,7 +637,7 @@ export default function HSFinancePage() {
               <thead>
                 <tr style={{ borderBottom: '1px solid rgba(var(--rs-edge-rgb),0.2)', background: 'rgba(var(--rs-accent-rgb),0.06)' }}>
                   {['Date', 'Title', 'Category', 'Amount', 'Notes', ''].map(h => (
-                    <th key={h} className="px-3 py-2 text-left text-xs font-mono font-semibold" style={{ color: 'rgba(var(--rs-accent-rgb),0.5)' }}>{h}</th>
+                    <th key={h} className="px-3 py-2 text-left text-xs font-mono font-semibold" style={{ color: 'var(--rs-ink-muted)' }}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -651,10 +652,10 @@ export default function HSFinancePage() {
                             <button
                               onClick={() => { setFilterTrip(filterTrip === tripName ? null : tripName); setSelectedDate(null); }}
                               className="flex items-center gap-2 text-xs font-mono group/trip"
-                              style={{ color: 'rgba(var(--rs-accent-rgb),0.7)' }}>
+                              style={{ color: 'var(--rs-ink-muted)' }}>
                               <Plane size={11} />
                               <span className="font-semibold group-hover/trip:underline underline-offset-2">{tripName}</span>
-                              <span style={{ color: 'rgba(var(--rs-accent-rgb),0.4)' }}>
+                              <span style={{ color: 'var(--rs-ink-muted)' }}>
                                 {groupEntries.length} {groupEntries.length === 1 ? 'item' : 'items'}
                                 {(() => {
                                   const t = groupEntries.reduce((s, e) => { const n = parseFloat(e.amount ?? '0'); return s + (isNaN(n) ? 0 : n); }, 0);
@@ -663,7 +664,7 @@ export default function HSFinancePage() {
                               </span>
                             </button>
                           ) : (
-                            <span className="text-xs font-mono" style={{ color: 'rgba(var(--rs-accent-rgb),0.35)' }}>Unassigned</span>
+                            <span className="text-xs font-mono" style={{ color: 'var(--rs-ink-faint)' }}>Unassigned</span>
                           )}
                         </td>
                       </tr>
@@ -679,7 +680,7 @@ export default function HSFinancePage() {
               {ledgerTotal !== 0 && (
                 <tfoot>
                   <tr style={{ borderTop: '1px solid rgba(var(--rs-edge-rgb),0.2)', background: 'rgba(var(--rs-accent-rgb),0.04)' }}>
-                    <td colSpan={3} className="px-3 py-2 text-xs font-mono" style={{ color: 'rgba(var(--rs-accent-rgb),0.4)' }}>Total</td>
+                    <td colSpan={3} className="px-3 py-2 text-xs font-mono" style={{ color: 'var(--rs-ink-muted)' }}>Total</td>
                     <td className="px-3 py-2 text-right font-mono tabular-nums font-semibold" style={{ color: 'var(--rs-accent)' }}>{fmtAmount(String(ledgerTotal))}</td>
                     <td colSpan={2} />
                   </tr>
