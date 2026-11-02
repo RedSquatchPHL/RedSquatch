@@ -255,9 +255,16 @@ export default function HSFinancePage() {
 
   const today = todayISO();
   const monthLabel = new Date(calYear, calMonth, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  const monthStart = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-01`;
+  const monthEnd = new Date(calYear, calMonth + 1, 0).toISOString().slice(0, 10);
+  const inMonth = (e: FinanceEntry) => {
+    const s = isoSlice(e.entry_date);
+    const en = e.end_date ? isoSlice(e.end_date) : s;
+    return s <= monthEnd && en >= monthStart;
+  };
   const ledgerEntries = selectedDate
     ? entries.filter(e => coversDate(e, selectedDate))
-    : entries;
+    : entries.filter(inMonth);
   const ledgerTotal = ledgerEntries.reduce((s, e) => { const n = parseFloat(e.amount ?? '0'); return s + (isNaN(n) ? 0 : n); }, 0);
 
   // ── date fields helper (reused in add + edit forms)
@@ -403,7 +410,7 @@ export default function HSFinancePage() {
         {/* Toolbar */}
         <div className="flex items-center gap-3 justify-between">
           <span className="text-sm font-mono" style={{ color: 'rgba(var(--rs-accent-rgb),0.5)' }}>
-            {selectedDate ? fmtDate(selectedDate) : 'All entries'} ({ledgerEntries.length})
+            {selectedDate ? fmtDate(selectedDate) : monthLabel} ({ledgerEntries.length})
             {ledgerTotal !== 0 && <span className="ml-3" style={{ color: 'var(--rs-accent)' }}>{fmtAmount(String(ledgerTotal))}</span>}
           </span>
           <div className="flex gap-2">
@@ -494,7 +501,7 @@ export default function HSFinancePage() {
         {ledgerEntries.length === 0 ? (
           <div className="text-center py-12" style={{ color: 'rgba(var(--rs-accent-rgb),0.35)' }}>
             <DollarSign size={32} className="mx-auto mb-2 opacity-25" />
-            <p className="font-mono text-sm">{selectedDate ? 'No entries span this date.' : 'No entries yet. Use "Add Entry" to start tracking.'}</p>
+            <p className="font-mono text-sm">{selectedDate ? 'No entries span this date.' : `No entries for ${monthLabel}.`}</p>
           </div>
         ) : (
           <div className="overflow-x-auto rounded" style={{ border: '1px solid rgba(var(--rs-edge-rgb),0.15)' }}>
