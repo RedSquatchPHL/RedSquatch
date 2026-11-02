@@ -311,7 +311,7 @@ export default function HSFinancePage() {
         noTrip.push(e);
       }
     }
-    for (const [name, ents] of byTrip) grouped.push({ tripName: name, entries: ents });
+    for (const [name, ents] of Array.from(byTrip.entries())) grouped.push({ tripName: name, entries: ents });
     if (noTrip.length) grouped.push({ tripName: null, entries: noTrip });
   }
   const hasTrips = grouped.some(g => g.tripName !== null);
