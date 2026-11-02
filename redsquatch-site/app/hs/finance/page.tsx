@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { API } from '@/lib/api';
-import { Plus, Pencil, Trash2, Check, X, DollarSign, ChevronLeft, ChevronRight, Settings2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Check, X, DollarSign, ChevronLeft, ChevronRight, Settings2, Plane } from 'lucide-react';
 import CopperPanel from '@/components/cenote/CopperPanel';
 import PageLoader from '@/components/ui/PageLoader';
 import type React from 'react';
@@ -24,12 +24,15 @@ interface FinanceEntry {
   amount: string | null;
   entry_date: string;
   end_date: string | null;
+  trip_id: number | null;
+  trip_name: string | null;
   created_at: string;
 }
 interface Category { id: number; name: string; }
+interface Trip { id: number; name: string; entry_count: number; total: string | null; }
 interface EntryDraft {
   title: string; category: string; notes: string;
-  amount: string; entry_date: string; end_date: string;
+  amount: string; entry_date: string; end_date: string; trip: string;
 }
 
 interface DayCov { count: number; inRange: boolean; }
@@ -37,7 +40,7 @@ interface DayCov { count: number; inRange: boolean; }
 const todayISO = () => new Date().toISOString().slice(0, 10);
 const emptyDraft = (date?: string): EntryDraft => ({
   title: '', category: '', notes: '', amount: '',
-  entry_date: date ?? todayISO(), end_date: '',
+  entry_date: date ?? todayISO(), end_date: '', trip: '',
 });
 
 function isoSlice(s: string) { return s ? s.slice(0, 10) : ''; }
@@ -79,7 +82,6 @@ function buildCalendarDays(year: number, month: number): (string | null)[] {
   return days;
 }
 
-// Build a map of every date covered by any entry (including multi-day spans)
 function buildDayCoverage(entries: FinanceEntry[]): Map<string, DayCov> {
   const map = new Map<string, DayCov>();
   const mark = (d: string, isStart: boolean) => {
@@ -111,7 +113,6 @@ function offsetDay(iso: string, delta: number) {
   return d.toISOString().slice(0, 10);
 }
 
-// Does an entry's span cover a given date?
 function coversDate(entry: FinanceEntry, date: string): boolean {
   const start = isoSlice(entry.entry_date);
   const end = entry.end_date ? isoSlice(entry.end_date) : start;
@@ -124,16 +125,28 @@ const inputStyle: React.CSSProperties = {
   background: 'transparent',
 };
 
+function TripBadge({ name }: { name: string }) {
+  return (
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono whitespace-nowrap"
+      style={{ background: 'rgba(var(--rs-accent-rgb),0.08)', border: '1px solid rgba(var(--rs-accent-rgb),0.2)', color: 'rgba(var(--rs-accent-rgb),0.6)' }}>
+      <Plane size={9} />
+      {name}
+    </span>
+  );
+}
+
 export default function HSFinancePage() {
   const [loading, setLoading] = useState(true);
   const [selectedPerson, setSelectedPerson] = useState<Person>('denise');
   const [entries, setEntries] = useState<FinanceEntry[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [trips, setTrips] = useState<Trip[]>([]);
 
   const now = new Date();
   const [calYear, setCalYear] = useState(now.getFullYear());
   const [calMonth, setCalMonth] = useState(now.getMonth());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [filterTrip, setFilterTrip] = useState<string | null>(null);
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [draft, setDraft] = useState<EntryDraft>(emptyDraft());
@@ -171,9 +184,18 @@ export default function HSFinancePage() {
     if (res.ok) setCategories(data.categories ?? []);
   }, [selectedPerson]);
 
-  useEffect(() => { if (!loading) { fetchEntries(); fetchCategories(); } }, [loading, fetchEntries, fetchCategories]);
+  const fetchTrips = useCallback(async () => {
+    const res = await fetch(`${API}/api/client/finance/trips?person=${selectedPerson}`, { credentials: 'include' });
+    const data = await res.json();
+    if (res.ok) setTrips(data.trips ?? []);
+  }, [selectedPerson]);
+
+  useEffect(() => {
+    if (!loading) { fetchEntries(); fetchCategories(); fetchTrips(); }
+  }, [loading, fetchEntries, fetchCategories, fetchTrips]);
 
   const categoryNames = useMemo(() => categories.map(c => c.name), [categories]);
+  const tripNames = useMemo(() => trips.map(t => t.name), [trips]);
   const dayCoverage = useMemo(() => buildDayCoverage(entries), [entries]);
   const calDays = useMemo(() => buildCalendarDays(calYear, calMonth), [calYear, calMonth]);
 
@@ -181,6 +203,7 @@ export default function HSFinancePage() {
   const nextMonth = () => { if (calMonth === 11) { setCalYear(y => y + 1); setCalMonth(0); } else setCalMonth(m => m + 1); };
 
   const handleDayClick = (dateStr: string) => {
+    setFilterTrip(null);
     if (selectedDate === dateStr) setSelectedDate(null);
     else { setSelectedDate(dateStr); if (showAddForm) setDraft(d => ({ ...d, entry_date: dateStr })); }
   };
@@ -190,11 +213,10 @@ export default function HSFinancePage() {
   const submitAdd = async () => {
     if (!draft.title.trim()) return;
     setSaving(true);
-    const body = { ...draft, person: selectedPerson, end_date: draft.end_date || null };
     const res = await fetch(`${API}/api/client/finance`, {
       method: 'POST', credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
+      body: JSON.stringify({ ...draft, person: selectedPerson, end_date: draft.end_date || null, trip: draft.trip || null }),
     });
     if (res.ok) {
       const d = new Date(draft.entry_date + 'T12:00:00');
@@ -202,7 +224,7 @@ export default function HSFinancePage() {
       setSelectedDate(draft.entry_date);
       setDraft(emptyDraft(draft.entry_date));
       setShowAddForm(false);
-      fetchEntries();
+      fetchEntries(); fetchTrips();
     }
     setSaving(false);
   };
@@ -213,6 +235,7 @@ export default function HSFinancePage() {
       title: e.title, category: e.category, notes: e.notes ?? '',
       amount: e.amount ?? '', entry_date: isoSlice(e.entry_date),
       end_date: e.end_date ? isoSlice(e.end_date) : '',
+      trip: e.trip_name ?? '',
     });
   };
 
@@ -222,16 +245,16 @@ export default function HSFinancePage() {
     const res = await fetch(`${API}/api/client/finance/${editingId}`, {
       method: 'PUT', credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...editDraft, end_date: editDraft.end_date || null }),
+      body: JSON.stringify({ ...editDraft, person: selectedPerson, end_date: editDraft.end_date || null, trip: editDraft.trip || null }),
     });
-    if (res.ok) { setEditingId(null); fetchEntries(); }
+    if (res.ok) { setEditingId(null); fetchEntries(); fetchTrips(); }
     setSaving(false);
   };
 
   const deleteEntry = async (id: number) => {
     if (!confirm('Delete this entry?')) return;
     await fetch(`${API}/api/client/finance/${id}`, { method: 'DELETE', credentials: 'include' });
-    fetchEntries();
+    fetchEntries(); fetchTrips();
   };
 
   const addCategory = async () => {
@@ -262,12 +285,38 @@ export default function HSFinancePage() {
     const en = e.end_date ? isoSlice(e.end_date) : s;
     return s <= monthEnd && en >= monthStart;
   };
-  const ledgerEntries = selectedDate
-    ? entries.filter(e => coversDate(e, selectedDate))
-    : entries.filter(inMonth);
-  const ledgerTotal = ledgerEntries.reduce((s, e) => { const n = parseFloat(e.amount ?? '0'); return s + (isNaN(n) ? 0 : n); }, 0);
 
-  // ── date fields helper (reused in add + edit forms)
+  const ledgerEntries = filterTrip
+    ? entries.filter(e => e.trip_name === filterTrip)
+    : selectedDate
+      ? entries.filter(e => coversDate(e, selectedDate))
+      : entries.filter(inMonth);
+
+  const ledgerTotal = ledgerEntries.reduce((s, e) => {
+    const n = parseFloat(e.amount ?? '0'); return s + (isNaN(n) ? 0 : n);
+  }, 0);
+
+  // Group ledger entries by trip
+  type TripGroup = { tripName: string | null; entries: FinanceEntry[] };
+  const grouped: TripGroup[] = [];
+  {
+    const byTrip = new Map<string, FinanceEntry[]>();
+    const noTrip: FinanceEntry[] = [];
+    for (const e of ledgerEntries) {
+      if (e.trip_name) {
+        const arr = byTrip.get(e.trip_name) ?? [];
+        arr.push(e);
+        byTrip.set(e.trip_name, arr);
+      } else {
+        noTrip.push(e);
+      }
+    }
+    for (const [name, ents] of byTrip) grouped.push({ tripName: name, entries: ents });
+    if (noTrip.length) grouped.push({ tripName: null, entries: noTrip });
+  }
+  const hasTrips = grouped.some(g => g.tripName !== null);
+
+  // ── Date fields helper ────────────────────────────────────────────────────
   const DateFields = ({ d, set }: { d: EntryDraft; set: (fn: (prev: EntryDraft) => EntryDraft) => void }) => (
     <div className="flex gap-2 flex-wrap">
       <div className="flex flex-col gap-0.5 flex-1 min-w-[120px]">
@@ -278,11 +327,73 @@ export default function HSFinancePage() {
       <div className="flex flex-col gap-0.5 flex-1 min-w-[120px]">
         <label className="text-xs font-mono" style={{ color: 'rgba(var(--rs-accent-rgb),0.45)' }}>End date <span style={{ color: 'rgba(var(--rs-accent-rgb),0.3)' }}>(optional)</span></label>
         <input type="date" className="border px-2 py-1.5 text-sm rounded" style={inputStyle}
-          min={d.entry_date}
-          value={d.end_date}
+          min={d.entry_date} value={d.end_date}
           onChange={e => set(p => ({ ...p, end_date: e.target.value }))} />
       </div>
     </div>
+  );
+
+  // ── Entry row ─────────────────────────────────────────────────────────────
+  const EntryRow = ({ entry, idx }: { entry: FinanceEntry; idx: number }) => (
+    <tr className="group transition-colors"
+      style={{ background: idx % 2 === 0 ? 'rgba(var(--rs-accent-rgb),0.02)' : 'transparent', borderBottom: '1px solid rgba(var(--rs-edge-rgb),0.08)' }}>
+      <td className="px-3 py-2.5 text-xs font-mono whitespace-nowrap" style={{ color: 'rgba(var(--rs-accent-rgb),0.5)' }}>
+        {fmtDateRange(entry.entry_date, entry.end_date)}
+      </td>
+      <td className="px-3 py-2.5 font-medium" style={{ color: 'var(--rs-text, rgba(255,255,255,0.88))' }}>
+        {entry.title}
+      </td>
+      <td className="px-3 py-2.5">
+        <span className="text-xs px-2 py-0.5 rounded font-mono"
+          style={{ background: 'rgba(var(--rs-accent-rgb),0.1)', border: '1px solid rgba(var(--rs-accent-rgb),0.2)', color: 'rgba(var(--rs-accent-rgb),0.75)' }}>
+          {entry.category}
+        </span>
+      </td>
+      <td className="px-3 py-2.5 text-right font-mono tabular-nums whitespace-nowrap"
+        style={{ color: entry.amount ? 'var(--rs-accent)' : 'rgba(var(--rs-accent-rgb),0.2)' }}>
+        {fmtAmount(entry.amount) ?? '—'}
+      </td>
+      <td className="px-3 py-2.5 max-w-[160px]">
+        {entry.notes && <span className="text-xs truncate block" style={{ color: 'rgba(var(--rs-accent-rgb),0.45)' }}>{entry.notes}</span>}
+      </td>
+      <td className="px-3 py-2.5">
+        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity justify-end">
+          <button onClick={() => startEdit(entry)} className="p-1 rounded hover:bg-white/10 transition-colors" style={{ color: 'rgba(var(--rs-accent-rgb),0.6)' }} title="Edit"><Pencil size={13} /></button>
+          <button onClick={() => deleteEntry(entry.id)} className="p-1 rounded hover:bg-red-500/20 transition-colors" style={{ color: 'rgba(var(--rs-accent-rgb),0.4)' }} title="Delete"><Trash2 size={13} /></button>
+        </div>
+      </td>
+    </tr>
+  );
+
+  // ── Edit row ──────────────────────────────────────────────────────────────
+  const EditRow = ({ entry }: { entry: FinanceEntry }) => (
+    <tr style={{ background: 'rgba(var(--rs-accent-rgb),0.08)', borderBottom: '1px solid rgba(var(--rs-edge-rgb),0.1)' }}>
+      <td colSpan={6} className="px-3 py-3">
+        <datalist id="cat-list-edit">{categoryNames.map(c => <option key={c} value={c} />)}</datalist>
+        <datalist id="trip-list-edit">{tripNames.map(t => <option key={t} value={t} />)}</datalist>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-2">
+          <input className="border px-2 py-1 text-sm rounded sm:col-span-3" style={inputStyle}
+            placeholder="Title" value={editDraft.title} onChange={e => setEditDraft(d => ({ ...d, title: e.target.value }))} />
+          <input list="cat-list-edit" className="border px-2 py-1 text-sm rounded" style={inputStyle}
+            placeholder="Category" value={editDraft.category} onChange={e => setEditDraft(d => ({ ...d, category: e.target.value }))} />
+          <input type="number" step="0.01" className="border px-2 py-1 text-sm rounded" style={inputStyle}
+            placeholder="Amount ($)" value={editDraft.amount} onChange={e => setEditDraft(d => ({ ...d, amount: e.target.value }))} />
+          <input list="trip-list-edit" className="border px-2 py-1 text-sm rounded" style={inputStyle}
+            placeholder="Trip (optional)" value={editDraft.trip} onChange={e => setEditDraft(d => ({ ...d, trip: e.target.value }))} />
+          <input className="border px-2 py-1 text-sm rounded sm:col-span-3" style={inputStyle}
+            placeholder="Notes" value={editDraft.notes} onChange={e => setEditDraft(d => ({ ...d, notes: e.target.value }))} />
+        </div>
+        <div className="mb-2">
+          <DateFields d={editDraft} set={setEditDraft} />
+        </div>
+        <div className="flex gap-2 justify-end">
+          <button onClick={() => setEditingId(null)} className="flex items-center gap-1 px-3 py-1 text-xs font-mono rounded"
+            style={{ border: '1px solid rgba(var(--rs-accent-rgb),0.2)', color: 'rgba(var(--rs-accent-rgb),0.5)' }}><X size={11} /> Cancel</button>
+          <button onClick={submitEdit} disabled={saving} className="flex items-center gap-1 px-3 py-1 text-xs font-mono rounded disabled:opacity-40"
+            style={{ background: 'rgba(var(--rs-accent-rgb),0.2)', border: '1px solid rgba(var(--rs-accent-rgb),0.5)', color: 'var(--rs-accent)' }}><Check size={11} /> Save</button>
+        </div>
+      </td>
+    </tr>
   );
 
   return (
@@ -296,7 +407,7 @@ export default function HSFinancePage() {
             <div className="flex gap-1">
               {PEOPLE.map(({ key, label }) => (
                 <button key={key}
-                  onClick={() => { setSelectedPerson(key); setSelectedDate(null); setShowCatManager(false); }}
+                  onClick={() => { setSelectedPerson(key); setSelectedDate(null); setFilterTrip(null); setShowCatManager(false); }}
                   className="px-3 py-1 text-sm font-mono rounded transition-all duration-200"
                   style={selectedPerson === key ? {
                     background: 'rgba(var(--rs-accent-rgb),0.2)', border: '1px solid rgba(var(--rs-accent-rgb),0.6)',
@@ -313,17 +424,14 @@ export default function HSFinancePage() {
       {/* ── Calendar ── */}
       <div className="w-full max-w-5xl">
         <CopperPanel>
-          {/* Month nav */}
           <div className="flex items-center justify-between mb-3">
             <button onClick={prevMonth} className="p-1.5 rounded hover:bg-white/10 transition-colors" style={{ color: 'rgba(var(--rs-accent-rgb),0.7)' }}><ChevronLeft size={18} /></button>
             <span className="font-mono text-sm font-semibold" style={{ color: 'var(--rs-accent)' }}>{monthLabel}</span>
             <button onClick={nextMonth} className="p-1.5 rounded hover:bg-white/10 transition-colors" style={{ color: 'rgba(var(--rs-accent-rgb),0.7)' }}><ChevronRight size={18} /></button>
           </div>
-          {/* Weekday header */}
           <div className="grid grid-cols-7 mb-1">
             {WEEKDAYS.map(w => <div key={w} className="text-center text-xs font-mono py-1" style={{ color: 'rgba(var(--rs-accent-rgb),0.4)' }}>{w}</div>)}
           </div>
-          {/* Day grid */}
           <div className="grid grid-cols-7" style={{ gap: '1px', background: 'rgba(var(--rs-edge-rgb),0.08)' }}>
             {calDays.map((dateStr, gridIdx) => {
               if (!dateStr) return <div key={`pad-${gridIdx}`} className="min-h-[56px]" style={{ background: 'rgba(var(--rs-bg-rgb,0,0,0),0.4)' }} />;
@@ -332,13 +440,10 @@ export default function HSFinancePage() {
               const cov = dayCoverage.get(dateStr);
               const inRange = cov?.inRange ?? false;
               const entryCount = cov?.count ?? 0;
-
-              // Determine if range bar continues left/right (respecting week boundaries)
               const prevDay = offsetDay(dateStr, -1);
               const nextDay = offsetDay(dateStr, 1);
               const continuesLeft  = colIndex !== 0 && (dayCoverage.get(prevDay)?.inRange ?? false);
               const continuesRight = colIndex !== 6 && (dayCoverage.get(nextDay)?.inRange ?? false);
-
               const isToday    = dateStr === today;
               const isSelected = dateStr === selectedDate;
               const dayNum     = parseInt(dateStr.slice(8), 10);
@@ -348,41 +453,27 @@ export default function HSFinancePage() {
                   onClick={() => handleDayClick(dateStr)}
                   className="relative min-h-[56px] flex flex-col p-1.5 transition-colors"
                   style={{
-                    background: isSelected
-                      ? 'rgba(var(--rs-accent-rgb),0.22)'
-                      : 'rgba(var(--rs-bg-rgb,0,0,0),0.55)',
+                    background: isSelected ? 'rgba(var(--rs-accent-rgb),0.22)' : 'rgba(var(--rs-bg-rgb,0,0,0),0.55)',
                     outline: isToday ? '1px solid rgba(var(--rs-accent-rgb),0.55)' : 'none',
                     outlineOffset: '-1px',
                   }}>
-
-                  {/* Range bar — rendered behind number and dots */}
                   {inRange && (
-                    <div
-                      className="absolute pointer-events-none"
+                    <div className="absolute pointer-events-none"
                       style={{
-                        top: '20px',
-                        height: '16px',
+                        top: '20px', height: '16px',
                         left: continuesLeft ? '-1px' : entryCount > 0 ? 'calc(50% - 10px)' : 'calc(50% - 8px)',
                         right: continuesRight ? '-1px' : entryCount > 0 ? 'calc(50% - 10px)' : 'calc(50% - 8px)',
                         background: isSelected ? 'rgba(var(--rs-accent-rgb),0.35)' : 'rgba(var(--rs-accent-rgb),0.22)',
-                        borderTopLeftRadius:    continuesLeft  ? 0 : 999,
-                        borderBottomLeftRadius: continuesLeft  ? 0 : 999,
+                        borderTopLeftRadius:     continuesLeft  ? 0 : 999,
+                        borderBottomLeftRadius:  continuesLeft  ? 0 : 999,
                         borderTopRightRadius:    continuesRight ? 0 : 999,
                         borderBottomRightRadius: continuesRight ? 0 : 999,
-                      }}
-                    />
+                      }} />
                   )}
-
-                  {/* Day number */}
                   <span className="relative z-10 text-xs font-mono leading-none"
-                    style={{
-                      color: isSelected || isToday ? 'var(--rs-accent)' : 'rgba(var(--rs-accent-rgb),0.65)',
-                      fontWeight: isSelected || isToday ? 700 : 400,
-                    }}>
+                    style={{ color: isSelected || isToday ? 'var(--rs-accent)' : 'rgba(var(--rs-accent-rgb),0.65)', fontWeight: isSelected || isToday ? 700 : 400 }}>
                     {dayNum}
                   </span>
-
-                  {/* Entry-start dots */}
                   {entryCount > 0 && (
                     <div className="relative z-10 flex gap-0.5 mt-auto">
                       {Array.from({ length: Math.min(entryCount, 3) }).map((_, i) => (
@@ -396,22 +487,51 @@ export default function HSFinancePage() {
             })}
           </div>
 
-          {selectedDate && (
+          {(selectedDate || filterTrip) && (
             <p className="mt-2 text-xs font-mono text-center" style={{ color: 'rgba(var(--rs-accent-rgb),0.45)' }}>
-              Showing {fmtDate(selectedDate)} — <button onClick={() => setSelectedDate(null)} className="underline underline-offset-2 hover:opacity-80">clear</button>
+              {filterTrip ? <>Trip: <em>{filterTrip}</em></> : <>Showing {fmtDate(selectedDate!)}</>}
+              {' — '}
+              <button onClick={() => { setSelectedDate(null); setFilterTrip(null); }} className="underline underline-offset-2 hover:opacity-80">clear</button>
             </p>
           )}
         </CopperPanel>
       </div>
+
+      {/* ── Trip chips (quick filter) ── */}
+      {trips.length > 0 && (
+        <div className="w-full max-w-5xl flex flex-wrap gap-2 px-1">
+          {trips.map(trip => (
+            <button key={trip.id}
+              onClick={() => { setSelectedDate(null); setFilterTrip(filterTrip === trip.name ? null : trip.name); }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-mono transition-all"
+              style={filterTrip === trip.name ? {
+                background: 'rgba(var(--rs-accent-rgb),0.2)', border: '1px solid rgba(var(--rs-accent-rgb),0.6)', color: 'var(--rs-accent)',
+              } : {
+                background: 'rgba(var(--rs-accent-rgb),0.05)', border: '1px solid rgba(var(--rs-accent-rgb),0.2)', color: 'rgba(var(--rs-accent-rgb),0.6)',
+              }}>
+              <Plane size={10} />
+              {trip.name}
+              {trip.entry_count > 0 && <span className="opacity-60">({trip.entry_count})</span>}
+              {trip.total && (
+                <span style={{ color: filterTrip === trip.name ? 'var(--rs-accent)' : 'rgba(var(--rs-accent-rgb),0.5)' }}>
+                  · {fmtAmount(trip.total)}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* ── Ledger ── */}
       <div className="w-full max-w-5xl space-y-3">
 
         {/* Toolbar */}
         <div className="flex items-center gap-3 justify-between">
-          <span className="text-sm font-mono" style={{ color: 'rgba(var(--rs-accent-rgb),0.5)' }}>
-            {selectedDate ? fmtDate(selectedDate) : monthLabel} ({ledgerEntries.length})
-            {ledgerTotal !== 0 && <span className="ml-3" style={{ color: 'var(--rs-accent)' }}>{fmtAmount(String(ledgerTotal))}</span>}
+          <span className="text-sm font-mono flex items-center gap-1.5" style={{ color: 'rgba(var(--rs-accent-rgb),0.5)' }}>
+            {filterTrip && <Plane size={12} />}
+            {filterTrip ? filterTrip : selectedDate ? fmtDate(selectedDate) : monthLabel}
+            {' '}({ledgerEntries.length})
+            {ledgerTotal !== 0 && <span className="ml-2" style={{ color: 'var(--rs-accent)' }}>{fmtAmount(String(ledgerTotal))}</span>}
           </span>
           <div className="flex gap-2">
             <button onClick={() => { setShowCatManager(v => !v); setTimeout(() => newCatRef.current?.focus(), 50); }}
@@ -451,8 +571,7 @@ export default function HSFinancePage() {
               {categories.length === 0 && <span className="text-xs font-mono" style={{ color: 'rgba(var(--rs-accent-rgb),0.3)' }}>No categories yet.</span>}
             </div>
             <div className="flex gap-2">
-              <input ref={newCatRef}
-                className="border px-2 py-1.5 text-sm rounded flex-1" style={inputStyle}
+              <input ref={newCatRef} className="border px-2 py-1.5 text-sm rounded flex-1" style={inputStyle}
                 placeholder="New category name" value={newCatName}
                 onChange={e => setNewCatName(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter') addCategory(); }} />
@@ -471,6 +590,7 @@ export default function HSFinancePage() {
             <div className="space-y-3">
               <p className="text-xs font-mono" style={{ color: 'rgba(var(--rs-accent-rgb),0.6)' }}>New entry — {selectedPerson === 'me' ? 'Me' : 'Denise'}</p>
               <datalist id="cat-list">{categoryNames.map(c => <option key={c} value={c} />)}</datalist>
+              <datalist id="trip-list">{tripNames.map(t => <option key={t} value={t} />)}</datalist>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <input className="col-span-full w-full border px-2 py-1.5 text-sm rounded" style={inputStyle}
                   placeholder="Title *" value={draft.title} onChange={e => setDraft(d => ({ ...d, title: e.target.value }))} />
@@ -478,6 +598,9 @@ export default function HSFinancePage() {
                   placeholder="Category" value={draft.category} onChange={e => setDraft(d => ({ ...d, category: e.target.value }))} />
                 <input type="number" step="0.01" className="border px-2 py-1.5 text-sm rounded" style={inputStyle}
                   placeholder="Amount ($)" value={draft.amount} onChange={e => setDraft(d => ({ ...d, amount: e.target.value }))} />
+                <input list="trip-list" className="col-span-full w-full border px-2 py-1.5 text-sm rounded" style={inputStyle}
+                  placeholder="Trip (optional — type a name to create or link)" value={draft.trip}
+                  onChange={e => setDraft(d => ({ ...d, trip: e.target.value }))} />
                 <div className="col-span-full">
                   <DateFields d={draft} set={setDraft} />
                 </div>
@@ -501,7 +624,11 @@ export default function HSFinancePage() {
         {ledgerEntries.length === 0 ? (
           <div className="text-center py-12" style={{ color: 'rgba(var(--rs-accent-rgb),0.35)' }}>
             <DollarSign size={32} className="mx-auto mb-2 opacity-25" />
-            <p className="font-mono text-sm">{selectedDate ? 'No entries span this date.' : `No entries for ${monthLabel}.`}</p>
+            <p className="font-mono text-sm">
+              {filterTrip ? `No entries for trip "${filterTrip}".`
+                : selectedDate ? 'No entries span this date.'
+                : `No entries for ${monthLabel}.`}
+            </p>
           </div>
         ) : (
           <div className="overflow-x-auto rounded" style={{ border: '1px solid rgba(var(--rs-edge-rgb),0.15)' }}>
@@ -514,60 +641,39 @@ export default function HSFinancePage() {
                 </tr>
               </thead>
               <tbody>
-                {ledgerEntries.map((entry, idx) => (
-                  editingId === entry.id ? (
-                    <tr key={entry.id} style={{ background: 'rgba(var(--rs-accent-rgb),0.08)', borderBottom: '1px solid rgba(var(--rs-edge-rgb),0.1)' }}>
-                      <td colSpan={6} className="px-3 py-3">
-                        <datalist id="cat-list-edit">{categoryNames.map(c => <option key={c} value={c} />)}</datalist>
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-2">
-                          <input className="border px-2 py-1 text-sm rounded sm:col-span-3" style={inputStyle}
-                            placeholder="Title" value={editDraft.title} onChange={e => setEditDraft(d => ({ ...d, title: e.target.value }))} />
-                          <input list="cat-list-edit" className="border px-2 py-1 text-sm rounded" style={inputStyle}
-                            placeholder="Category" value={editDraft.category} onChange={e => setEditDraft(d => ({ ...d, category: e.target.value }))} />
-                          <input type="number" step="0.01" className="border px-2 py-1 text-sm rounded" style={inputStyle}
-                            placeholder="Amount ($)" value={editDraft.amount} onChange={e => setEditDraft(d => ({ ...d, amount: e.target.value }))} />
-                          <input className="border px-2 py-1 text-sm rounded" style={inputStyle}
-                            placeholder="Notes" value={editDraft.notes} onChange={e => setEditDraft(d => ({ ...d, notes: e.target.value }))} />
-                        </div>
-                        <div className="mb-2">
-                          <DateFields d={editDraft} set={setEditDraft} />
-                        </div>
-                        <div className="flex gap-2 justify-end">
-                          <button onClick={() => setEditingId(null)} className="flex items-center gap-1 px-3 py-1 text-xs font-mono rounded"
-                            style={{ border: '1px solid rgba(var(--rs-accent-rgb),0.2)', color: 'rgba(var(--rs-accent-rgb),0.5)' }}><X size={11} /> Cancel</button>
-                          <button onClick={submitEdit} disabled={saving} className="flex items-center gap-1 px-3 py-1 text-xs font-mono rounded disabled:opacity-40"
-                            style={{ background: 'rgba(var(--rs-accent-rgb),0.2)', border: '1px solid rgba(var(--rs-accent-rgb),0.5)', color: 'var(--rs-accent)' }}><Check size={11} /> Save</button>
-                        </div>
-                      </td>
-                    </tr>
-                  ) : (
-                    <tr key={entry.id} className="group transition-colors"
-                      style={{ background: idx % 2 === 0 ? 'rgba(var(--rs-accent-rgb),0.02)' : 'transparent', borderBottom: '1px solid rgba(var(--rs-edge-rgb),0.08)' }}>
-                      <td className="px-3 py-2.5 text-xs font-mono whitespace-nowrap" style={{ color: 'rgba(var(--rs-accent-rgb),0.5)' }}>
-                        {fmtDateRange(entry.entry_date, entry.end_date)}
-                      </td>
-                      <td className="px-3 py-2.5 font-medium" style={{ color: 'var(--rs-text, rgba(255,255,255,0.88))' }}>{entry.title}</td>
-                      <td className="px-3 py-2.5">
-                        <span className="text-xs px-2 py-0.5 rounded font-mono"
-                          style={{ background: 'rgba(var(--rs-accent-rgb),0.1)', border: '1px solid rgba(var(--rs-accent-rgb),0.2)', color: 'rgba(var(--rs-accent-rgb),0.75)' }}>
-                          {entry.category}
-                        </span>
-                      </td>
-                      <td className="px-3 py-2.5 text-right font-mono tabular-nums whitespace-nowrap"
-                        style={{ color: entry.amount ? 'var(--rs-accent)' : 'rgba(var(--rs-accent-rgb),0.2)' }}>
-                        {fmtAmount(entry.amount) ?? '—'}
-                      </td>
-                      <td className="px-3 py-2.5 max-w-[200px]">
-                        {entry.notes && <span className="text-xs truncate block" style={{ color: 'rgba(var(--rs-accent-rgb),0.45)' }}>{entry.notes}</span>}
-                      </td>
-                      <td className="px-3 py-2.5">
-                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity justify-end">
-                          <button onClick={() => startEdit(entry)} className="p-1 rounded hover:bg-white/10 transition-colors" style={{ color: 'rgba(var(--rs-accent-rgb),0.6)' }} title="Edit"><Pencil size={13} /></button>
-                          <button onClick={() => deleteEntry(entry.id)} className="p-1 rounded hover:bg-red-500/20 transition-colors" style={{ color: 'rgba(var(--rs-accent-rgb),0.4)' }} title="Delete"><Trash2 size={13} /></button>
-                        </div>
-                      </td>
-                    </tr>
-                  )
+                {grouped.map(({ tripName, entries: groupEntries }) => (
+                  <>
+                    {hasTrips && (
+                      <tr key={`hdr-${tripName ?? 'none'}`}>
+                        <td colSpan={6} className="px-3 py-1.5"
+                          style={{ background: 'rgba(var(--rs-accent-rgb),0.05)', borderBottom: '1px solid rgba(var(--rs-edge-rgb),0.1)' }}>
+                          {tripName ? (
+                            <button
+                              onClick={() => { setFilterTrip(filterTrip === tripName ? null : tripName); setSelectedDate(null); }}
+                              className="flex items-center gap-2 text-xs font-mono group/trip"
+                              style={{ color: 'rgba(var(--rs-accent-rgb),0.7)' }}>
+                              <Plane size={11} />
+                              <span className="font-semibold group-hover/trip:underline underline-offset-2">{tripName}</span>
+                              <span style={{ color: 'rgba(var(--rs-accent-rgb),0.4)' }}>
+                                {groupEntries.length} {groupEntries.length === 1 ? 'item' : 'items'}
+                                {(() => {
+                                  const t = groupEntries.reduce((s, e) => { const n = parseFloat(e.amount ?? '0'); return s + (isNaN(n) ? 0 : n); }, 0);
+                                  return t !== 0 ? ` · ${fmtAmount(String(t))}` : '';
+                                })()}
+                              </span>
+                            </button>
+                          ) : (
+                            <span className="text-xs font-mono" style={{ color: 'rgba(var(--rs-accent-rgb),0.35)' }}>Unassigned</span>
+                          )}
+                        </td>
+                      </tr>
+                    )}
+                    {groupEntries.map((entry, idx) => (
+                      editingId === entry.id
+                        ? <EditRow key={entry.id} entry={entry} />
+                        : <EntryRow key={entry.id} entry={entry} idx={idx} />
+                    ))}
+                  </>
                 ))}
               </tbody>
               {ledgerTotal !== 0 && (

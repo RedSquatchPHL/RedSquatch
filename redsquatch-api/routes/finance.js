@@ -31,8 +31,19 @@ const SCHEMA_STATEMENTS = [
   )`,
   `CREATE INDEX IF NOT EXISTS idx_finance_categories_client_person
      ON finance_categories(client_id, person)`,
+  `CREATE TABLE IF NOT EXISTS finance_trips (
+    id           SERIAL PRIMARY KEY,
+    client_id    INTEGER NOT NULL REFERENCES client_users(id) ON DELETE CASCADE,
+    person       VARCHAR(20) NOT NULL,
+    name         VARCHAR(255) NOT NULL,
+    created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    UNIQUE(client_id, person, name)
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_finance_trips_client_person
+     ON finance_trips(client_id, person)`,
   // Additive migrations — safe to re-run
   `ALTER TABLE finance_entries ADD COLUMN IF NOT EXISTS end_date DATE`,
+  `ALTER TABLE finance_entries ADD COLUMN IF NOT EXISTS trip_id INTEGER REFERENCES finance_trips(id) ON DELETE SET NULL`,
 ];
 
 async function runMigrations(db) {
@@ -53,6 +64,19 @@ function makeRouter(db) {
   async function getClientId(db, username) {
     const r = await db.query('SELECT id FROM client_users WHERE username = $1', [username]);
     return r.rows[0]?.id ?? null;
+  }
+
+  // Look up or create a trip by name; returns tripId or null
+  async function upsertTrip(clientId, person, name) {
+    if (!name || !name.trim()) return null;
+    const { rows } = await db.query(
+      `INSERT INTO finance_trips (client_id, person, name)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (client_id, person, name) DO UPDATE SET name = EXCLUDED.name
+       RETURNING id`,
+      [clientId, person, name.trim()]
+    );
+    return rows[0].id;
   }
 
   // Seed defaults for a person if they have no categories yet
@@ -80,9 +104,11 @@ function makeRouter(db) {
       if (!clientId) return res.status(404).json({ error: 'Client not found' });
       const person = req.query.person || 'me';
       const { rows } = await db.query(
-        `SELECT * FROM finance_entries
-          WHERE client_id = $1 AND person = $2
-          ORDER BY entry_date DESC, created_at DESC`,
+        `SELECT e.*, t.name AS trip_name
+          FROM finance_entries e
+          LEFT JOIN finance_trips t ON e.trip_id = t.id
+          WHERE e.client_id = $1 AND e.person = $2
+          ORDER BY e.entry_date DESC, e.created_at DESC`,
         [clientId, person]
       );
       res.json({ entries: rows });
@@ -97,12 +123,13 @@ function makeRouter(db) {
     try {
       const clientId = await getClientId(db, req.session.user.username);
       if (!clientId) return res.status(404).json({ error: 'Client not found' });
-      const { person = 'me', title, category = 'Uncategorized', notes, amount, entry_date, end_date } = req.body;
+      const { person = 'me', title, category = 'Uncategorized', notes, amount, entry_date, end_date, trip } = req.body;
       if (!title?.trim()) return res.status(400).json({ error: 'title is required' });
+      const tripId = await upsertTrip(clientId, person, trip);
       const { rows } = await db.query(
-        `INSERT INTO finance_entries (client_id, person, title, category, notes, amount, entry_date, end_date)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
-        [clientId, person, title.trim(), (category || 'Uncategorized').trim(), notes || null, amount || null, entry_date || new Date().toISOString().slice(0, 10), end_date || null]
+        `INSERT INTO finance_entries (client_id, person, title, category, notes, amount, entry_date, end_date, trip_id)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
+        [clientId, person, title.trim(), (category || 'Uncategorized').trim(), notes || null, amount || null, entry_date || new Date().toISOString().slice(0, 10), end_date || null, tripId]
       );
       res.status(201).json({ entry: rows[0] });
     } catch (err) {
@@ -116,7 +143,8 @@ function makeRouter(db) {
     try {
       const clientId = await getClientId(db, req.session.user.username);
       if (!clientId) return res.status(404).json({ error: 'Client not found' });
-      const { title, category, notes, amount, entry_date, end_date } = req.body;
+      const { title, category, notes, amount, entry_date, end_date, trip } = req.body;
+      const person = req.body.person;
       const fields = [], values = [];
       let i = 1;
       if (title      !== undefined) { fields.push(`title = $${i++}`);      values.push(title.trim()); }
@@ -125,6 +153,12 @@ function makeRouter(db) {
       if (amount     !== undefined) { fields.push(`amount = $${i++}`);     values.push(amount || null); }
       if (entry_date !== undefined) { fields.push(`entry_date = $${i++}`); values.push(entry_date); }
       if (end_date   !== undefined) { fields.push(`end_date = $${i++}`);   values.push(end_date || null); }
+      if (trip !== undefined) {
+        const tripPerson = person || 'me';
+        const tripId = trip ? await upsertTrip(clientId, tripPerson, trip) : null;
+        fields.push(`trip_id = $${i++}`);
+        values.push(tripId);
+      }
       if (fields.length === 0) return res.status(400).json({ error: 'No fields to update' });
       fields.push(`updated_at = NOW()`);
       values.push(req.params.id, clientId);
@@ -154,6 +188,89 @@ function makeRouter(db) {
       res.json({ deleted: true });
     } catch (err) {
       console.error('[finance DELETE /:id]', err);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
+  // ── Trips ────────────────────────────────────────────────────────────────
+
+  // GET /api/client/finance/trips?person=me
+  router.get('/trips', auth, async (req, res) => {
+    try {
+      const clientId = await getClientId(db, req.session.user.username);
+      if (!clientId) return res.status(404).json({ error: 'Client not found' });
+      const person = req.query.person || 'me';
+      const { rows } = await db.query(
+        `SELECT t.id, t.name,
+                COUNT(e.id)::int AS entry_count,
+                SUM(e.amount)::numeric AS total
+           FROM finance_trips t
+           LEFT JOIN finance_entries e ON e.trip_id = t.id
+           WHERE t.client_id = $1 AND t.person = $2
+           GROUP BY t.id, t.name
+           ORDER BY t.name`,
+        [clientId, person]
+      );
+      res.json({ trips: rows });
+    } catch (err) {
+      console.error('[finance GET /trips]', err);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
+  // POST /api/client/finance/trips
+  router.post('/trips', auth, async (req, res) => {
+    try {
+      const clientId = await getClientId(db, req.session.user.username);
+      if (!clientId) return res.status(404).json({ error: 'Client not found' });
+      const { person = 'me', name } = req.body;
+      if (!name?.trim()) return res.status(400).json({ error: 'name is required' });
+      const { rows } = await db.query(
+        `INSERT INTO finance_trips (client_id, person, name) VALUES ($1, $2, $3)
+         ON CONFLICT (client_id, person, name) DO UPDATE SET name = EXCLUDED.name
+         RETURNING id, name`,
+        [clientId, person, name.trim()]
+      );
+      res.status(201).json({ trip: rows[0] });
+    } catch (err) {
+      console.error('[finance POST /trips]', err);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
+  // PUT /api/client/finance/trips/:id  (rename)
+  router.put('/trips/:id', auth, async (req, res) => {
+    try {
+      const clientId = await getClientId(db, req.session.user.username);
+      if (!clientId) return res.status(404).json({ error: 'Client not found' });
+      const { name } = req.body;
+      if (!name?.trim()) return res.status(400).json({ error: 'name is required' });
+      const { rows } = await db.query(
+        `UPDATE finance_trips SET name = $1
+          WHERE id = $2 AND client_id = $3 RETURNING id, name`,
+        [name.trim(), req.params.id, clientId]
+      );
+      if (!rows.length) return res.status(404).json({ error: 'Trip not found' });
+      res.json({ trip: rows[0] });
+    } catch (err) {
+      console.error('[finance PUT /trips/:id]', err);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
+  // DELETE /api/client/finance/trips/:id
+  router.delete('/trips/:id', auth, async (req, res) => {
+    try {
+      const clientId = await getClientId(db, req.session.user.username);
+      if (!clientId) return res.status(404).json({ error: 'Client not found' });
+      const { rowCount } = await db.query(
+        'DELETE FROM finance_trips WHERE id = $1 AND client_id = $2',
+        [req.params.id, clientId]
+      );
+      if (!rowCount) return res.status(404).json({ error: 'Trip not found' });
+      res.json({ deleted: true });
+    } catch (err) {
+      console.error('[finance DELETE /trips/:id]', err);
       res.status(500).json({ error: 'Internal server error' });
     }
   });
