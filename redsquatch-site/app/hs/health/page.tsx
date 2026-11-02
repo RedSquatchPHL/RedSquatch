@@ -15,10 +15,18 @@ import CopperPanel from '@/components/cenote/CopperPanel';
 import PageLoader from '@/components/ui/PageLoader';
 
 type Applet = 'blood_pressure' | 'weight' | 'nutrition' | 'intake' | 'injections' | 'drug_levels' | null;
+type Person = 'me' | 'declan' | 'denise';
+
+const PEOPLE: { key: Person; label: string }[] = [
+  { key: 'me', label: 'Me' },
+  { key: 'declan', label: 'Declan' },
+  { key: 'denise', label: 'Denise' },
+];
 
 export default function HSHealthPage() {
   const [loading, setLoading] = useState(true);
   const [activeApplet, setActiveApplet] = useState<Applet>(null);
+  const [selectedPerson, setSelectedPerson] = useState<Person>('me');
   const router = useRouter();
 
   useEffect(() => {
@@ -43,14 +51,37 @@ export default function HSHealthPage() {
       {/* Header */}
       <div className="w-full max-w-5xl">
         <CopperPanel>
-          <h1 className="text-3xl font-bold" style={{ color: 'var(--rs-accent)', textShadow: '0 0 16px rgba(var(--rs-accent-rgb),0.3)' }}>
-            Health
-          </h1>
+          <div className="flex items-center justify-between gap-4">
+            <h1 className="text-3xl font-bold" style={{ color: 'var(--rs-accent)', textShadow: '0 0 16px rgba(var(--rs-accent-rgb),0.3)' }}>
+              Health
+            </h1>
+            <div className="flex gap-1">
+              {PEOPLE.map(({ key, label }) => (
+                <button
+                  key={key}
+                  onClick={() => setSelectedPerson(key)}
+                  className="px-3 py-1 text-sm font-mono rounded transition-all duration-200"
+                  style={selectedPerson === key ? {
+                    background: 'rgba(var(--rs-accent-rgb),0.2)',
+                    border: '1px solid rgba(var(--rs-accent-rgb),0.6)',
+                    color: 'var(--rs-accent)',
+                    textShadow: '0 0 8px rgba(var(--rs-accent-rgb),0.4)',
+                  } : {
+                    background: 'transparent',
+                    border: '1px solid rgba(var(--rs-accent-rgb),0.2)',
+                    color: 'rgba(var(--rs-accent-rgb),0.5)',
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
         </CopperPanel>
       </div>
 
-      {/* Tool cards */}
-      <div className="w-full max-w-5xl">
+      {/* Tool cards — only shown for the primary user */}
+      {selectedPerson === 'me' && <div className="w-full max-w-5xl">
         <div className="rs-spotlight grid grid-cols-1 md:grid-cols-2 gap-4">
           {([
             { key: 'blood_pressure' as const, label: 'Blood Pressure Log', description: 'Track systolic/diastolic, heart rate, position, and arm — export to PDF', icon: HeartPulse },
@@ -78,31 +109,33 @@ export default function HSHealthPage() {
             </button>
           ))}
         </div>
-      </div>
+      </div>}
 
-      <AppletModal isOpen={activeApplet === 'blood_pressure'} title="Blood Pressure Log" onClose={() => setActiveApplet(null)} wide>
-        <BloodPressureTracker />
-      </AppletModal>
+      {selectedPerson === 'me' && <>
+        <AppletModal isOpen={activeApplet === 'blood_pressure'} title="Blood Pressure Log" onClose={() => setActiveApplet(null)} wide>
+          <BloodPressureTracker />
+        </AppletModal>
 
-      <AppletModal isOpen={activeApplet === 'weight'} title="Weight & BMI" onClose={() => setActiveApplet(null)} wide>
-        <WeightBmiTracker />
-      </AppletModal>
+        <AppletModal isOpen={activeApplet === 'weight'} title="Weight & BMI" onClose={() => setActiveApplet(null)} wide>
+          <WeightBmiTracker />
+        </AppletModal>
 
-      <AppletModal isOpen={activeApplet === 'nutrition'} title="Hydration & Protein" onClose={() => setActiveApplet(null)} wide>
-        <NutritionTracker />
-      </AppletModal>
+        <AppletModal isOpen={activeApplet === 'nutrition'} title="Hydration & Protein" onClose={() => setActiveApplet(null)} wide>
+          <NutritionTracker />
+        </AppletModal>
 
-      <AppletModal isOpen={activeApplet === 'intake'} title="Nutrition Intake" onClose={() => setActiveApplet(null)} wide>
-        <NutritionIntakeForm onViewLog={() => setActiveApplet('nutrition')} />
-      </AppletModal>
+        <AppletModal isOpen={activeApplet === 'intake'} title="Nutrition Intake" onClose={() => setActiveApplet(null)} wide>
+          <NutritionIntakeForm onViewLog={() => setActiveApplet('nutrition')} />
+        </AppletModal>
 
-      <AppletModal isOpen={activeApplet === 'injections'} title="Injections" onClose={() => setActiveApplet(null)} wide>
-        <InjectionTracker />
-      </AppletModal>
+        <AppletModal isOpen={activeApplet === 'injections'} title="Injections" onClose={() => setActiveApplet(null)} wide>
+          <InjectionTracker />
+        </AppletModal>
 
-      <AppletModal isOpen={activeApplet === 'drug_levels'} title="Drug Levels" onClose={() => setActiveApplet(null)} wide>
-        <DrugLevelTracker />
-      </AppletModal>
+        <AppletModal isOpen={activeApplet === 'drug_levels'} title="Drug Levels" onClose={() => setActiveApplet(null)} wide>
+          <DrugLevelTracker />
+        </AppletModal>
+      </>}
     </div>
   );
 }
