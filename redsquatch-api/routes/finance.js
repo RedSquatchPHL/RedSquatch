@@ -31,6 +31,8 @@ const SCHEMA_STATEMENTS = [
   )`,
   `CREATE INDEX IF NOT EXISTS idx_finance_categories_client_person
      ON finance_categories(client_id, person)`,
+  // Additive migrations — safe to re-run
+  `ALTER TABLE finance_entries ADD COLUMN IF NOT EXISTS end_date DATE`,
 ];
 
 async function runMigrations(db) {
@@ -95,12 +97,12 @@ function makeRouter(db) {
     try {
       const clientId = await getClientId(db, req.session.user.username);
       if (!clientId) return res.status(404).json({ error: 'Client not found' });
-      const { person = 'me', title, category = 'Uncategorized', notes, amount, entry_date } = req.body;
+      const { person = 'me', title, category = 'Uncategorized', notes, amount, entry_date, end_date } = req.body;
       if (!title?.trim()) return res.status(400).json({ error: 'title is required' });
       const { rows } = await db.query(
-        `INSERT INTO finance_entries (client_id, person, title, category, notes, amount, entry_date)
-         VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-        [clientId, person, title.trim(), (category || 'Uncategorized').trim(), notes || null, amount || null, entry_date || new Date().toISOString().slice(0, 10)]
+        `INSERT INTO finance_entries (client_id, person, title, category, notes, amount, entry_date, end_date)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+        [clientId, person, title.trim(), (category || 'Uncategorized').trim(), notes || null, amount || null, entry_date || new Date().toISOString().slice(0, 10), end_date || null]
       );
       res.status(201).json({ entry: rows[0] });
     } catch (err) {
@@ -114,7 +116,7 @@ function makeRouter(db) {
     try {
       const clientId = await getClientId(db, req.session.user.username);
       if (!clientId) return res.status(404).json({ error: 'Client not found' });
-      const { title, category, notes, amount, entry_date } = req.body;
+      const { title, category, notes, amount, entry_date, end_date } = req.body;
       const fields = [], values = [];
       let i = 1;
       if (title      !== undefined) { fields.push(`title = $${i++}`);      values.push(title.trim()); }
@@ -122,6 +124,7 @@ function makeRouter(db) {
       if (notes      !== undefined) { fields.push(`notes = $${i++}`);      values.push(notes || null); }
       if (amount     !== undefined) { fields.push(`amount = $${i++}`);     values.push(amount || null); }
       if (entry_date !== undefined) { fields.push(`entry_date = $${i++}`); values.push(entry_date); }
+      if (end_date   !== undefined) { fields.push(`end_date = $${i++}`);   values.push(end_date || null); }
       if (fields.length === 0) return res.status(400).json({ error: 'No fields to update' });
       fields.push(`updated_at = NOW()`);
       values.push(req.params.id, clientId);
