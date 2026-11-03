@@ -3,18 +3,16 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { API } from '@/lib/api';
-import { HeartPulse, Scale, Droplets, Syringe, Activity, Utensils } from 'lucide-react';
+import { HeartPulse, Scale, Syringe, Utensils } from 'lucide-react';
 import AppletModal from '@/components/AppletModal';
 import BloodPressureTracker from '@/components/trackers/BloodPressureTracker';
 import WeightBmiTracker from '@/components/trackers/glp1/WeightBmiTracker';
-import NutritionTracker from '@/components/trackers/glp1/NutritionTracker';
-import NutritionIntakeForm from '@/components/trackers/glp1/NutritionIntakeForm';
-import InjectionTracker from '@/components/trackers/glp1/InjectionTracker';
-import DrugLevelTracker from '@/components/trackers/glp1/DrugLevelTracker';
+import NutritionHub from '@/components/trackers/glp1/NutritionHub';
+import InjectionsHub from '@/components/trackers/glp1/InjectionsHub';
 import CopperPanel from '@/components/cenote/CopperPanel';
 import PageLoader from '@/components/ui/PageLoader';
 
-type Applet = 'blood_pressure' | 'weight' | 'nutrition' | 'intake' | 'injections' | 'drug_levels' | null;
+type Applet = 'blood_pressure' | 'weight' | 'nutrition' | 'injections' | null;
 type Person = 'me' | 'declan' | 'denise';
 
 const PEOPLE: { key: Person; label: string }[] = [
@@ -27,6 +25,7 @@ export default function HSHealthPage() {
   const [loading, setLoading] = useState(true);
   const [activeApplet, setActiveApplet] = useState<Applet>(null);
   const [selectedPerson, setSelectedPerson] = useState<Person>('me');
+  const [nutritionTab, setNutritionTab] = useState<'log' | 'day'>('log');
   const router = useRouter();
 
   useEffect(() => {
@@ -36,7 +35,7 @@ export default function HSHealthPage() {
         const data = await res.json();
         if (!res.ok || !data.authenticated) { router.push('/login'); return; }
         // ?open=nutrition lets the intake page link straight to the log.
-        if (new URLSearchParams(window.location.search).get('open') === 'nutrition') setActiveApplet('nutrition');
+        if (new URLSearchParams(window.location.search).get('open') === 'nutrition') { setNutritionTab('day'); setActiveApplet('nutrition'); }
         setLoading(false);
       } catch {
         router.push('/login');
@@ -86,14 +85,12 @@ export default function HSHealthPage() {
           {([
             { key: 'blood_pressure' as const, label: 'Blood Pressure Log', description: 'Track systolic/diastolic, heart rate, position, and arm — export to PDF', icon: HeartPulse },
             { key: 'weight' as const, label: 'Weight & BMI', description: 'Weigh-ins in lb, BMI from your height, and the trend toward your target', icon: Scale },
-            { key: 'nutrition' as const, label: 'Hydration & Protein', description: 'Daily water and protein totals against your goals, with 14-day trends', icon: Droplets },
-            { key: 'intake' as const, label: 'Nutrition Intake', description: 'Log a drink or a meal with macros — pick a saved food or add a new one', icon: Utensils },
-            { key: 'injections' as const, label: 'Injections', description: 'Dose log, body-map site rotation guide, and injection history', icon: Syringe },
-            { key: 'drug_levels' as const, label: 'Drug Levels', description: 'Estimated active medication in your body from your logged doses', icon: Activity },
+            { key: 'nutrition' as const, label: 'Nutrition', description: 'Log drinks and meals with macros, and track water and protein against your goals with 14-day trends', icon: Utensils },
+            { key: 'injections' as const, label: 'Injections & Drug Levels', description: 'Dose log, body-map site rotation, injection history, and estimated active medication', icon: Syringe },
           ]).map((t) => (
             <button
               key={t.key}
-              onClick={() => setActiveApplet(t.key)}
+              onClick={() => { if (t.key === 'nutrition') setNutritionTab('log'); setActiveApplet(t.key); }}
               className="rs-applet-trigger"
             >
               <div className="rs-applet-card rs-orbit">
@@ -120,20 +117,12 @@ export default function HSHealthPage() {
           <WeightBmiTracker />
         </AppletModal>
 
-        <AppletModal isOpen={activeApplet === 'nutrition'} title="Hydration & Protein" onClose={() => setActiveApplet(null)} wide>
-          <NutritionTracker />
+        <AppletModal isOpen={activeApplet === 'nutrition'} title="Nutrition" onClose={() => setActiveApplet(null)} wide>
+          <NutritionHub initialTab={nutritionTab} />
         </AppletModal>
 
-        <AppletModal isOpen={activeApplet === 'intake'} title="Nutrition Intake" onClose={() => setActiveApplet(null)} wide>
-          <NutritionIntakeForm onViewLog={() => setActiveApplet('nutrition')} />
-        </AppletModal>
-
-        <AppletModal isOpen={activeApplet === 'injections'} title="Injections" onClose={() => setActiveApplet(null)} wide>
-          <InjectionTracker />
-        </AppletModal>
-
-        <AppletModal isOpen={activeApplet === 'drug_levels'} title="Drug Levels" onClose={() => setActiveApplet(null)} wide>
-          <DrugLevelTracker />
+        <AppletModal isOpen={activeApplet === 'injections'} title="Injections & Drug Levels" onClose={() => setActiveApplet(null)} wide>
+          <InjectionsHub />
         </AppletModal>
       </>}
     </div>

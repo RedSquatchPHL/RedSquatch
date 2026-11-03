@@ -6,12 +6,10 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, Res
 import {
   useEntries, useProfile, num, dayKey, fmtShort,
   inputStyle, panelStyle, primaryBtn, ghostBtn, axisStyle, gridStyle, tooltipBox,
-  Field, Stat, ModuleHeader, Loading,
+  Field, ModuleHeader, Loading,
 } from './shared';
 import NutritionDayLog, { type HydrationRow, type ProteinRow } from './NutritionDayLog';
 
-const HYDRATION_QUICK = [8, 12, 16, 24];
-const PROTEIN_QUICK = [10, 20, 30, 40];
 const TREND_DAYS = 14;
 const CAL_COLOR = 'var(--rs-warn, var(--rs-accent))';
 
@@ -37,35 +35,11 @@ function ProgressBar({ value, goal, color }: { value: number; goal: number | nul
   );
 }
 
-// Quick-add card (hydration or protein): running total, progress bar and one-tap amounts.
-// Itemised entries (and their edit/delete) live in the merged day log below.
-function Logger({
-  title, unit, color, icon: Icon, quick, goal, total, day, onAdd,
-}: {
-  title: string; unit: string; color: string; icon: typeof Droplets; quick: number[]; goal: number | null;
-  total: number; day: string;
-  onAdd: (amount: number, at: Date) => Promise<void>;
+// Read-only running total against the goal. Entries are added via the Log tab and
+// edited or deleted in the day log below.
+function Progress({ title, unit, color, icon: Icon, goal, total }: {
+  title: string; unit: string; color: string; icon: typeof Droplets; goal: number | null; total: number;
 }) {
-  const [custom, setCustom] = useState('');
-  // HH:MM for the entry's time of day; empty means "auto" (see stampFor).
-  const [time, setTime] = useState('');
-  const [err, setErr] = useState<string | null>(null);
-
-  // An explicit time wins. Otherwise a past day is stamped at noon and today at "now".
-  const stampFor = () => {
-    const [y, m, d] = day.split('-').map(Number);
-    if (time) {
-      const [hh, mm] = time.split(':').map(Number);
-      return new Date(y, m - 1, d, hh, mm);
-    }
-    if (day === dayKey(new Date())) return new Date();
-    return new Date(y, m - 1, d, 12, 0);
-  };
-
-  async function run(fn: () => Promise<void>) {
-    try { await fn(); setErr(null); } catch (e) { setErr(e instanceof Error ? e.message : 'Failed.'); }
-  }
-
   return (
     <div className="rounded-md p-4" style={panelStyle}>
       <div className="flex items-center gap-2 mb-2">
@@ -77,30 +51,6 @@ function Logger({
         </span>
       </div>
       <ProgressBar value={total} goal={goal} color={color} />
-
-      <div className="flex flex-wrap items-center gap-2 mt-3">
-        <label className="flex items-center gap-1 text-xs" style={{ color: 'rgba(var(--rs-accent-rgb),0.7)' }}>
-          Time
-          <input type="time" value={time} onChange={e => setTime(e.target.value)} aria-label={`${title} entry time`}
-            className="border px-1.5 py-1 text-xs rounded" style={inputStyle} />
-          {time && <button type="button" onClick={() => setTime('')} className="underline" style={{ color: 'var(--rs-accent)' }}>{day === dayKey(new Date()) ? 'now' : 'noon'}</button>}
-        </label>
-        {quick.map(q => (
-          <button key={q} type="button" onClick={() => run(() => onAdd(q, stampFor()))}
-            className="px-2.5 py-1 rounded-md text-xs font-semibold border" style={ghostBtn}>+{q} {unit}</button>
-        ))}
-        <input value={custom} onChange={e => setCustom(e.target.value)} inputMode="decimal" placeholder={`Custom ${unit}`}
-          className="w-24 border px-2 py-1 text-xs rounded" style={inputStyle}
-          onKeyDown={e => { if (e.key === 'Enter') e.currentTarget.blur(); }} />
-        <button type="button" disabled={!custom.trim()}
-          onClick={() => {
-            const n = Number(custom);
-            if (!Number.isFinite(n) || n <= 0) { setErr(`Enter a positive number of ${unit}.`); return; }
-            run(async () => { await onAdd(n, stampFor()); setCustom(''); });
-          }}
-          className="px-2.5 py-1 rounded-md text-xs font-semibold disabled:opacity-40" style={primaryBtn}>Add</button>
-      </div>
-      {err && <p className="text-xs mt-2 text-[color:var(--rs-bad)]">{err}</p>}
     </div>
   );
 }
@@ -134,7 +84,7 @@ export default function NutritionTracker() {
 
   const isToday = day === dayKey(new Date());
 
-  // Day totals for the macros the intake form records. Rows without macros (quick-adds) add nothing.
+  // Day totals for the macros the intake form records. Rows without macros add nothing.
   const dayOunces = hydration.entries.filter(r => dayKey(r.logged_at) === day).reduce((t, r) => t + (num(r.ounces) ?? 0), 0);
   const dayGrams = protein.entries.filter(r => dayKey(r.logged_at) === day).reduce((t, r) => t + (num(r.grams) ?? 0), 0);
   const dayMacros = protein.entries.filter(r => dayKey(r.logged_at) === day).reduce(
@@ -177,7 +127,7 @@ export default function NutritionTracker() {
 
   return (
     <div style={{ color: 'var(--rs-accent)' }}>
-      <ModuleHeader title="Hydration & Protein" blurb="Daily running totals against your goals. Tap a quick amount or enter your own; edit or delete any entry in the day log. Use Nutrition Intake for foods with macros." error={hydration.error ?? protein.error ?? goalErr} />
+      <ModuleHeader title="Day & Trends" blurb="Daily running totals against your goals. Log drinks and meals on the Log tab; edit or delete any entry in the day log below." error={hydration.error ?? protein.error ?? goalErr} />
 
       <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
         <div className="flex items-center gap-1">
@@ -200,24 +150,15 @@ export default function NutritionTracker() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
-        <Logger
-          key={`h-${day}`}
-          title="Hydration" unit="oz" color="var(--rs-info)" icon={Droplets} quick={HYDRATION_QUICK} goal={profile.hydration_goal_oz}
-          total={dayOunces} day={day}
-          onAdd={(ounces, at) => hydration.add({ ounces, logged_at: at.toISOString(), notes: null })}
-        />
-        <Logger
-          key={`p-${day}`}
-          title="Protein" unit="g" color="var(--rs-accent)" icon={Drumstick} quick={PROTEIN_QUICK} goal={profile.protein_goal_g}
-          total={dayGrams} day={day}
-          onAdd={(grams, at) => protein.add({ grams, logged_at: at.toISOString(), notes: null })}
-        />
+        <Progress title="Hydration" unit="oz" color="var(--rs-info)" icon={Droplets} goal={profile.hydration_goal_oz} total={dayOunces} />
+        <Progress title="Protein" unit="g" color="var(--rs-accent)" icon={Drumstick} goal={profile.protein_goal_g} total={dayGrams} />
       </div>
 
-      <div className="grid grid-cols-3 gap-3 mb-5">
-        <Stat label="Calories" value={String(Math.round(dayMacros.calories))} sub={labelDay(day)} color={CAL_COLOR} />
-        <Stat label="Fat" value={`${Math.round(dayMacros.fat * 10) / 10} g`} sub={labelDay(day)} />
-        <Stat label="Carbs" value={`${Math.round(dayMacros.carbs * 10) / 10} g`} sub={labelDay(day)} />
+      <div className="flex flex-wrap items-baseline gap-x-5 gap-y-1 rounded-md px-3 py-1.5 mb-5 text-xs" style={panelStyle}>
+        <span style={{ color: 'rgba(var(--rs-accent-rgb),0.6)' }}>{labelDay(day)}</span>
+        <span>Calories <strong style={{ color: CAL_COLOR }}>{Math.round(dayMacros.calories)}</strong></span>
+        <span>Fat <strong>{Math.round(dayMacros.fat * 10) / 10} g</strong></span>
+        <span>Carbs <strong>{Math.round(dayMacros.carbs * 10) / 10} g</strong></span>
       </div>
 
       <div className="mb-5">

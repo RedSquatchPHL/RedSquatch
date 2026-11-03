@@ -203,6 +203,28 @@ export function RangeToggle({ value, onChange }: { value: RangeKey; onChange: (r
   );
 }
 
+/** Segmented tab switch for modules that combine two views in one modal. */
+export function TabSwitch<K extends string>({ tabs, value, onChange }: { tabs: { key: K; label: string }[]; value: K; onChange: (k: K) => void }) {
+  return (
+    <div role="tablist" className="flex gap-1 mb-4 p-1 rounded-lg w-fit" style={{ background: 'var(--rs-well)' }}>
+      {tabs.map(t => {
+        const active = t.key === value;
+        return (
+          <button
+            key={t.key}
+            type="button"
+            role="tab"
+            aria-selected={active}
+            onClick={() => onChange(t.key)}
+            className="px-4 py-1.5 rounded-md text-xs font-semibold"
+            style={active ? { background: 'var(--rs-btn)', color: 'var(--rs-btn-ink)' } : { color: 'var(--rs-accent)' }}
+          >{t.label}</button>
+        );
+      })}
+    </div>
+  );
+}
+
 export function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>

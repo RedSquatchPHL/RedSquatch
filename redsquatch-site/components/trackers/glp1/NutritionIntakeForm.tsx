@@ -198,7 +198,7 @@ export default function NutritionIntakeForm({ onViewLog }: { onViewLog?: () => v
 
   return (
     <div style={{ color: 'var(--rs-accent)' }}>
-      <ModuleHeader title="Nutrition Intake" blurb="Log what you drank or ate. Entries land in Hydration & Protein." error={foods.error} />
+      <ModuleHeader title="Nutrition Intake" blurb="Log what you drank or ate. Entries show up under Day & Trends." error={foods.error} />
 
       <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-3 mb-4 sm:max-w-sm">
         <Field label="Date"><input type="date" value={date} onChange={e => setDate(e.target.value)} className="w-full border px-2 py-2 text-base sm:py-1.5 sm:text-sm rounded" style={inputStyle} /></Field>
@@ -353,7 +353,7 @@ export default function NutritionIntakeForm({ onViewLog }: { onViewLog?: () => v
       {doneCount !== null && (
         <p className="text-sm mt-3" style={{ color: 'var(--rs-ok)' }}>
           Logged {doneCount} {doneCount === 1 ? 'item' : 'items'}.{' '}
-          {onViewLog && <button type="button" onClick={onViewLog} className="underline" style={{ color: 'var(--rs-accent)' }}>View in Hydration & Protein</button>}
+          {onViewLog && <button type="button" onClick={onViewLog} className="underline" style={{ color: 'var(--rs-accent)' }}>View Day & Trends</button>}
         </p>
       )}
     </div>
