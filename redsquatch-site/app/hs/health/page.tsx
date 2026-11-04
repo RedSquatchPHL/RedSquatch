@@ -3,17 +3,18 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { API } from '@/lib/api';
-import { HeartPulse, Scale, Syringe, Utensils } from 'lucide-react';
+import { HeartPulse, Scale, Syringe, Utensils, Timer } from 'lucide-react';
 import AppletModal from '@/components/AppletModal';
 import BloodPressureTracker from '@/components/trackers/BloodPressureTracker';
 import WeightBmiTracker from '@/components/trackers/glp1/WeightBmiTracker';
 import NutritionHub from '@/components/trackers/glp1/NutritionHub';
 import InjectionsHub from '@/components/trackers/glp1/InjectionsHub';
+import FastingTracker from '@/components/trackers/glp1/FastingTracker';
 import CopperPanel from '@/components/cenote/CopperPanel';
 import PageLoader from '@/components/ui/PageLoader';
 import HealthCountdown from '@/components/HealthCountdown';
 
-type Applet = 'blood_pressure' | 'weight' | 'nutrition' | 'injections' | null;
+type Applet = 'blood_pressure' | 'weight' | 'nutrition' | 'injections' | 'fasting' | null;
 type Person = 'me' | 'declan' | 'denise';
 
 const PEOPLE: { key: Person; label: string }[] = [
@@ -91,6 +92,7 @@ export default function HSHealthPage() {
             { key: 'weight' as const, label: 'Weight & BMI', description: 'Weigh-ins in lb, BMI from your height, and the trend toward your target', icon: Scale },
             { key: 'nutrition' as const, label: 'Nutrition', description: 'Log drinks and meals with macros, and track water and protein against your goals with 14-day trends', icon: Utensils },
             { key: 'injections' as const, label: 'Injections & Drug Levels', description: 'Dose log, body-map site rotation, injection history, and estimated active medication', icon: Syringe },
+            { key: 'fasting' as const, label: 'Fasting Tracker', description: 'Start and stop fasts, choose your protocol, and track elapsed time', icon: Timer },
           ]).map((t) => (
             <button
               key={t.key}
@@ -127,6 +129,10 @@ export default function HSHealthPage() {
 
         <AppletModal isOpen={activeApplet === 'injections'} title="Injections & Drug Levels" onClose={() => setActiveApplet(null)} wide>
           <InjectionsHub />
+        </AppletModal>
+
+        <AppletModal isOpen={activeApplet === 'fasting'} title="Fasting Tracker" onClose={() => setActiveApplet(null)}>
+          <FastingTracker />
         </AppletModal>
       </>}
     </div>
