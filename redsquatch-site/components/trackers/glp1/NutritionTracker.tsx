@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ChevronLeft, ChevronRight, Droplets, Drumstick } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, ResponsiveContainer } from 'recharts';
 import {
@@ -35,8 +35,6 @@ function ProgressBar({ value, goal, color }: { value: number; goal: number | nul
   );
 }
 
-// Read-only running total against the goal. Entries are added via the Log tab and
-// edited or deleted in the day log below.
 function Progress({ title, unit, color, icon: Icon, goal, total }: {
   title: string; unit: string; color: string; icon: typeof Droplets; goal: number | null; total: number;
 }) {
@@ -55,9 +53,16 @@ function Progress({ title, unit, color, icon: Icon, goal, total }: {
   );
 }
 
-export default function NutritionTracker() {
+export default function NutritionTracker({ reloadSignal }: { reloadSignal?: number }) {
   const hydration = useEntries<HydrationRow>('/hydration');
   const protein = useEntries<ProteinRow>('/protein');
+
+  useEffect(() => {
+    if (reloadSignal === undefined) return;
+    hydration.reload();
+    protein.reload();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reloadSignal]);
   const { profile, save: saveProfile } = useProfile();
 
   const [day, setDay] = useState(dayKey(new Date()));
@@ -84,7 +89,6 @@ export default function NutritionTracker() {
 
   const isToday = day === dayKey(new Date());
 
-  // Day totals for the macros the intake form records. Rows without macros add nothing.
   const dayOunces = hydration.entries.filter(r => dayKey(r.logged_at) === day).reduce((t, r) => t + (num(r.ounces) ?? 0), 0);
   const dayGrams = protein.entries.filter(r => dayKey(r.logged_at) === day).reduce((t, r) => t + (num(r.grams) ?? 0), 0);
   const dayMacros = protein.entries.filter(r => dayKey(r.logged_at) === day).reduce(
