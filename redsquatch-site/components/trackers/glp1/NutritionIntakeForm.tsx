@@ -1,12 +1,14 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { Droplets, Utensils, X, Check } from 'lucide-react';
+import { useMemo, useRef, useState } from 'react';
+import { Droplets, Utensils, X, Check, Search, Loader2 } from 'lucide-react';
 import {
   useEntries, glp1Fetch, num, dayKey,
   inputStyle, panelStyle, primaryBtn, ghostBtn,
   Field, ModuleHeader, Loading,
 } from './shared';
+
+interface UsdaResult { fdcId: number; description: string; serving: string | null; protein: number; fat: number; carbs: number; calories: number }
 
 interface FoodRow {
   id: number; name: string; serving: string | null; volume_oz: string | number | null;
@@ -70,6 +72,32 @@ export default function NutritionIntakeForm({ onViewLog }: { onViewLog?: () => v
   const [search, setSearch] = useState('');
   const [pickedId, setPickedId] = useState<number | null>(null);
   const [servings, setServings] = useState('1');
+
+  const [usdaResults, setUsdaResults] = useState<UsdaResult[]>([]);
+  const [usdaBusy, setUsdaBusy] = useState(false);
+  const [usdaErr, setUsdaErr] = useState<string | null>(null);
+  const usdaDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  async function lookupUsda(term: string) {
+    if (!term.trim()) { setUsdaResults([]); setUsdaErr(null); return; }
+    setUsdaBusy(true); setUsdaErr(null);
+    try {
+      const data = await glp1Fetch<{ results: UsdaResult[] }>(`/usda-search?q=${encodeURIComponent(term)}`);
+      setUsdaResults(data.results);
+      if (data.results.length === 0) setUsdaErr('No USDA results — enter macros manually.');
+    } catch (e) {
+      setUsdaErr(e instanceof Error ? e.message : 'USDA lookup failed.');
+      setUsdaResults([]);
+    } finally {
+      setUsdaBusy(false);
+    }
+  }
+
+  function pickUsdaResult(r: UsdaResult) {
+    setNf(x => ({ ...x, name: x.name || r.description, serving: r.serving ?? x.serving, protein: String(r.protein), fat: String(r.fat), carbs: String(r.carbs), calories: String(r.calories) }));
+    setUsdaResults([]);
+    setUsdaErr(null);
+  }
 
   const [more, setMore] = useState(false);
   const [staged, setStaged] = useState<Staged[]>([]);
@@ -136,6 +164,7 @@ export default function NutritionIntakeForm({ onViewLog }: { onViewLog?: () => v
     setHasMacros(false); setDm({ protein: '', fat: '', carbs: '', calories: '' }); setDServ('1'); setSaveDrink(true); setPickedDrinkId(null);
     setIsNew(null); setNf({ name: '', serving: '', protein: '', fat: '', carbs: '', calories: '' });
     setSearch(''); setPickedId(null); setServings('1');
+    setUsdaResults([]); setUsdaErr(null);
   }
 
   const canSubmit = !busy && (more ? current !== null : current !== null || staged.length > 0);
@@ -273,9 +302,46 @@ export default function NutritionIntakeForm({ onViewLog }: { onViewLog?: () => v
             {isNew === true && (
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
                 <div className="col-span-2 md:col-span-3">
-                  <Field label="Name"><input value={nf.name} onChange={e => setNf(x => ({ ...x, name: e.target.value }))} placeholder="Greek yogurt" className="w-full border px-2 py-2 text-base sm:py-1.5 sm:text-sm rounded" style={inputStyle} /></Field>
+                  <Field label="Name">
+                    <div className="flex gap-2">
+                      <input value={nf.name} onChange={e => setNf(x => ({ ...x, name: e.target.value }))} placeholder="Greek yogurt" className="w-full border px-2 py-2 text-base sm:py-1.5 sm:text-sm rounded" style={inputStyle} />
+                      <button type="button" disabled={usdaBusy || !nf.name.trim()} onClick={() => {
+                        if (usdaDebounce.current) clearTimeout(usdaDebounce.current);
+                        lookupUsda(nf.name.trim());
+                      }}
+                        title="Look up macros from USDA database"
+                        className="flex items-center gap-1 px-3 py-2 text-xs font-semibold rounded border whitespace-nowrap disabled:opacity-40"
+                        style={ghostBtn}>
+                        {usdaBusy ? <Loader2 size={13} className="animate-spin" /> : <Search size={13} />}
+                        USDA
+                      </button>
+                    </div>
+                  </Field>
                 </div>
                 <Field label="Serving (optional)"><input value={nf.serving} onChange={e => setNf(x => ({ ...x, serving: e.target.value }))} placeholder="1 cup" className="w-full border px-2 py-2 text-base sm:py-1.5 sm:text-sm rounded" style={inputStyle} /></Field>
+
+                {(usdaResults.length > 0 || usdaErr) && (
+                  <div className="col-span-2 md:col-span-4">
+                    {usdaErr && <p className="text-xs mb-1" style={{ color: 'rgba(var(--rs-accent-rgb),0.6)' }}>{usdaErr}</p>}
+                    {usdaResults.length > 0 && (
+                      <ul className="max-h-52 overflow-y-auto rounded-md" style={{ border: '1px solid rgba(var(--rs-edge-rgb),0.2)' }}>
+                        {usdaResults.map(r => (
+                          <li key={r.fdcId}>
+                            <button type="button" onClick={() => pickUsdaResult(r)}
+                              className="w-full flex flex-col gap-0.5 px-3 py-2 text-left text-sm hover:bg-[rgba(var(--rs-accent-rgb),0.08)]"
+                              style={{ borderBottom: '1px solid rgba(var(--rs-edge-rgb),0.1)', color: 'var(--rs-accent)' }}>
+                              <span className="font-semibold truncate">{r.description}</span>
+                              <span className="text-xs" style={muted}>
+                                {r.serving ? `per ${r.serving} · ` : ''}{r.calories} cal · P {r.protein}g · F {r.fat}g · C {r.carbs}g
+                              </span>
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                )}
+
                 {([['protein', 'Protein (g)'], ['fat', 'Fat (g)'], ['carbs', 'Carbs (g)'], ['calories', 'Calories']] as const).map(([k, label]) => (
                   <Field key={k} label={label}><input value={nf[k]} onChange={e => setNf(x => ({ ...x, [k]: e.target.value }))} inputMode="decimal" className="w-full border px-2 py-2 text-base sm:py-1.5 sm:text-sm rounded" style={inputStyle} /></Field>
                 ))}

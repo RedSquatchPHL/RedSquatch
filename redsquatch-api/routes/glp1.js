@@ -377,6 +377,39 @@ function makeRouter(db) {
     }
   });
 
+  // GET /usda-search?q=<term> — proxy to USDA FoodData Central; keeps the API key server-side.
+  // Returns { results: [{ fdcId, description, serving, protein, fat, carbs, calories }] }
+  router.get('/usda-search', auth, async (req, res) => {
+    const q = (req.query.q ?? '').trim();
+    if (!q || q.length > 200) return res.status(400).json({ error: 'q is required (200 chars max)' });
+    const apiKey = process.env.USDA_API_KEY;
+    if (!apiKey) return res.status(503).json({ error: 'USDA lookup is not configured on this server.' });
+    try {
+      const url = `https://api.nal.usda.gov/fdc/v1/foods/search?query=${encodeURIComponent(q)}&pageSize=10&dataType=SR%20Legacy,Survey%20(FNDDS),Foundation&api_key=${apiKey}`;
+      const upstream = await fetch(url, { signal: AbortSignal.timeout(8000) });
+      if (!upstream.ok) return res.status(502).json({ error: 'USDA API returned an error.' });
+      const data = await upstream.json();
+      const PROTEIN = 1003, FAT = 1004, CARBS = 1005, ENERGY = 1008;
+      const getNutrient = (nutrients, id) => {
+        const n = nutrients?.find(n => n.nutrientId === id);
+        return n ? Math.round(n.value * 10) / 10 : 0;
+      };
+      const results = (data.foods ?? []).map(f => ({
+        fdcId: f.fdcId,
+        description: f.description,
+        serving: f.servingSize ? `${f.servingSize}${f.servingSizeUnit ?? 'g'}` : null,
+        protein: getNutrient(f.foodNutrients, PROTEIN),
+        fat: getNutrient(f.foodNutrients, FAT),
+        carbs: getNutrient(f.foodNutrients, CARBS),
+        calories: getNutrient(f.foodNutrients, ENERGY),
+      }));
+      res.json({ results });
+    } catch (err) {
+      console.error('USDA search error:', err.message);
+      res.status(502).json({ error: 'Could not reach USDA. Try again.' });
+    }
+  });
+
   return router;
 }
 
