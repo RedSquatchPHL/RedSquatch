@@ -118,6 +118,19 @@ export default function SettingsPage() {
     }
   };
 
+  // Postgres NUMERIC columns come back as strings; coerce before sending back to
+  // the validator which requires typeof === 'number'.
+  function coerceProfile(p: Record<string, unknown>, countdown_target: string | null) {
+    const toNum = (v: unknown) => { const n = Number(v); return Number.isFinite(n) ? n : null; };
+    return {
+      height_in:        toNum(p.height_in),
+      target_weight_lb: toNum(p.target_weight_lb),
+      hydration_goal_oz: toNum(p.hydration_goal_oz) ?? 64,
+      protein_goal_g:   toNum(p.protein_goal_g),
+      countdown_target,
+    };
+  }
+
   async function saveTimer(e: React.FormEvent) {
     e.preventDefault();
     setTimerErr(''); setTimerMsg('');
@@ -127,11 +140,7 @@ export default function SettingsPage() {
       const existing = await glp1Fetch<Record<string, unknown>>('/profile');
       await glp1Fetch('/profile', {
         method: 'PUT',
-        body: JSON.stringify({
-          ...existing,
-          hydration_goal_oz: Number(existing.hydration_goal_oz) || 64,
-          countdown_target: timerDate && timerTime ? `${timerDate}T${timerTime}:00` : null,
-        }),
+        body: JSON.stringify(coerceProfile(existing, timerDate && timerTime ? `${timerDate}T${timerTime}:00` : null)),
       });
       setTimerMsg('Health timer saved.');
     } catch (err) {
@@ -148,7 +157,7 @@ export default function SettingsPage() {
       const existing = await glp1Fetch<Record<string, unknown>>('/profile');
       await glp1Fetch('/profile', {
         method: 'PUT',
-        body: JSON.stringify({ ...existing, hydration_goal_oz: Number(existing.hydration_goal_oz) || 64, countdown_target: null }),
+        body: JSON.stringify(coerceProfile(existing, null)),
       });
       setTimerDate(''); setTimerTime('');
       setTimerMsg('Health timer cleared.');
