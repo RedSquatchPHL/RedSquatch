@@ -385,9 +385,20 @@ function makeRouter(db) {
     const apiKey = process.env.USDA_API_KEY;
     if (!apiKey) return res.status(503).json({ error: 'USDA lookup is not configured on this server.' });
     try {
-      const url = `https://api.nal.usda.gov/fdc/v1/foods/search?query=${encodeURIComponent(q)}&pageSize=10&dataType=SR%20Legacy,Survey%20(FNDDS),Foundation&api_key=${apiKey}`;
-      const upstream = await fetch(url, { signal: AbortSignal.timeout(8000) });
-      if (!upstream.ok) return res.status(502).json({ error: 'USDA API returned an error.' });
+      const params = new URLSearchParams({
+        query: q,
+        pageSize: '10',
+        dataType: 'SR Legacy,Survey (FNDDS),Foundation',
+        api_key: apiKey,
+      });
+      const upstream = await fetch(`https://api.nal.usda.gov/fdc/v1/foods/search?${params}`, {
+        signal: AbortSignal.timeout(12000),
+      });
+      if (!upstream.ok) {
+        const body = await upstream.text().catch(() => '');
+        console.error(`USDA API ${upstream.status}:`, body.slice(0, 200));
+        return res.status(502).json({ error: `USDA API error (${upstream.status}) — try again.` });
+      }
       const data = await upstream.json();
       const PROTEIN = 1003, FAT = 1004, CARBS = 1005, ENERGY = 1008;
       const getNutrient = (nutrients, id) => {
@@ -406,7 +417,7 @@ function makeRouter(db) {
       res.json({ results });
     } catch (err) {
       console.error('USDA search error:', err.message);
-      res.status(502).json({ error: 'Could not reach USDA. Try again.' });
+      if (!res.headersSent) res.status(502).json({ error: 'Could not reach USDA. Try again.' });
     }
   });
 
