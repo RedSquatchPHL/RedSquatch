@@ -1,24 +1,13 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { Settings, Sunset, Briefcase, X, ArrowLeftRight, LogOut, Waves } from 'lucide-react';
-import { useHomeSquatchGate } from './HomeSquatchGate';
+import { Settings, ArrowLeftRight, LogOut, Waves } from 'lucide-react';
 import { logout } from '@/lib/api';
 import { saveBeach, useHsBeach } from '@/lib/hsBand';
 import { PRESET_NAMES, loadOverride, nextOverride, saveOverride, subscribeOverride, type Override } from '@/lib/oceanScene';
 import { WS_NAV, HS_NAV, QUICK_LINKS_SUBMENU, type MenuLeaf } from '@/lib/menuConfig';
 import BranchedMenu, { type BranchedMenuSection } from './BranchedMenu';
 import wsDock from './ClockGateMenu.ws.module.css';
-
-// 5-minute increments, matching the requested "wrap up between 4 and 6" window.
-const INCREMENTS = [5, 10, 15, 20, 25, 30];
-
-function formatRemaining(ms: number): string {
-  const total = Math.max(0, Math.round(ms / 1000));
-  const m = Math.floor(total / 60);
-  const s = total % 60;
-  return `${m}:${String(s).padStart(2, '0')}`;
-}
 
 // Global, bottom-left, low-key gear-badge trigger — deliberately styled like a
 // settings/profile icon rather than a labeled "Clock Out" pill, so it doesn't compete
@@ -33,7 +22,6 @@ function formatRemaining(ms: number): string {
 // A small dot on the badge signals a pending scheduled clock-out even while
 // the panel is closed.
 export default function ClockGateMenu({ placement = 'floating' }: { placement?: 'floating' | 'header' }) {
-  const { mode, clockoutTarget, clockOutNow, scheduleClockOut, cancelClockOut, clockInNow } = useHomeSquatchGate();
   const router = useRouter();
   const pathname = usePathname();
   const inHS = pathname?.startsWith('/hs') ?? false;
@@ -53,7 +41,6 @@ export default function ClockGateMenu({ placement = 'floating' }: { placement?: 
   }, [inHeaderSlot]);
   const navItems = inHS ? HS_NAV : WS_NAV;
   const [open, setOpen] = useState(false);
-  const [remaining, setRemaining] = useState('');
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -65,14 +52,6 @@ export default function ClockGateMenu({ placement = 'floating' }: { placement?: 
     document.addEventListener('mousedown', onOutsideClick);
     return () => document.removeEventListener('mousedown', onOutsideClick);
   }, []);
-
-  useEffect(() => {
-    if (clockoutTarget == null) return;
-    const tick = () => setRemaining(formatRemaining(clockoutTarget - Date.now()));
-    tick();
-    const id = window.setInterval(tick, 1000);
-    return () => window.clearInterval(id);
-  }, [clockoutTarget]);
 
   function closeAll() {
     setOpen(false);
@@ -199,87 +178,6 @@ export default function ClockGateMenu({ placement = 'floating' }: { placement?: 
             ...(inDock ? { maxHeight: 'calc(100vh - 84px)', overflowY: 'auto' as const } : null),
           }}
         >
-          {mode === 'work' ? (
-            clockoutTarget != null ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 8px', fontSize: 11, fontWeight: 500, color: 'var(--copper-2)' }}>
-                <Sunset style={{ width: 12, height: 12, flexShrink: 0 }} />
-                <span style={{ fontVariantNumeric: 'tabular-nums', flex: 1 }}>Clocking out in {remaining}</span>
-                <button
-                  onClick={cancelClockOut}
-                  title="Cancel"
-                  style={{ display: 'flex', border: 'none', background: 'transparent', color: 'color-mix(in srgb, var(--rs-ink) 60%, transparent)', cursor: 'pointer', padding: 2 }}
-                >
-                  <X style={{ width: 11, height: 11 }} />
-                </button>
-              </div>
-            ) : (
-              <>
-                <button
-                  onClick={() => { clockOutNow(); setOpen(false); }}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 6,
-                    border: '1px solid rgba(var(--copper-glow-rgb), 0.3)',
-                    borderRadius: 7,
-                    padding: '6px 8px',
-                    fontSize: 11,
-                    fontWeight: 600,
-                    color: 'var(--copper-2)',
-                    background: 'rgba(var(--copper-glow-rgb), 0.14)',
-                    cursor: 'pointer',
-                  }}
-                >
-                  <Sunset style={{ width: 12, height: 12 }} />
-                  Clock out now
-                </button>
-
-                <p style={{ fontSize: 9.5, color: 'color-mix(in srgb, var(--rs-ink) 60%, transparent)', margin: '4px 2px 0', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                  or in…
-                </p>
-
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 4 }}>
-                  {INCREMENTS.map(min => (
-                    <button
-                      key={min}
-                      onClick={() => { scheduleClockOut(min); setOpen(false); }}
-                      style={{
-                        border: '1px solid rgba(var(--copper-glow-rgb), 0.18)',
-                        borderRadius: 6,
-                        padding: '5px 0',
-                        fontSize: 11,
-                        fontWeight: 500,
-                        color: 'color-mix(in srgb, var(--rs-ink) 60%, transparent)',
-                        background: 'transparent',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      {min}m
-                    </button>
-                  ))}
-                </div>
-              </>
-            )
-          ) : (
-            <button
-              onClick={() => { clockInNow(); setOpen(false); }}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                border: '1px solid rgba(var(--copper-glow-rgb), 0.3)',
-                borderRadius: 7,
-                padding: '6px 8px',
-                fontSize: 11,
-                fontWeight: 600,
-                color: 'var(--copper-2)',
-                background: 'rgba(var(--copper-glow-rgb), 0.14)',
-                cursor: 'pointer',
-              }}
-            >
-              <Briefcase style={{ width: 12, height: 12 }} />
-              Clock in to Work Mode
-            </button>
-          )}
-
-          <div style={{ height: 1, background: 'rgba(var(--copper-glow-rgb), 0.15)', margin: '4px 2px 6px' }} />
-
           <BranchedMenu
             items={branchSections}
             defaultOpen={[0, 2]}
@@ -295,7 +193,7 @@ export default function ClockGateMenu({ placement = 'floating' }: { placement?: 
 
       <button
         onClick={() => setOpen(o => !o)}
-        title={inHeaderSlot ? 'Settings, navigation and clock' : mode === 'work' ? 'Clock out' : 'Clock in'}
+        title={inHeaderSlot ? 'Settings and navigation' : 'Settings and navigation'}
         aria-label="Clock in/out and account menu"
         aria-expanded={open}
         className={inWS
@@ -317,20 +215,6 @@ export default function ClockGateMenu({ placement = 'floating' }: { placement?: 
       >
         <Settings style={{ width: 15, height: 15 }} aria-hidden />
         {inHeaderSlot && <span>Settings</span>}
-        {clockoutTarget != null && (
-          <span
-            style={{
-              position: 'absolute',
-              top: 3,
-              right: 3,
-              width: 6,
-              height: 6,
-              borderRadius: '50%',
-              background: 'var(--copper-2)',
-              boxShadow: '0 0 6px rgba(var(--copper-glow-rgb), 0.8)',
-            }}
-          />
-        )}
       </button>
     </div>
   );
