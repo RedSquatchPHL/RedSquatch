@@ -52,7 +52,7 @@ function Choice({ active, onClick, children }: { active: boolean; onClick: () =>
   );
 }
 
-export default function NutritionIntakeForm({ onViewLog }: { onViewLog?: () => void }) {
+export default function NutritionIntakeForm({ onViewLog, onSubmit }: { onViewLog?: () => void; onSubmit?: () => void }) {
   const foods = useEntries<FoodRow>('/foods');
 
   const [date, setDate] = useState(dayKey(new Date()));
@@ -211,6 +211,7 @@ export default function NutritionIntakeForm({ onViewLog }: { onViewLog?: () => v
       setTime(nowHM());
       setDoneCount(items.length);
       foods.reload();
+      onSubmit?.();
     } catch (e) {
       // Nothing was saved; keep everything on screen so the user can retry.
       setErr(`${e instanceof Error ? e.message : 'Failed.'} Nothing was logged — your items are still here.`);
