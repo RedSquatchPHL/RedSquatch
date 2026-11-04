@@ -27,7 +27,7 @@ export const HS_NAV: MenuLeaf[] = [
   { id: 'hs-mexican', label: 'Mexican', icon: Landmark, type: 'internal', path: '/hs/mexican' },
   { id: 'hs-cocina', label: 'Cocina', icon: ChefHat, type: 'internal', path: '/hs/cocina' },
   { id: 'hs-health', label: 'Health', icon: Syringe, type: 'internal', path: '/hs/health' },
-  { id: 'hs-health-timer', label: 'Health Timer', icon: Timer, type: 'internal', path: '/settings' },
+  { id: 'hs-health-timer', label: 'Health Timer', icon: Timer, type: 'internal', path: '/hs/health' },
   { id: 'hs-finance', label: 'Finance', icon: Wallet, type: 'internal', path: '/hs/finance' },
   { id: 'hs-downtime', label: 'Downtime', icon: Gamepad2, type: 'internal', path: '/hs/downtime' },
 ];

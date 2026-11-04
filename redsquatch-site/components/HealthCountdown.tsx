@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { Pencil, Check, X, Timer } from 'lucide-react';
 import { glp1Fetch } from '@/components/trackers/glp1/shared';
 
 function formatCountdown(ms: number) {
@@ -14,54 +15,203 @@ function formatCountdown(ms: number) {
   };
 }
 
+const pad = (n: number) => String(n).padStart(2, '0');
+
+function toNum(v: unknown) {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+
 export default function HealthCountdown() {
-  const [target, setTarget] = useState<Date | null>(null);
+  const [target, setTarget]       = useState<Date | null>(null);
   const [remaining, setRemaining] = useState<{ d: number; h: number; m: number; s: number } | null>(null);
-  const [loaded, setLoaded] = useState(false);
+  const [rawProfile, setRawProfile] = useState<Record<string, unknown>>({});
+  const [loaded, setLoaded]       = useState(false);
+  const [editing, setEditing]     = useState(false);
+  const [editDate, setEditDate]   = useState('');
+  const [editTime, setEditTime]   = useState('');
+  const [saving, setSaving]       = useState(false);
+  const [err, setErr]             = useState<string | null>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
+
+  function loadProfile() {
+    return glp1Fetch<Record<string, unknown>>('/profile').then(p => {
+      setRawProfile(p);
+      const ct = p.countdown_target as string | null | undefined;
+      if (ct) {
+        const d = new Date(ct);
+        setTarget(d);
+        const pad2 = (n: number) => String(n).padStart(2, '0');
+        setEditDate(`${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`);
+        setEditTime(`${pad2(d.getHours())}:${pad2(d.getMinutes())}`);
+      } else {
+        setTarget(null);
+      }
+      setLoaded(true);
+    }).catch(() => setLoaded(true));
+  }
+
+  useEffect(() => { loadProfile(); }, []);
 
   useEffect(() => {
-    glp1Fetch<{ countdown_target?: string | null }>('/profile')
-      .then(p => {
-        if (p.countdown_target) setTarget(new Date(p.countdown_target));
-        setLoaded(true);
-      })
-      .catch(() => setLoaded(true));
-  }, []);
-
-  useEffect(() => {
-    if (!target) return;
+    if (!target) { setRemaining(null); return; }
     const update = () => setRemaining(formatCountdown(target.getTime() - Date.now()));
     update();
     const id = setInterval(update, 1000);
     return () => clearInterval(id);
   }, [target]);
 
-  if (!loaded || !target) return null;
+  // Close popover on outside click
+  useEffect(() => {
+    if (!editing) return;
+    function onDown(e: MouseEvent) {
+      if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
+        setEditing(false);
+        setErr(null);
+      }
+    }
+    document.addEventListener('mousedown', onDown);
+    return () => document.removeEventListener('mousedown', onDown);
+  }, [editing]);
 
-  if (!remaining) {
-    return (
-      <span className="text-xs font-mono" style={{ color: 'rgba(var(--rs-accent-rgb),0.6)' }}>
-        Goal reached!
-      </span>
-    );
+  async function save() {
+    if (!editDate) { setErr('Pick a date.'); return; }
+    setSaving(true); setErr(null);
+    try {
+      await glp1Fetch('/profile', {
+        method: 'PUT',
+        body: JSON.stringify({
+          height_in:        toNum(rawProfile.height_in),
+          target_weight_lb: toNum(rawProfile.target_weight_lb),
+          hydration_goal_oz: toNum(rawProfile.hydration_goal_oz) ?? 64,
+          protein_goal_g:   toNum(rawProfile.protein_goal_g),
+          countdown_target: editTime ? `${editDate}T${editTime}:00` : `${editDate}T00:00:00`,
+        }),
+      });
+      await loadProfile();
+      setEditing(false);
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : 'Failed to save.');
+    } finally {
+      setSaving(false);
+    }
   }
 
-  const pad = (n: number) => String(n).padStart(2, '0');
-  const { d, h, m, s } = remaining;
+  async function clear() {
+    setSaving(true); setErr(null);
+    try {
+      await glp1Fetch('/profile', {
+        method: 'PUT',
+        body: JSON.stringify({
+          height_in:        toNum(rawProfile.height_in),
+          target_weight_lb: toNum(rawProfile.target_weight_lb),
+          hydration_goal_oz: toNum(rawProfile.hydration_goal_oz) ?? 64,
+          protein_goal_g:   toNum(rawProfile.protein_goal_g),
+          countdown_target: null,
+        }),
+      });
+      setTarget(null); setRemaining(null); setEditDate(''); setEditTime('');
+      setEditing(false);
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : 'Failed to clear.');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (!loaded) return null;
+
+  const accent      = 'var(--rs-accent)';
+  const accentRgb   = 'var(--rs-accent-rgb)';
+  const inputStyle: React.CSSProperties = {
+    background: 'rgba(0,0,0,0.3)',
+    border: `1px solid rgba(${accentRgb},0.3)`,
+    borderRadius: 6,
+    color: accent,
+    fontSize: 12,
+    padding: '4px 6px',
+  };
+  const popStyle: React.CSSProperties = {
+    position: 'absolute',
+    top: 'calc(100% + 8px)',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    zIndex: 70,
+    background: 'color-mix(in srgb, var(--stone-0) 97%, black)',
+    border: `1px solid rgba(${accentRgb},0.35)`,
+    borderRadius: 10,
+    padding: '10px 12px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 8,
+    minWidth: 240,
+    boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+  };
 
   return (
-    <div className="flex items-center gap-1.5 font-mono text-sm" style={{ color: 'var(--rs-accent)', textShadow: '0 0 10px rgba(var(--rs-accent-rgb),0.3)' }}>
-      {d > 0 && (
-        <>
-          <span><strong>{d}</strong><span className="text-xs opacity-60">d</span></span>
-          <span className="opacity-30">·</span>
-        </>
+    <div className="relative flex flex-col items-center" ref={popoverRef}>
+      {/* Trigger row */}
+      {target && remaining ? (
+        <button
+          onClick={() => { setEditing(e => !e); setErr(null); }}
+          className="flex items-center gap-1.5 group"
+          title="Edit timer"
+        >
+          <span className="font-mono text-sm flex items-center gap-1" style={{ color: accent, textShadow: `0 0 10px rgba(${accentRgb},0.3)` }}>
+            {remaining.d > 0 && <><strong>{remaining.d}</strong><span className="text-xs opacity-60">d</span><span className="opacity-30 mx-0.5">·</span></>}
+            <strong>{pad(remaining.h)}</strong><span className="text-xs opacity-60">h</span>
+            <span className="opacity-30">:</span>
+            <strong>{pad(remaining.m)}</strong><span className="text-xs opacity-60">m</span>
+            <span className="opacity-30">:</span>
+            <strong>{pad(remaining.s)}</strong><span className="text-xs opacity-60">s</span>
+          </span>
+          <Pencil size={11} className="opacity-0 group-hover:opacity-60 transition-opacity" style={{ color: accent }} />
+        </button>
+      ) : target && !remaining ? (
+        <button onClick={() => { setEditing(e => !e); setErr(null); }} className="flex items-center gap-1 text-xs font-mono" style={{ color: `rgba(${accentRgb},0.6)` }}>
+          Goal reached! <Pencil size={11} />
+        </button>
+      ) : (
+        <button
+          onClick={() => { setEditing(e => !e); setErr(null); }}
+          className="flex items-center gap-1.5 text-xs font-mono opacity-50 hover:opacity-80 transition-opacity"
+          style={{ color: accent }}
+        >
+          <Timer size={12} /> Set health timer
+        </button>
       )}
-      <span><strong>{pad(h)}</strong><span className="text-xs opacity-60">h</span></span>
-      <span className="opacity-30">:</span>
-      <span><strong>{pad(m)}</strong><span className="text-xs opacity-60">m</span></span>
-      <span className="opacity-30">:</span>
-      <span><strong>{pad(s)}</strong><span className="text-xs opacity-60">s</span></span>
+
+      {/* Inline popover */}
+      {editing && (
+        <div style={popStyle} onClick={e => e.stopPropagation()}>
+          <div className="text-xs font-semibold uppercase tracking-wide" style={{ color: `rgba(${accentRgb},0.6)` }}>
+            Health Countdown Timer
+          </div>
+          <div className="flex gap-2">
+            <input type="date" value={editDate} onChange={e => setEditDate(e.target.value)} disabled={saving} style={{ ...inputStyle, flex: 1 }} />
+            <input type="time" value={editTime} onChange={e => setEditTime(e.target.value)} disabled={saving} style={{ ...inputStyle, width: 90 }} />
+          </div>
+          {err && <p className="text-xs" style={{ color: 'var(--rs-bad, #f87171)' }}>{err}</p>}
+          <div className="flex gap-2">
+            <button
+              onClick={save} disabled={saving || !editDate}
+              className="flex items-center gap-1 px-3 py-1.5 rounded text-xs font-semibold disabled:opacity-40"
+              style={{ background: `rgba(${accentRgb},0.2)`, border: `1px solid rgba(${accentRgb},0.5)`, color: accent }}
+            >
+              <Check size={12} /> {saving ? 'Saving…' : 'Set'}
+            </button>
+            {target && (
+              <button
+                onClick={clear} disabled={saving}
+                className="flex items-center gap-1 px-3 py-1.5 rounded text-xs font-semibold disabled:opacity-40"
+                style={{ border: `1px solid rgba(${accentRgb},0.2)`, color: `rgba(${accentRgb},0.6)` }}
+              >
+                <X size={12} /> Clear
+              </button>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
