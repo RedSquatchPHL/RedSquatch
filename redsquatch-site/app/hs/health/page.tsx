@@ -11,6 +11,7 @@ import NutritionHub from '@/components/trackers/glp1/NutritionHub';
 import InjectionsHub from '@/components/trackers/glp1/InjectionsHub';
 import CopperPanel from '@/components/cenote/CopperPanel';
 import PageLoader from '@/components/ui/PageLoader';
+import HealthCountdown from '@/components/HealthCountdown';
 
 type Applet = 'blood_pressure' | 'weight' | 'nutrition' | 'injections' | null;
 type Person = 'me' | 'declan' | 'denise';
@@ -51,10 +52,13 @@ export default function HSHealthPage() {
       <div className="w-full max-w-5xl">
         <CopperPanel>
           <div className="flex items-center justify-between gap-4">
-            <h1 className="text-3xl font-bold" style={{ color: 'var(--rs-accent)', textShadow: '0 0 16px rgba(var(--rs-accent-rgb),0.3)' }}>
+            <h1 className="text-3xl font-bold shrink-0" style={{ color: 'var(--rs-accent)', textShadow: '0 0 16px rgba(var(--rs-accent-rgb),0.3)' }}>
               Health
             </h1>
-            <div className="flex gap-1">
+            <div className="flex-1 flex justify-center">
+              <HealthCountdown />
+            </div>
+            <div className="flex gap-1 shrink-0">
               {PEOPLE.map(({ key, label }) => (
                 <button
                   key={key}

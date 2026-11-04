@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { API } from '@/lib/api';
 import PageLoader from '@/components/ui/PageLoader';
+import { glp1Fetch } from '@/components/trackers/glp1/shared';
 
 export default function SettingsPage() {
   const [loading,    setLoading]    = useState(true);
@@ -13,6 +14,14 @@ export default function SettingsPage() {
   const [error,      setError]      = useState('');
   const [message,    setMessage]    = useState('');
   const [busy,       setBusy]       = useState(false);
+
+  // Health countdown timer
+  const [timerDate,    setTimerDate]    = useState('');
+  const [timerTime,    setTimerTime]    = useState('');
+  const [timerBusy,    setTimerBusy]    = useState(false);
+  const [timerMsg,     setTimerMsg]     = useState('');
+  const [timerErr,     setTimerErr]     = useState('');
+
   const router = useRouter();
 
   useEffect(() => {
@@ -25,6 +34,18 @@ export default function SettingsPage() {
         const statusRes  = await fetch(`${API}/api/client/totp/status`, { credentials: 'include' });
         const statusData = await statusRes.json();
         setEnabled(!!statusData.enabled);
+
+        // Load existing countdown target
+        try {
+          const profile = await glp1Fetch<{ countdown_target?: string | null }>('/profile');
+          if (profile.countdown_target) {
+            const d = new Date(profile.countdown_target);
+            const pad = (n: number) => String(n).padStart(2, '0');
+            setTimerDate(`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`);
+            setTimerTime(`${pad(d.getHours())}:${pad(d.getMinutes())}`);
+          }
+        } catch {}
+
         setLoading(false);
       } catch {
         router.push('/login');
@@ -96,6 +117,47 @@ export default function SettingsPage() {
       setBusy(false);
     }
   };
+
+  async function saveTimer(e: React.FormEvent) {
+    e.preventDefault();
+    setTimerErr(''); setTimerMsg('');
+    if (!timerDate) { setTimerErr('Pick a date.'); return; }
+    setTimerBusy(true);
+    try {
+      const existing = await glp1Fetch<Record<string, unknown>>('/profile');
+      await glp1Fetch('/profile', {
+        method: 'PUT',
+        body: JSON.stringify({
+          ...existing,
+          hydration_goal_oz: Number(existing.hydration_goal_oz) || 64,
+          countdown_target: timerDate && timerTime ? `${timerDate}T${timerTime}:00` : null,
+        }),
+      });
+      setTimerMsg('Health timer saved.');
+    } catch (err) {
+      setTimerErr(err instanceof Error ? err.message : 'Failed to save.');
+    } finally {
+      setTimerBusy(false);
+    }
+  }
+
+  async function clearTimer() {
+    setTimerErr(''); setTimerMsg('');
+    setTimerBusy(true);
+    try {
+      const existing = await glp1Fetch<Record<string, unknown>>('/profile');
+      await glp1Fetch('/profile', {
+        method: 'PUT',
+        body: JSON.stringify({ ...existing, hydration_goal_oz: Number(existing.hydration_goal_oz) || 64, countdown_target: null }),
+      });
+      setTimerDate(''); setTimerTime('');
+      setTimerMsg('Health timer cleared.');
+    } catch (err) {
+      setTimerErr(err instanceof Error ? err.message : 'Failed to clear.');
+    } finally {
+      setTimerBusy(false);
+    }
+  }
 
   if (loading) return <PageLoader label="Loading settings…" />;
 
@@ -188,6 +250,70 @@ export default function SettingsPage() {
             </form>
           </div>
         )}
+
+        <div className="copper-line" />
+
+        {/* Health Countdown Timer */}
+        <div className="space-y-3">
+          <h2 className="text-base font-bold tracking-tight" style={{ color: '#d4a373' }}>
+            Health Countdown Timer
+          </h2>
+          <p className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>
+            Set a goal date/time — a live countdown appears on the Health page header.
+          </p>
+
+          {timerMsg && <p className="text-xs text-center" style={{ color: '#4ade80' }}>{timerMsg}</p>}
+          {timerErr && <p className="text-xs text-center" style={{ color: '#f87171' }}>{timerErr}</p>}
+
+          <form onSubmit={saveTimer} className="space-y-3">
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-xs mb-1 block" style={{ color: 'rgba(255,255,255,0.5)' }}>Date</label>
+                <input
+                  type="date"
+                  value={timerDate}
+                  onChange={e => setTimerDate(e.target.value)}
+                  disabled={timerBusy}
+                  className="glass-input w-full rounded-lg px-3 py-2 text-sm"
+                />
+              </div>
+              <div>
+                <label className="text-xs mb-1 block" style={{ color: 'rgba(255,255,255,0.5)' }}>Time</label>
+                <input
+                  type="time"
+                  value={timerTime}
+                  onChange={e => setTimerTime(e.target.value)}
+                  disabled={timerBusy}
+                  className="glass-input w-full rounded-lg px-3 py-2 text-sm"
+                />
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button
+                type="submit"
+                disabled={timerBusy || !timerDate}
+                className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 disabled:opacity-50"
+                style={{
+                  background: timerBusy ? 'rgba(184,115,51,0.5)' : 'linear-gradient(135deg, #b87333 0%, #d4a373 100%)',
+                  color: '#0f0f0f',
+                  boxShadow: timerBusy ? 'none' : '0 0 20px rgba(184,115,51,0.35)',
+                }}
+              >
+                {timerBusy ? 'Saving…' : 'Set Timer'}
+              </button>
+              {timerDate && (
+                <button
+                  type="button"
+                  onClick={clearTimer}
+                  disabled={timerBusy}
+                  className="px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 disabled:opacity-50 glass-btn"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+          </form>
+        </div>
 
         <button
           onClick={() => router.back()}
