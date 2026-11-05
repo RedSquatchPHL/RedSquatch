@@ -89,6 +89,7 @@ const SCHEMA_STATEMENTS = [
   // picker, not the food list. Its macros are per serving of that volume.
   `ALTER TABLE glp1_foods ADD COLUMN IF NOT EXISTS volume_oz NUMERIC(6,1)`,
   `ALTER TABLE glp1_profile ADD COLUMN IF NOT EXISTS countdown_target TIMESTAMP`,
+  `ALTER TABLE glp1_profile ADD COLUMN IF NOT EXISTS countdown_label VARCHAR(120)`,
 ];
 
 async function runMigrations(db) {
@@ -119,6 +120,7 @@ function validateProfile(b) {
   if (!isNum(b.hydration_goal_oz, 1, 500)) return 'hydration_goal_oz must be between 1 and 500';
   if (!optNum(b.protein_goal_g, 1, 1000)) return 'protein_goal_g must be between 1 and 1000';
   if (b.countdown_target !== null && b.countdown_target !== undefined && !isDate(b.countdown_target)) return 'countdown_target must be a valid date/time or null';
+  if (!optText(b.countdown_label, 120)) return 'countdown_label must be 120 characters or fewer';
   return null;
 }
 
@@ -345,7 +347,7 @@ function makeRouter(db) {
       const clientId = await getClientId(db, req);
       const result = await db.query(`SELECT * FROM glp1_profile WHERE client_id = $1`, [clientId]);
       res.json(result.rows[0] ?? {
-        client_id: clientId, height_in: null, target_weight_lb: null, hydration_goal_oz: 64, protein_goal_g: null, countdown_target: null,
+        client_id: clientId, height_in: null, target_weight_lb: null, hydration_goal_oz: 64, protein_goal_g: null, countdown_target: null, countdown_label: null,
       });
     } catch (err) {
       console.error('GLP-1 profile fetch error:', err.message);
@@ -359,19 +361,20 @@ function makeRouter(db) {
     if (bad) return res.status(400).json({ error: bad });
     try {
       const clientId = await getClientId(db, req);
-      const { height_in, target_weight_lb, hydration_goal_oz, protein_goal_g, countdown_target } = req.body;
+      const { height_in, target_weight_lb, hydration_goal_oz, protein_goal_g, countdown_target, countdown_label } = req.body;
       const result = await db.query(
-        `INSERT INTO glp1_profile (client_id, height_in, target_weight_lb, hydration_goal_oz, protein_goal_g, countdown_target)
-         VALUES ($1, $2, $3, $4, $5, $6)
+        `INSERT INTO glp1_profile (client_id, height_in, target_weight_lb, hydration_goal_oz, protein_goal_g, countdown_target, countdown_label)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)
          ON CONFLICT (client_id) DO UPDATE SET
            height_in = EXCLUDED.height_in,
            target_weight_lb = EXCLUDED.target_weight_lb,
            hydration_goal_oz = EXCLUDED.hydration_goal_oz,
            protein_goal_g = EXCLUDED.protein_goal_g,
            countdown_target = EXCLUDED.countdown_target,
+           countdown_label = EXCLUDED.countdown_label,
            updated_at = NOW()
          RETURNING *`,
-        [clientId, height_in ?? null, target_weight_lb ?? null, hydration_goal_oz, protein_goal_g ?? null, countdown_target ?? null]
+        [clientId, height_in ?? null, target_weight_lb ?? null, hydration_goal_oz, protein_goal_g ?? null, countdown_target ?? null, countdown_label ?? null]
       );
       res.json(result.rows[0]);
     } catch (err) {

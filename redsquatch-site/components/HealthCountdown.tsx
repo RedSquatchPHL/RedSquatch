@@ -24,12 +24,14 @@ function toNum(v: unknown) {
 
 export default function HealthCountdown() {
   const [target, setTarget]       = useState<Date | null>(null);
+  const [label, setLabel]         = useState<string | null>(null);
   const [remaining, setRemaining] = useState<{ d: number; h: number; m: number; s: number } | null>(null);
   const [rawProfile, setRawProfile] = useState<Record<string, unknown>>({});
   const [loaded, setLoaded]       = useState(false);
   const [editing, setEditing]     = useState(false);
   const [editDate, setEditDate]   = useState('');
   const [editTime, setEditTime]   = useState('');
+  const [editLabel, setEditLabel] = useState('');
   const [saving, setSaving]       = useState(false);
   const [err, setErr]             = useState<string | null>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
@@ -38,6 +40,9 @@ export default function HealthCountdown() {
     return glp1Fetch<Record<string, unknown>>('/profile').then(p => {
       setRawProfile(p);
       const ct = p.countdown_target as string | null | undefined;
+      const cl = (p.countdown_label as string | null | undefined) ?? null;
+      setLabel(cl);
+      setEditLabel(cl ?? '');
       if (ct) {
         const d = new Date(ct);
         setTarget(d);
@@ -61,7 +66,6 @@ export default function HealthCountdown() {
     return () => clearInterval(id);
   }, [target]);
 
-  // Close popover on outside click
   useEffect(() => {
     if (!editing) return;
     function onDown(e: MouseEvent) {
@@ -86,6 +90,7 @@ export default function HealthCountdown() {
           hydration_goal_oz: toNum(rawProfile.hydration_goal_oz) ?? 64,
           protein_goal_g:   toNum(rawProfile.protein_goal_g),
           countdown_target: editTime ? `${editDate}T${editTime}:00` : `${editDate}T00:00:00`,
+          countdown_label:  editLabel.trim() || null,
         }),
       });
       await loadProfile();
@@ -108,9 +113,10 @@ export default function HealthCountdown() {
           hydration_goal_oz: toNum(rawProfile.hydration_goal_oz) ?? 64,
           protein_goal_g:   toNum(rawProfile.protein_goal_g),
           countdown_target: null,
+          countdown_label:  null,
         }),
       });
-      setTarget(null); setRemaining(null); setEditDate(''); setEditTime('');
+      setTarget(null); setRemaining(null); setEditDate(''); setEditTime(''); setEditLabel(''); setLabel(null);
       setEditing(false);
     } catch (e) {
       setErr(e instanceof Error ? e.message : 'Failed to clear.');
@@ -144,12 +150,19 @@ export default function HealthCountdown() {
     display: 'flex',
     flexDirection: 'column',
     gap: 8,
-    minWidth: 240,
+    minWidth: 260,
     boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
   };
 
   return (
     <div className="relative flex flex-col items-center" ref={popoverRef}>
+      {/* Label line */}
+      {label && (
+        <div className="text-xs mb-0.5 opacity-60 font-mono" style={{ color: accent }}>
+          {label}
+        </div>
+      )}
+
       {/* Trigger row */}
       {target && remaining ? (
         <button
@@ -187,6 +200,15 @@ export default function HealthCountdown() {
           <div className="text-xs font-semibold uppercase tracking-wide" style={{ color: `rgba(${accentRgb},0.6)` }}>
             Health Countdown Timer
           </div>
+          <input
+            type="text"
+            value={editLabel}
+            onChange={e => setEditLabel(e.target.value)}
+            placeholder="What is this timer for? (optional)"
+            maxLength={120}
+            disabled={saving}
+            style={{ ...inputStyle, width: '100%' }}
+          />
           <div className="flex gap-2">
             <input type="date" value={editDate} onChange={e => setEditDate(e.target.value)} disabled={saving} style={{ ...inputStyle, flex: 1 }} />
             <input type="time" value={editTime} onChange={e => setEditTime(e.target.value)} disabled={saving} style={{ ...inputStyle, width: 90 }} />

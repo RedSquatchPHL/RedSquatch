@@ -13,6 +13,7 @@ import FastingTracker from '@/components/trackers/glp1/FastingTracker';
 import CopperPanel from '@/components/cenote/CopperPanel';
 import PageLoader from '@/components/ui/PageLoader';
 import HealthCountdown from '@/components/HealthCountdown';
+import FastingWidget from '@/components/FastingWidget';
 
 type Applet = 'blood_pressure' | 'weight' | 'nutrition' | 'injections' | 'fasting' | null;
 type Person = 'me' | 'declan' | 'denise';
@@ -56,8 +57,10 @@ export default function HSHealthPage() {
             <h1 className="text-3xl font-bold shrink-0" style={{ color: 'var(--rs-accent)', textShadow: '0 0 16px rgba(var(--rs-accent-rgb),0.3)' }}>
               Health
             </h1>
-            <div className="flex-1 flex justify-center">
+            <div className="flex-1 flex justify-center items-center gap-6">
               <HealthCountdown />
+              <div className="w-px h-8 opacity-20" style={{ background: 'var(--rs-accent)' }} />
+              <FastingWidget onOpen={() => setActiveApplet('fasting')} />
             </div>
             <div className="flex gap-1 shrink-0">
               {PEOPLE.map(({ key, label }) => (
