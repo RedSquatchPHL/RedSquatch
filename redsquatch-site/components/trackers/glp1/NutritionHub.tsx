@@ -14,7 +14,7 @@ export default function NutritionHub({ initialTab = 'log' }: { initialTab?: 'log
       <NutritionIntakeForm onSubmit={() => setReloadSignal(s => s + 1)} />
 
       <div style={divider}>
-        <NutritionTracker reloadSignal={reloadSignal} />
+        <NutritionTracker key={reloadSignal} />
       </div>
     </div>
   );

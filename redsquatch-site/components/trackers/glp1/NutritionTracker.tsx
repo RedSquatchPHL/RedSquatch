@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ChevronLeft, ChevronRight, Droplets, Drumstick } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, ResponsiveContainer } from 'recharts';
 import {
@@ -53,16 +53,9 @@ function Progress({ title, unit, color, icon: Icon, goal, total }: {
   );
 }
 
-export default function NutritionTracker({ reloadSignal }: { reloadSignal?: number }) {
+export default function NutritionTracker() {
   const hydration = useEntries<HydrationRow>('/hydration');
   const protein = useEntries<ProteinRow>('/protein');
-
-  useEffect(() => {
-    if (reloadSignal === undefined) return;
-    hydration.reload();
-    protein.reload();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reloadSignal]);
   const { profile, save: saveProfile } = useProfile();
 
   const [day, setDay] = useState(dayKey(new Date()));
