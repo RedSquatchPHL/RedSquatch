@@ -306,6 +306,9 @@ async function rehydratePlanAlerts(db) {
 
 // ── Validation ───────────────────────────────────────────────────────────────
 
+const VALID_METHOD_IDS = ['16_8', '14_10', '12_12', '18_6', '20_4', '5_2', 'adf', 'ese', 'omad'];
+const METHOD_HOURS = { '16_8': 16, '14_10': 14, '12_12': 12, '18_6': 18, '20_4': 20, '5_2': 24, 'adf': 24, 'ese': 24, 'omad': 23 };
+
 const isDate = v => typeof v === 'string' && !Number.isNaN(Date.parse(v));
 const isNum = (v, min, max) => typeof v === 'number' && Number.isFinite(v) && v >= min && v <= max;
 const optNum = (v, min, max) => v === null || v === undefined || isNum(v, min, max);
@@ -635,9 +638,6 @@ function makeRouter(db) {
   });
 
   // ── Fasting sessions ──────────────────────────────────────────────────────
-
-  const VALID_METHOD_IDS = ['16_8', '14_10', '12_12', '18_6', '20_4', '5_2', 'adf', 'ese', 'omad'];
-  const METHOD_HOURS = { '16_8': 16, '14_10': 14, '12_12': 12, '18_6': 18, '20_4': 20, '5_2': 24, 'adf': 24, 'ese': 24, 'omad': 23 };
 
   router.get('/fasting/current', auth, async (req, res) => {
     try {
