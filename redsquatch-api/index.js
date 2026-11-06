@@ -25,7 +25,7 @@ const { runMigrations: runCareerTrajectoryMigrations, makeRouter: makeCareerTraj
 const { runMigrations: runSnowCareerMigrations, makeRouter: makeSnowCareerRouter } = require('./routes/snow-career');
 const { runMigrations: runTaskBoardMigrations, makeRouter: makeTaskBoardRouter } = require('./routes/task-board');
 const { runMigrations: runBloodPressureMigrations, makeRouter: makeBloodPressureRouter } = require('./routes/blood-pressure');
-const { runMigrations: runGlp1Migrations, makeRouter: makeGlp1Router, rehydrateFastingTimers } = require('./routes/glp1');
+const { runMigrations: runGlp1Migrations, makeRouter: makeGlp1Router, rehydrateFastingTimers, rehydrateScheduleReminders } = require('./routes/glp1');
 const { runMigrations: runFinanceMigrations, makeRouter: makeFinanceRouter } = require('./routes/finance');
 
 const SPORTS_FILE = path.join(__dirname, 'public', 'sports.json');
@@ -1133,6 +1133,7 @@ async function initializeApp() {
     await runFinanceMigrations(db);
 
     await rehydrateFastingTimers(db);
+    await rehydrateScheduleReminders(db);
 
     app.listen(PORT, () => {
       console.log(`✓ RedSquatch API running on port ${PORT}`);

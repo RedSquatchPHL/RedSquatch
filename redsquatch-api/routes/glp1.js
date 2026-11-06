@@ -102,6 +102,14 @@ const SCHEMA_STATEMENTS = [
     created_at   TIMESTAMP DEFAULT NOW()
   )`,
   `CREATE INDEX IF NOT EXISTS idx_glp1_fasting_client ON glp1_fasting_sessions(client_id, started_at)`,
+  `CREATE TABLE IF NOT EXISTS glp1_fasting_schedule (
+    client_id      INTEGER PRIMARY KEY REFERENCES client_users(id) ON DELETE CASCADE,
+    enabled        BOOLEAN NOT NULL DEFAULT false,
+    reminder_hour  SMALLINT NOT NULL DEFAULT 20,
+    reminder_min   SMALLINT NOT NULL DEFAULT 0,
+    fast_days      TEXT,
+    updated_at     TIMESTAMP DEFAULT NOW()
+  )`,
 ];
 
 async function runMigrations(db) {
@@ -197,6 +205,53 @@ async function rehydrateFastingTimers(db) {
   }
 }
 
+// ── Schedule / reminder timers ────────────────────────────────────────────────
+
+const scheduleTimers = new Map(); // key: clientId
+
+function getNextReminderDelay(hour, min, fastDaysJson) {
+  const now = new Date();
+  const days = fastDaysJson ? JSON.parse(fastDaysJson) : null; // null = every day
+  for (let offset = 0; offset <= 7; offset++) {
+    const candidate = new Date(now);
+    candidate.setDate(candidate.getDate() + offset);
+    candidate.setHours(hour, min, 0, 0);
+    if (candidate.getTime() <= now.getTime()) continue;
+    if (days && days.length > 0 && !days.includes(candidate.getDay())) continue;
+    return candidate.getTime() - now.getTime();
+  }
+  return null;
+}
+
+function scheduleReminder(db, clientId, row) {
+  const existing = scheduleTimers.get(clientId);
+  if (existing) clearTimeout(existing);
+  if (!row.enabled) return;
+  const delay = getNextReminderDelay(row.reminder_hour, row.reminder_min, row.fast_days);
+  if (!delay) return;
+  const handle = setTimeout(async () => {
+    scheduleTimers.delete(clientId);
+    try {
+      await sendPushover('⏰ Time to Fast', "Your fasting window is starting — start your fast when you're ready!");
+      const r = await db.query('SELECT * FROM glp1_fasting_schedule WHERE client_id=$1', [clientId]);
+      if (r.rows.length && r.rows[0].enabled) scheduleReminder(db, clientId, r.rows[0]);
+    } catch (err) {
+      console.error('[Schedule] reminder error:', err.message);
+    }
+  }, delay);
+  scheduleTimers.set(clientId, handle);
+}
+
+async function rehydrateScheduleReminders(db) {
+  try {
+    const r = await db.query('SELECT * FROM glp1_fasting_schedule WHERE enabled=true');
+    for (const row of r.rows) scheduleReminder(db, row.client_id, row);
+    if (r.rows.length > 0) console.log(`[Fasting] rehydrated ${r.rows.length} schedule reminder(s)`);
+  } catch (err) {
+    console.error('[Fasting] schedule rehydrate error:', err.message);
+  }
+}
+
 // ── Validation ───────────────────────────────────────────────────────────────
 
 const isDate = v => typeof v === 'string' && !Number.isNaN(Date.parse(v));
@@ -256,6 +311,17 @@ function validateInjection(b) {
   if (!isNum(b.dose_mg, 0.01, 100)) return 'dose_mg must be between 0.01 and 100';
   if (!VALID_SITES.includes(b.site)) return `site must be one of ${VALID_SITES.join(', ')}`;
   if (!isDate(b.injected_at)) return 'injected_at must be a valid date/time';
+  return null;
+}
+
+function validateSchedule(b) {
+  if (!b || typeof b !== 'object') return 'body required';
+  if (typeof b.enabled !== 'boolean') return 'enabled must be a boolean';
+  if (!isNum(b.reminder_hour, 0, 23)) return 'reminder_hour must be 0–23';
+  if (!isNum(b.reminder_min, 0, 59)) return 'reminder_min must be 0–59';
+  if (b.fast_days !== null && b.fast_days !== undefined) {
+    if (!Array.isArray(b.fast_days) || !b.fast_days.every(d => isNum(d, 0, 6))) return 'fast_days must be an array of 0–6';
+  }
   return null;
 }
 
@@ -577,7 +643,66 @@ function makeRouter(db) {
     }
   });
 
+  router.get('/fasting/history', auth, async (req, res) => {
+    try {
+      const clientId = await getClientId(db, req);
+      const r = await db.query(
+        `SELECT id, method_id, fast_hours, started_at, ended_at, notified_at
+         FROM glp1_fasting_sessions
+         WHERE client_id=$1 AND started_at >= NOW() - INTERVAL '14 days'
+         ORDER BY started_at DESC`,
+        [clientId]
+      );
+      res.json({ sessions: r.rows });
+    } catch (err) {
+      console.error('Fasting history error:', err.message);
+      res.status(500).json({ error: 'Failed to fetch fasting history' });
+    }
+  });
+
+  router.get('/fasting/schedule', auth, async (req, res) => {
+    try {
+      const clientId = await getClientId(db, req);
+      const r = await db.query('SELECT * FROM glp1_fasting_schedule WHERE client_id=$1', [clientId]);
+      const row = r.rows[0] ?? { enabled: false, reminder_hour: 20, reminder_min: 0, fast_days: null };
+      res.json({
+        enabled: row.enabled,
+        reminder_hour: row.reminder_hour,
+        reminder_min: row.reminder_min,
+        fast_days: row.fast_days ? JSON.parse(row.fast_days) : null,
+      });
+    } catch (err) {
+      console.error('Fasting schedule get error:', err.message);
+      res.status(500).json({ error: 'Failed to fetch schedule' });
+    }
+  });
+
+  router.put('/fasting/schedule', auth, async (req, res) => {
+    const bad = validateSchedule(req.body);
+    if (bad) return res.status(400).json({ error: bad });
+    try {
+      const clientId = await getClientId(db, req);
+      const { enabled, reminder_hour, reminder_min, fast_days } = req.body;
+      const fastDaysJson = fast_days && fast_days.length > 0 ? JSON.stringify(fast_days) : null;
+      await db.query(
+        `INSERT INTO glp1_fasting_schedule (client_id, enabled, reminder_hour, reminder_min, fast_days, updated_at)
+         VALUES ($1,$2,$3,$4,$5,NOW())
+         ON CONFLICT (client_id) DO UPDATE SET
+           enabled=EXCLUDED.enabled, reminder_hour=EXCLUDED.reminder_hour,
+           reminder_min=EXCLUDED.reminder_min, fast_days=EXCLUDED.fast_days,
+           updated_at=NOW()`,
+        [clientId, enabled, reminder_hour, reminder_min, fastDaysJson]
+      );
+      const row = { enabled, reminder_hour, reminder_min, fast_days: fastDaysJson };
+      scheduleReminder(db, clientId, row);
+      res.json({ ok: true });
+    } catch (err) {
+      console.error('Fasting schedule put error:', err.message);
+      res.status(500).json({ error: 'Failed to save schedule' });
+    }
+  });
+
   return router;
 }
 
-module.exports = { runMigrations, makeRouter, rehydrateFastingTimers };
+module.exports = { runMigrations, makeRouter, rehydrateFastingTimers, rehydrateScheduleReminders };
