@@ -1,26 +1,165 @@
+'use strict';
+
+// Personal GLP-1 health log: weight, hydration, protein/food, and injections, plus a
+// small profile (height/target/goals). Ported from a self-hosted glp1-tracker
+// instance, keeping only the parts in daily use. Drug-level estimates, BMI, and
+// site rotation are all derived client-side from these rows (lib/glp1.ts), so the
+// API stores facts and does no math.
+//
+// Units: weight in pounds, hydration in fluid ounces, protein in grams, height in
+// inches, dose in mg.
+
+const VALID_SITES = [
+  'abdomen_ul', 'abdomen_um', 'abdomen_ur',
+  'abdomen_ml', 'abdomen_mr',
+  'abdomen_ll', 'abdomen_lm', 'abdomen_lr',
+  'flank_l', 'flank_r', 'arm_l', 'arm_r', 'thigh_l', 'thigh_r',
+];
+const VALID_MEDICATIONS = ['tirzepatide', 'semaglutide', 'liraglutide', 'retatrutide'];
+
+const SCHEMA_STATEMENTS = [
+  `CREATE TABLE IF NOT EXISTS glp1_profile (
+    client_id          INTEGER PRIMARY KEY REFERENCES client_users(id) ON DELETE CASCADE,
+    height_in          NUMERIC(5,2),
+    target_weight_lb   NUMERIC(6,2),
+    hydration_goal_oz  NUMERIC(6,1) NOT NULL DEFAULT 64,
+    protein_goal_g     NUMERIC(6,1),
+    updated_at         TIMESTAMP DEFAULT NOW()
+  )`,
+  `CREATE TABLE IF NOT EXISTS glp1_weight_entries (
+    id          SERIAL PRIMARY KEY,
+    client_id   INTEGER NOT NULL REFERENCES client_users(id) ON DELETE CASCADE,
+    measured_at TIMESTAMP NOT NULL,
+    weight_lb   NUMERIC(6,2) NOT NULL,
+    notes       TEXT,
+    created_at  TIMESTAMP DEFAULT NOW()
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_glp1_weight_client_at ON glp1_weight_entries(client_id, measured_at)`,
+  `CREATE TABLE IF NOT EXISTS glp1_hydration_entries (
+    id         SERIAL PRIMARY KEY,
+    client_id  INTEGER NOT NULL REFERENCES client_users(id) ON DELETE CASCADE,
+    logged_at  TIMESTAMP NOT NULL,
+    ounces     NUMERIC(6,1) NOT NULL,
+    notes      TEXT,
+    created_at TIMESTAMP DEFAULT NOW()
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_glp1_hydration_client_at ON glp1_hydration_entries(client_id, logged_at)`,
+  `CREATE TABLE IF NOT EXISTS glp1_protein_entries (
+    id         SERIAL PRIMARY KEY,
+    client_id  INTEGER NOT NULL REFERENCES client_users(id) ON DELETE CASCADE,
+    logged_at  TIMESTAMP NOT NULL,
+    grams      NUMERIC(6,1) NOT NULL,
+    notes      TEXT,
+    created_at TIMESTAMP DEFAULT NOW()
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_glp1_protein_client_at ON glp1_protein_entries(client_id, logged_at)`,
+  `CREATE TABLE IF NOT EXISTS glp1_injections (
+    id          SERIAL PRIMARY KEY,
+    client_id   INTEGER NOT NULL REFERENCES client_users(id) ON DELETE CASCADE,
+    injected_at TIMESTAMP NOT NULL,
+    medication  VARCHAR(20) NOT NULL,
+    dose_mg     NUMERIC(6,2) NOT NULL,
+    site        VARCHAR(20) NOT NULL,
+    notes       TEXT,
+    created_at  TIMESTAMP DEFAULT NOW()
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_glp1_injections_client_at ON glp1_injections(client_id, injected_at)`,
+  // Nutrition intake: a protein row is now a full food entry (macros per logged
+  // amount, already scaled by servings), and a hydration row can name the drink.
+  // Quick-add rows leave the new columns NULL.
+  `ALTER TABLE glp1_protein_entries ADD COLUMN IF NOT EXISTS food_name VARCHAR(120)`,
+  `ALTER TABLE glp1_protein_entries ADD COLUMN IF NOT EXISTS fat_g NUMERIC(6,1)`,
+  `ALTER TABLE glp1_protein_entries ADD COLUMN IF NOT EXISTS carbs_g NUMERIC(6,1)`,
+  `ALTER TABLE glp1_protein_entries ADD COLUMN IF NOT EXISTS calories NUMERIC(7,1)`,
+  `ALTER TABLE glp1_hydration_entries ADD COLUMN IF NOT EXISTS drink_name VARCHAR(120)`,
+  // Saved foods for the intake form's pick-from-list path. Macros are per serving.
+  `CREATE TABLE IF NOT EXISTS glp1_foods (
+    id         SERIAL PRIMARY KEY,
+    client_id  INTEGER NOT NULL REFERENCES client_users(id) ON DELETE CASCADE,
+    name       VARCHAR(120) NOT NULL,
+    serving    VARCHAR(60),
+    protein_g  NUMERIC(6,1) NOT NULL DEFAULT 0,
+    fat_g      NUMERIC(6,1) NOT NULL DEFAULT 0,
+    carbs_g    NUMERIC(6,1) NOT NULL DEFAULT 0,
+    calories   NUMERIC(7,1) NOT NULL DEFAULT 0,
+    created_at TIMESTAMP DEFAULT NOW()
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_glp1_foods_client_name ON glp1_foods(client_id, name)`,
+  // A saved item with a volume is a drink (protein shake): it shows in the hydration
+  // picker, not the food list. Its macros are per serving of that volume.
+  `ALTER TABLE glp1_foods ADD COLUMN IF NOT EXISTS volume_oz NUMERIC(6,1)`,
+  `ALTER TABLE glp1_profile ADD COLUMN IF NOT EXISTS countdown_target TIMESTAMP`,
+  `ALTER TABLE glp1_profile ADD COLUMN IF NOT EXISTS countdown_label VARCHAR(120)`,
+  `CREATE TABLE IF NOT EXISTS glp1_fasting_sessions (
+    id           SERIAL PRIMARY KEY,
+    client_id    INTEGER NOT NULL REFERENCES client_users(id) ON DELETE CASCADE,
+    method_id    VARCHAR(20) NOT NULL,
+    fast_hours   NUMERIC(4,1) NOT NULL,
+    started_at   TIMESTAMP NOT NULL,
+    notify_at    TIMESTAMP NOT NULL,
+    notified_at  TIMESTAMP,
+    ended_at     TIMESTAMP,
+    created_at   TIMESTAMP DEFAULT NOW()
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_glp1_fasting_client ON glp1_fasting_sessions(client_id, started_at)`,
+  `CREATE TABLE IF NOT EXISTS glp1_fasting_schedule (
+    client_id      INTEGER PRIMARY KEY REFERENCES client_users(id) ON DELETE CASCADE,
+    enabled        BOOLEAN NOT NULL DEFAULT false,
+    reminder_hour  SMALLINT NOT NULL DEFAULT 20,
+    reminder_min   SMALLINT NOT NULL DEFAULT 0,
+    fast_days      TEXT,
+    updated_at     TIMESTAMP DEFAULT NOW()
+  )`,
+  `CREATE TABLE IF NOT EXISTS glp1_fasting_plan (
+    id            SERIAL PRIMARY KEY,
+    client_id     INTEGER NOT NULL REFERENCES client_users(id) ON DELETE CASCADE,
+    plan_date     DATE NOT NULL,
+    method_id     VARCHAR(20) NOT NULL,
+    start_time    TIME NOT NULL,
+    alert_enabled BOOLEAN NOT NULL DEFAULT false,
+    created_at    TIMESTAMP DEFAULT NOW(),
+    UNIQUE(client_id, plan_date)
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_glp1_fasting_plan_client ON glp1_fasting_plan(client_id, plan_date)`,
+];
+
+async function runMigrations(db) {
+  for (const sql of SCHEMA_STATEMENTS) {
+    await db.query(sql);
+  }
+}
+
+async function getClientId(db, req) {
+  const username = req.session?.user?.username;
+  if (username) {
+    const result = await db.query('SELECT id FROM client_users WHERE username = $1 LIMIT 1', [username]);
+    if (result.rows.length > 0) return result.rows[0].id;
+  }
+  return 1;
+}
+
+// ── Pushover notifications ────────────────────────────────────────────────────
+
 const https = require('https');
-const qs    = require('querystring');
+const querystring = require('querystring');
 
-// ── Pushover ─────────────────────────────────────────────────────────────────
-
-function sendPushover(title, message) {
+async function sendPushover(title, message) {
+  const userKey = process.env.PUSHOVER_USER_KEY;
+  const apiToken = process.env.PUSHOVER_API_TOKEN;
+  if (!userKey || !apiToken) {
+    console.log('[Pushover] skipped — PUSHOVER_USER_KEY or PUSHOVER_API_TOKEN not set');
+    return;
+  }
+  const body = querystring.stringify({ token: apiToken, user: userKey, title, message });
   return new Promise((resolve, reject) => {
-    const body = qs.stringify({
-      token:   process.env.PUSHOVER_APP_TOKEN,
-      user:    process.env.PUSHOVER_USER_KEY,
-      title,
-      message,
-    });
     const req = https.request({
       hostname: 'api.pushover.net',
-      port:     443,
-      path:     '/1/messages.json',
-      method:   'POST',
-      headers:  { 'Content-Type': 'application/x-www-form-urlencoded', 'Content-Length': Buffer.byteLength(body) },
+      path: '/1/messages.json',
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Content-Length': Buffer.byteLength(body) },
     }, res => {
-      let data = '';
-      res.on('data', c => (data += c));
-      res.on('end', () => (res.statusCode < 300 ? resolve(data) : reject(new Error(`Pushover ${res.statusCode}: ${data}`))));
+      res.resume();
+      resolve(res.statusCode);
     });
     req.on('error', reject);
     req.write(body);
@@ -28,119 +167,115 @@ function sendPushover(title, message) {
   });
 }
 
-// ── Fasting timers ────────────────────────────────────────────────────────────
+// ── Fasting timer scheduler ───────────────────────────────────────────────────
 
-const fastingTimers = new Map();
+const fastingTimers = new Map(); // key: `${clientId}-${sessionId}`
 
-function scheduleFastingTimer(db, sessionId, clientId, notifyAt, methodId) {
-  const key    = `${clientId}-${sessionId}`;
+async function fireFastingNotification(db, sessionId, clientId, methodName) {
+  const key = `${clientId}-${sessionId}`;
+  fastingTimers.delete(key);
+  try {
+    const r = await db.query(
+      'SELECT id FROM glp1_fasting_sessions WHERE id=$1 AND client_id=$2 AND ended_at IS NULL AND notified_at IS NULL',
+      [sessionId, clientId]
+    );
+    if (!r.rows.length) return;
+    await sendPushover('Fasting Complete 🎉', `Your ${methodName} fast is done! Time to break your fast.`);
+    await db.query('UPDATE glp1_fasting_sessions SET notified_at=NOW() WHERE id=$1', [sessionId]);
+  } catch (err) {
+    console.error('[Fasting] notification error:', err.message);
+  }
+}
+
+function scheduleFastingTimer(db, sessionId, clientId, notifyAt, methodName) {
+  const key = `${clientId}-${sessionId}`;
   const existing = fastingTimers.get(key);
   if (existing) clearTimeout(existing);
-
   const delay = new Date(notifyAt).getTime() - Date.now();
-  if (delay <= 0) return;
-
-  const handle = setTimeout(async () => {
-    fastingTimers.delete(key);
-    try {
-      const name = methodId.replace('_', '/');
-      await sendPushover('⏰ Fast Complete', `You've completed your ${name} fast!`);
-    } catch (err) {
-      console.error('[Fasting timer] Pushover error:', err.message);
-    }
-  }, delay);
-
+  if (delay <= 0) {
+    fireFastingNotification(db, sessionId, clientId, methodName);
+    return;
+  }
+  const handle = setTimeout(() => fireFastingNotification(db, sessionId, clientId, methodName), delay);
   fastingTimers.set(key, handle);
 }
 
 async function rehydrateFastingTimers(db) {
   try {
     const r = await db.query(
-      `SELECT id, client_id, method_id, notify_at
-       FROM glp1_fasting_sessions
-       WHERE ended_at IS NULL AND notify_at > NOW()`
+      `SELECT fs.id, fs.client_id, fs.method_id, fs.notify_at
+       FROM glp1_fasting_sessions fs
+       WHERE fs.ended_at IS NULL AND fs.notified_at IS NULL`
     );
     for (const row of r.rows) {
       scheduleFastingTimer(db, row.id, row.client_id, row.notify_at, row.method_id);
     }
-    if (r.rows.length > 0) console.log(`[Fasting] rehydrated ${r.rows.length} timer(s)`);
+    if (r.rows.length > 0) console.log(`[Fasting] rehydrated ${r.rows.length} pending timer(s)`);
   } catch (err) {
     console.error('[Fasting] rehydrate error:', err.message);
   }
 }
 
-// ── Schedule reminders ────────────────────────────────────────────────────────
+// ── Schedule / reminder timers ────────────────────────────────────────────────
 
-const scheduleReminders = new Map();
+const scheduleTimers = new Map(); // key: clientId
 
-function scheduleNextReminder(clientId, reminderHour, reminderMin, fastDays) {
-  const key = `schedule-${clientId}`;
-  const existing = scheduleReminders.get(key);
-  if (existing) clearTimeout(existing);
-
-  function getNextFireMs() {
-    const now  = new Date();
-    const next = new Date();
-    next.setHours(reminderHour, reminderMin, 0, 0);
-    if (next <= now) next.setDate(next.getDate() + 1);
-
-    if (!fastDays || fastDays.length === 0) return next.getTime() - now.getTime();
-
-    // Find the next matching day of week
-    for (let i = 0; i < 7; i++) {
-      if (fastDays.includes(next.getDay())) break;
-      next.setDate(next.getDate() + 1);
-    }
-    return next.getTime() - now.getTime();
+function getNextReminderDelay(hour, min, fastDaysJson) {
+  const now = new Date();
+  const days = fastDaysJson ? JSON.parse(fastDaysJson) : null; // null = every day
+  for (let offset = 0; offset <= 7; offset++) {
+    const candidate = new Date(now);
+    candidate.setDate(candidate.getDate() + offset);
+    candidate.setHours(hour, min, 0, 0);
+    if (candidate.getTime() <= now.getTime()) continue;
+    if (days && days.length > 0 && !days.includes(candidate.getDay())) continue;
+    return candidate.getTime() - now.getTime();
   }
+  return null;
+}
 
-  const delay = getNextFireMs();
-
+function scheduleReminder(db, clientId, row) {
+  const existing = scheduleTimers.get(clientId);
+  if (existing) clearTimeout(existing);
+  if (!row.enabled) return;
+  const delay = getNextReminderDelay(row.reminder_hour, row.reminder_min, row.fast_days);
+  if (!delay) return;
   const handle = setTimeout(async () => {
-    scheduleReminders.delete(key);
+    scheduleTimers.delete(clientId);
     try {
-      await sendPushover('🕐 Fasting Reminder', 'Time to start your scheduled fast!');
+      await sendPushover('⏰ Time to Fast', "Your fasting window is starting — start your fast when you're ready!");
+      const r = await db.query('SELECT * FROM glp1_fasting_schedule WHERE client_id=$1', [clientId]);
+      if (r.rows.length && r.rows[0].enabled) scheduleReminder(db, clientId, r.rows[0]);
     } catch (err) {
-      console.error('[Schedule reminder] Pushover error:', err.message);
+      console.error('[Schedule] reminder error:', err.message);
     }
-    // Reschedule for next occurrence
-    scheduleNextReminder(clientId, reminderHour, reminderMin, fastDays);
   }, delay);
-
-  scheduleReminders.set(key, handle);
+  scheduleTimers.set(clientId, handle);
 }
 
 async function rehydrateScheduleReminders(db) {
   try {
-    const r = await db.query(
-      `SELECT client_id, reminder_hour, reminder_min, fast_days
-       FROM glp1_fasting_schedule
-       WHERE enabled = true`
-    );
-    for (const row of r.rows) {
-      scheduleNextReminder(row.client_id, row.reminder_hour, row.reminder_min, row.fast_days);
-    }
+    const r = await db.query('SELECT * FROM glp1_fasting_schedule WHERE enabled=true');
+    for (const row of r.rows) scheduleReminder(db, row.client_id, row);
     if (r.rows.length > 0) console.log(`[Fasting] rehydrated ${r.rows.length} schedule reminder(s)`);
   } catch (err) {
     console.error('[Fasting] schedule rehydrate error:', err.message);
   }
 }
 
-// ── Plan alerts ───────────────────────────────────────────────────────────────
+// ── Per-day plan alert timers ─────────────────────────────────────────────────
 
-const planTimers = new Map();
+const planTimers = new Map(); // key: `plan-${clientId}-${planDate}`
 
 function schedulePlanAlert(clientId, planDate, startTime, methodId) {
   const key = `plan-${clientId}-${planDate}`;
   const existing = planTimers.get(key);
   if (existing) clearTimeout(existing);
-
   const [year, month, day] = planDate.split('-').map(Number);
-  const [hour, min]        = startTime.split(':').map(Number);
-  const fireAt  = new Date(year, month - 1, day, hour, min, 0, 0);
-  const delay   = fireAt.getTime() - Date.now();
+  const [hour, min] = startTime.split(':').map(Number);
+  const fireAt = new Date(year, month - 1, day, hour, min, 0, 0);
+  const delay = fireAt.getTime() - Date.now();
   if (delay <= 0) return;
-
   const handle = setTimeout(async () => {
     planTimers.delete(key);
     try {
@@ -150,7 +285,6 @@ function schedulePlanAlert(clientId, planDate, startTime, methodId) {
       console.error('[Plan alert] error:', err.message);
     }
   }, delay);
-
   planTimers.set(key, handle);
 }
 
@@ -179,37 +313,59 @@ const isDate = v => typeof v === 'string' && !Number.isNaN(Date.parse(v));
 const isNum = (v, min, max) => typeof v === 'number' && Number.isFinite(v) && v >= min && v <= max;
 const optNum = (v, min, max) => v === null || v === undefined || isNum(v, min, max);
 
+function validateProfile(b) {
+  if (!b || typeof b !== 'object') return 'body required';
+  if (!optNum(b.height_in, 24, 108)) return 'height_in must be between 24 and 108';
+  if (!optNum(b.target_weight_lb, 50, 800)) return 'target_weight_lb must be between 50 and 800';
+  if (!isNum(b.hydration_goal_oz, 1, 500)) return 'hydration_goal_oz must be between 1 and 500';
+  if (!optNum(b.protein_goal_g, 1, 1000)) return 'protein_goal_g must be between 1 and 1000';
+  if (b.countdown_target !== null && b.countdown_target !== undefined && !isDate(b.countdown_target)) return 'countdown_target must be a valid date/time or null';
+  if (!optText(b.countdown_label, 120)) return 'countdown_label must be 120 characters or fewer';
+  return null;
+}
+
 function validateWeight(b) {
-  if (!b || typeof b !== 'object') return 'body required';
-  if (!isDate(b.recorded_at))      return 'recorded_at must be a valid date string';
-  if (!isNum(b.weight_lbs, 50, 999)) return 'weight_lbs must be a number between 50 and 999';
-  if (!optNum(b.body_fat_pct, 1, 70)) return 'body_fat_pct must be a number between 1 and 70';
-  if (!optNum(b.muscle_mass_lbs, 20, 500)) return 'muscle_mass_lbs must be a number between 20 and 500';
-  if (!optNum(b.bmi, 10, 60))      return 'bmi must be a number between 10 and 60';
+  if (!isNum(b?.weight_lb, 50, 800)) return 'weight_lb must be between 50 and 800';
+  if (!isDate(b.measured_at)) return 'measured_at must be a valid date/time';
   return null;
 }
 
-function validateDose(b) {
-  if (!b || typeof b !== 'object') return 'body required';
-  const validMeds = ['semaglutide', 'tirzepatide', 'liraglutide', 'dulaglutide', 'exenatide', 'other'];
-  if (!validMeds.includes(b.medication)) return `medication must be one of: ${validMeds.join(', ')}`;
-  const validSites = ['abdomen', 'thigh', 'upper_arm', 'other'];
-  if (!validSites.includes(b.injection_site)) return `injection_site must be one of: ${validSites.join(', ')}`;
-  if (!isDate(b.administered_at))  return 'administered_at must be a valid date string';
-  if (!isNum(b.dose_mg, 0.1, 100)) return 'dose_mg must be a number between 0.1 and 100';
-  if (b.notes !== undefined && b.notes !== null && typeof b.notes !== 'string') return 'notes must be a string';
+const optText = (v, max) => v === null || v === undefined || (typeof v === 'string' && v.length <= max);
+
+function validateHydration(b) {
+  if (!isNum(b?.ounces, 0.1, 500)) return 'ounces must be between 0.1 and 500';
+  if (!isDate(b.logged_at)) return 'logged_at must be a valid date/time';
+  if (!optText(b.drink_name, 120)) return 'drink_name must be 120 characters or fewer';
   return null;
 }
 
-function validateMood(b) {
-  if (!b || typeof b !== 'object') return 'body required';
-  if (!isDate(b.recorded_at))      return 'recorded_at must be a valid date string';
-  if (!isNum(b.mood_score, 1, 10)) return 'mood_score must be a number between 1 and 10';
-  if (!optNum(b.energy_level, 1, 10)) return 'energy_level must be a number between 1 and 10';
-  if (!optNum(b.hunger_level, 1, 10)) return 'hunger_level must be a number between 1 and 10';
-  if (!optNum(b.nausea_level, 1, 10)) return 'nausea_level must be a number between 1 and 10';
-  if (!optNum(b.sleep_hours, 0, 24))  return 'sleep_hours must be a number between 0 and 24';
-  if (b.notes !== undefined && b.notes !== null && typeof b.notes !== 'string') return 'notes must be a string';
+// grams may be 0 now: a food with no protein (an apple) is still a food entry.
+function validateProtein(b) {
+  if (!isNum(b?.grams, 0, 1000)) return 'grams must be between 0 and 1000';
+  if (!isDate(b.logged_at)) return 'logged_at must be a valid date/time';
+  if (!optNum(b.fat_g, 0, 1000)) return 'fat_g must be between 0 and 1000';
+  if (!optNum(b.carbs_g, 0, 1000)) return 'carbs_g must be between 0 and 1000';
+  if (!optNum(b.calories, 0, 10000)) return 'calories must be between 0 and 10000';
+  if (!optText(b.food_name, 120)) return 'food_name must be 120 characters or fewer';
+  return null;
+}
+
+function validateFood(b) {
+  if (typeof b?.name !== 'string' || !b.name.trim() || b.name.length > 120) return 'name is required (120 characters or fewer)';
+  if (!optText(b.serving, 60)) return 'serving must be 60 characters or fewer';
+  if (!isNum(b.protein_g, 0, 1000)) return 'protein_g must be between 0 and 1000';
+  if (!isNum(b.fat_g, 0, 1000)) return 'fat_g must be between 0 and 1000';
+  if (!isNum(b.carbs_g, 0, 1000)) return 'carbs_g must be between 0 and 1000';
+  if (!isNum(b.calories, 0, 10000)) return 'calories must be between 0 and 10000';
+  if (!optNum(b.volume_oz, 0.1, 500)) return 'volume_oz must be between 0.1 and 500';
+  return null;
+}
+
+function validateInjection(b) {
+  if (!VALID_MEDICATIONS.includes(b?.medication)) return `medication must be one of ${VALID_MEDICATIONS.join(', ')}`;
+  if (!isNum(b.dose_mg, 0.01, 100)) return 'dose_mg must be between 0.01 and 100';
+  if (!VALID_SITES.includes(b.site)) return `site must be one of ${VALID_SITES.join(', ')}`;
+  if (!isDate(b.injected_at)) return 'injected_at must be a valid date/time';
   return null;
 }
 
@@ -223,255 +379,282 @@ function validatePlan(b) {
   return null;
 }
 
-// ── Schema migrations ─────────────────────────────────────────────────────────
-
-const SCHEMA_STATEMENTS = [
-  `CREATE TABLE IF NOT EXISTS glp1_weight_logs (
-    id            SERIAL PRIMARY KEY,
-    client_id     INTEGER NOT NULL REFERENCES client_users(id) ON DELETE CASCADE,
-    recorded_at   TIMESTAMP NOT NULL,
-    weight_lbs    NUMERIC(6,2) NOT NULL,
-    body_fat_pct  NUMERIC(5,2),
-    muscle_mass_lbs NUMERIC(6,2),
-    bmi           NUMERIC(5,2),
-    notes         TEXT,
-    created_at    TIMESTAMP DEFAULT NOW()
-  )`,
-  `CREATE INDEX IF NOT EXISTS idx_glp1_weight_client ON glp1_weight_logs(client_id, recorded_at DESC)`,
-
-  `CREATE TABLE IF NOT EXISTS glp1_dose_logs (
-    id              SERIAL PRIMARY KEY,
-    client_id       INTEGER NOT NULL REFERENCES client_users(id) ON DELETE CASCADE,
-    medication      VARCHAR(50) NOT NULL,
-    dose_mg         NUMERIC(6,3) NOT NULL,
-    injection_site  VARCHAR(30) NOT NULL,
-    administered_at TIMESTAMP NOT NULL,
-    notes           TEXT,
-    created_at      TIMESTAMP DEFAULT NOW()
-  )`,
-  `CREATE INDEX IF NOT EXISTS idx_glp1_dose_client ON glp1_dose_logs(client_id, administered_at DESC)`,
-
-  `CREATE TABLE IF NOT EXISTS glp1_mood_logs (
-    id            SERIAL PRIMARY KEY,
-    client_id     INTEGER NOT NULL REFERENCES client_users(id) ON DELETE CASCADE,
-    recorded_at   TIMESTAMP NOT NULL,
-    mood_score    SMALLINT NOT NULL CHECK (mood_score BETWEEN 1 AND 10),
-    energy_level  SMALLINT CHECK (energy_level BETWEEN 1 AND 10),
-    hunger_level  SMALLINT CHECK (hunger_level BETWEEN 1 AND 10),
-    nausea_level  SMALLINT CHECK (nausea_level BETWEEN 1 AND 10),
-    sleep_hours   NUMERIC(4,1),
-    notes         TEXT,
-    created_at    TIMESTAMP DEFAULT NOW()
-  )`,
-  `CREATE INDEX IF NOT EXISTS idx_glp1_mood_client ON glp1_mood_logs(client_id, recorded_at DESC)`,
-
-  `CREATE TABLE IF NOT EXISTS glp1_fasting_sessions (
-    id          SERIAL PRIMARY KEY,
-    client_id   INTEGER NOT NULL REFERENCES client_users(id) ON DELETE CASCADE,
-    method_id   VARCHAR(20) NOT NULL,
-    fast_hours  INTEGER NOT NULL,
-    started_at  TIMESTAMP NOT NULL DEFAULT NOW(),
-    ended_at    TIMESTAMP,
-    notify_at   TIMESTAMP,
-    created_at  TIMESTAMP DEFAULT NOW()
-  )`,
-  `CREATE INDEX IF NOT EXISTS idx_glp1_fasting_client ON glp1_fasting_sessions(client_id, started_at DESC)`,
-
-  `CREATE TABLE IF NOT EXISTS glp1_fasting_schedule (
-    id             SERIAL PRIMARY KEY,
-    client_id      INTEGER NOT NULL REFERENCES client_users(id) ON DELETE CASCADE UNIQUE,
-    enabled        BOOLEAN NOT NULL DEFAULT false,
-    reminder_hour  SMALLINT NOT NULL DEFAULT 20 CHECK (reminder_hour BETWEEN 0 AND 23),
-    reminder_min   SMALLINT NOT NULL DEFAULT 0  CHECK (reminder_min  BETWEEN 0 AND 59),
-    fast_days      INTEGER[],
-    updated_at     TIMESTAMP DEFAULT NOW()
-  )`,
-
-  `CREATE TABLE IF NOT EXISTS glp1_fasting_plan (
-    id            SERIAL PRIMARY KEY,
-    client_id     INTEGER NOT NULL REFERENCES client_users(id) ON DELETE CASCADE,
-    plan_date     DATE NOT NULL,
-    method_id     VARCHAR(20) NOT NULL,
-    start_time    TIME NOT NULL,
-    alert_enabled BOOLEAN NOT NULL DEFAULT false,
-    created_at    TIMESTAMP DEFAULT NOW(),
-    UNIQUE(client_id, plan_date)
-  )`,
-  `CREATE INDEX IF NOT EXISTS idx_glp1_fasting_plan_client ON glp1_fasting_plan(client_id, plan_date)`,
-];
-
-async function runMigrations(db) {
-  for (const sql of SCHEMA_STATEMENTS) {
-    await db.query(sql);
+function validateSchedule(b) {
+  if (!b || typeof b !== 'object') return 'body required';
+  if (typeof b.enabled !== 'boolean') return 'enabled must be a boolean';
+  if (!isNum(b.reminder_hour, 0, 23)) return 'reminder_hour must be 0–23';
+  if (!isNum(b.reminder_min, 0, 59)) return 'reminder_min must be 0–59';
+  if (b.fast_days !== null && b.fast_days !== undefined) {
+    if (!Array.isArray(b.fast_days) || !b.fast_days.every(d => isNum(d, 0, 6))) return 'fast_days must be an array of 0–6';
   }
+  return null;
 }
 
-// ── Auth helper ───────────────────────────────────────────────────────────────
-
-async function getClientId(db, req) {
-  const username = req.session?.user?.username;
-  if (!username) throw new Error('Not authenticated');
-  const r = await db.query('SELECT id FROM client_users WHERE username=$1', [username]);
-  if (!r.rows.length) throw new Error('User not found');
-  return r.rows[0].id;
-}
-
-// ── Router factory ────────────────────────────────────────────────────────────
+// ── Router ───────────────────────────────────────────────────────────────────
 
 function makeRouter(db) {
-  const express = require('express');
-  const router  = express.Router();
+  const router = require('express').Router();
 
   function auth(req, res, next) {
     if (!req.session?.user) return res.status(401).json({ error: 'Unauthorized' });
     next();
   }
 
-  // ── Weight ────────────────────────────────────────────────────────────────
+  // Generic list/create/update/delete for the four itemised logs. `cols` maps the
+  // body field names to columns; `at` is the timestamp column, which also sorts.
+  function crud(path, table, at, cols, validate) {
+    const colNames = [at, ...cols];
 
-  router.get('/weight', auth, async (req, res) => {
+    router.get(path, auth, async (req, res) => {
+      try {
+        const clientId = await getClientId(db, req);
+        const result = await db.query(
+          `SELECT * FROM ${table} WHERE client_id = $1 ORDER BY ${at} DESC, id DESC`,
+          [clientId]
+        );
+        res.json({ entries: result.rows });
+      } catch (err) {
+        console.error(`GLP-1 ${path} fetch error:`, err.message);
+        res.status(500).json({ error: 'Failed to fetch entries' });
+      }
+    });
+
+    router.post(path, auth, async (req, res) => {
+      const bad = validate(req.body);
+      if (bad) return res.status(400).json({ error: bad });
+      try {
+        const clientId = await getClientId(db, req);
+        const values = colNames.map(c => req.body[c] ?? null);
+        const placeholders = colNames.map((_, i) => `$${i + 2}`).join(', ');
+        const result = await db.query(
+          `INSERT INTO ${table} (client_id, ${colNames.join(', ')}) VALUES ($1, ${placeholders}) RETURNING *`,
+          [clientId, ...values]
+        );
+        res.status(201).json(result.rows[0]);
+      } catch (err) {
+        console.error(`GLP-1 ${path} create error:`, err.message);
+        res.status(500).json({ error: 'Failed to add entry' });
+      }
+    });
+
+    router.put(`${path}/:id`, auth, async (req, res) => {
+      const bad = validate(req.body);
+      if (bad) return res.status(400).json({ error: bad });
+      try {
+        const clientId = await getClientId(db, req);
+        const sets = colNames.map((c, i) => `${c} = $${i + 1}`).join(', ');
+        const values = colNames.map(c => req.body[c] ?? null);
+        const result = await db.query(
+          `UPDATE ${table} SET ${sets}
+           WHERE id = $${colNames.length + 1} AND client_id = $${colNames.length + 2} RETURNING *`,
+          [...values, req.params.id, clientId]
+        );
+        if (result.rows.length === 0) return res.status(404).json({ error: 'Entry not found' });
+        res.json(result.rows[0]);
+      } catch (err) {
+        console.error(`GLP-1 ${path} update error:`, err.message);
+        res.status(500).json({ error: 'Failed to update entry' });
+      }
+    });
+
+    router.delete(`${path}/:id`, auth, async (req, res) => {
+      try {
+        const clientId = await getClientId(db, req);
+        const result = await db.query(
+          `DELETE FROM ${table} WHERE id = $1 AND client_id = $2 RETURNING id`,
+          [req.params.id, clientId]
+        );
+        if (result.rows.length === 0) return res.status(404).json({ error: 'Entry not found' });
+        res.json({ success: true });
+      } catch (err) {
+        console.error(`GLP-1 ${path} delete error:`, err.message);
+        res.status(500).json({ error: 'Failed to delete entry' });
+      }
+    });
+  }
+
+  crud('/weight', 'glp1_weight_entries', 'measured_at', ['weight_lb', 'notes'], validateWeight);
+  crud('/hydration', 'glp1_hydration_entries', 'logged_at', ['ounces', 'drink_name', 'notes'], validateHydration);
+  crud('/protein', 'glp1_protein_entries', 'logged_at', ['grams', 'fat_g', 'carbs_g', 'calories', 'food_name', 'notes'], validateProtein);
+  // The foods list sorts client-side (alphabetical, case-insensitive); `name` here is
+  // only the crud helper's sort column.
+  crud('/foods', 'glp1_foods', 'name', ['serving', 'volume_oz', 'protein_g', 'fat_g', 'carbs_g', 'calories'], validateFood);
+  crud('/injections', 'glp1_injections', 'injected_at', ['medication', 'dose_mg', 'site', 'notes'], validateInjection);
+
+  // POST /intake — the nutrition form's single Submit. Body: { logged_at, items: [...] }
+  // where an item is { kind: 'hydration', ounces, drink_name } or
+  // { kind: 'food', name, grams, fat_g, carbs_g, calories, food_name, save_food?: {serving, protein_g, fat_g, carbs_g, calories} }.
+  // A hydration item may also carry macros (a protein shake): { ..., macros: {grams, fat_g, carbs_g, calories},
+  // save_drink?: {name, volume_oz, protein_g, fat_g, carbs_g, calories} }. Its ounces go to hydration and its macros
+  // to the protein/food log as a second row, so both goals count it.
+  // Everything is validated first and written in one transaction, so a submit either
+  // lands in full or not at all.
+  router.post('/intake', auth, async (req, res) => {
+    const { logged_at, items } = req.body ?? {};
+    if (!isDate(logged_at)) return res.status(400).json({ error: 'logged_at must be a valid date/time' });
+    if (!Array.isArray(items) || items.length === 0 || items.length > 50) return res.status(400).json({ error: 'items must be a list of 1-50 entries' });
+    for (const [i, it] of items.entries()) {
+      let bad;
+      if (it?.kind === 'hydration') {
+        bad = validateHydration({ ...it, logged_at });
+        if (!bad && it.macros) bad = validateProtein({ ...it.macros, food_name: it.drink_name, logged_at });
+        if (!bad && it.save_drink) {
+          if (!it.macros) bad = 'save_drink needs macros';
+          else bad = validateFood({ ...it.save_drink, name: it.save_drink.name ?? it.drink_name });
+        }
+      }
+      else if (it?.kind === 'food') {
+        bad = validateProtein({ ...it, logged_at });
+        if (!bad && it.save_food) bad = validateFood({ ...it.save_food, name: it.name });
+      } else bad = 'kind must be hydration or food';
+      if (bad) return res.status(400).json({ error: `Item ${i + 1}: ${bad}` });
+    }
+    const client = await db.connect();
     try {
-      const clientId = await getClientId(db, req);
-      const { rows } = await db.query(
-        'SELECT * FROM glp1_weight_logs WHERE client_id=$1 ORDER BY recorded_at DESC LIMIT 90',
-        [clientId]
-      );
-      res.json({ logs: rows });
+      const clientId = await getClientId(client, req);
+      await client.query('BEGIN');
+      for (const it of items) {
+        if (it.kind === 'hydration') {
+          await client.query(
+            `INSERT INTO glp1_hydration_entries (client_id, logged_at, ounces, drink_name) VALUES ($1, $2, $3, $4)`,
+            [clientId, logged_at, it.ounces, it.drink_name ?? null]
+          );
+          if (it.save_drink) {
+            const f = it.save_drink;
+            await client.query(
+              `INSERT INTO glp1_foods (client_id, name, volume_oz, protein_g, fat_g, carbs_g, calories)
+               SELECT $1, $2, $3, $4, $5, $6, $7
+               WHERE NOT EXISTS (SELECT 1 FROM glp1_foods WHERE client_id = $1 AND lower(name) = lower($2::varchar))`,
+              [clientId, f.name ?? it.drink_name, f.volume_oz, f.protein_g, f.fat_g, f.carbs_g, f.calories]
+            );
+          }
+          if (it.macros) {
+            const m = it.macros;
+            await client.query(
+              `INSERT INTO glp1_protein_entries (client_id, logged_at, grams, fat_g, carbs_g, calories, food_name) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+              [clientId, logged_at, m.grams, m.fat_g ?? null, m.carbs_g ?? null, m.calories ?? null, it.drink_name ?? null]
+            );
+          }
+          continue;
+        }
+        if (it.save_food) {
+          const f = it.save_food;
+          await client.query(
+            `INSERT INTO glp1_foods (client_id, name, serving, protein_g, fat_g, carbs_g, calories)
+             SELECT $1, $2, $3, $4, $5, $6, $7
+             WHERE NOT EXISTS (SELECT 1 FROM glp1_foods WHERE client_id = $1 AND lower(name) = lower($2::varchar))`,
+            [clientId, it.name, f.serving ?? null, f.protein_g, f.fat_g, f.carbs_g, f.calories]
+          );
+        }
+        await client.query(
+          `INSERT INTO glp1_protein_entries (client_id, logged_at, grams, fat_g, carbs_g, calories, food_name) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+          [clientId, logged_at, it.grams, it.fat_g ?? null, it.carbs_g ?? null, it.calories ?? null, it.food_name ?? null]
+        );
+      }
+      await client.query('COMMIT');
+      res.status(201).json({ saved: items.length });
     } catch (err) {
-      console.error('Weight GET error:', err.message);
-      res.status(500).json({ error: 'Failed to fetch weight logs' });
+      await client.query('ROLLBACK').catch(() => {});
+      console.error('GLP-1 intake error:', err.message);
+      res.status(500).json({ error: 'Failed to save intake' });
+    } finally {
+      client.release();
     }
   });
 
-  router.post('/weight', auth, async (req, res) => {
-    const err = validateWeight(req.body);
-    if (err) return res.status(400).json({ error: err });
+  // GET /profile — always returns a row shape, even before anything is saved
+  router.get('/profile', auth, async (req, res) => {
     try {
       const clientId = await getClientId(db, req);
-      const { recorded_at, weight_lbs, body_fat_pct, muscle_mass_lbs, bmi, notes } = req.body;
-      const { rows } = await db.query(
-        `INSERT INTO glp1_weight_logs (client_id, recorded_at, weight_lbs, body_fat_pct, muscle_mass_lbs, bmi, notes)
-         VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
-        [clientId, recorded_at, weight_lbs, body_fat_pct ?? null, muscle_mass_lbs ?? null, bmi ?? null, notes ?? null]
-      );
-      res.status(201).json({ log: rows[0] });
+      const result = await db.query(`SELECT * FROM glp1_profile WHERE client_id = $1`, [clientId]);
+      res.json(result.rows[0] ?? {
+        client_id: clientId, height_in: null, target_weight_lb: null, hydration_goal_oz: 64, protein_goal_g: null, countdown_target: null, countdown_label: null,
+      });
     } catch (err) {
-      console.error('Weight POST error:', err.message);
-      res.status(500).json({ error: 'Failed to save weight log' });
+      console.error('GLP-1 profile fetch error:', err.message);
+      res.status(500).json({ error: 'Failed to fetch profile' });
     }
   });
 
-  router.delete('/weight/:id', auth, async (req, res) => {
+  // PUT /profile — body: { height_in, target_weight_lb, hydration_goal_oz, protein_goal_g }
+  router.put('/profile', auth, async (req, res) => {
+    const bad = validateProfile(req.body);
+    if (bad) return res.status(400).json({ error: bad });
     try {
       const clientId = await getClientId(db, req);
-      const { rowCount } = await db.query(
-        'DELETE FROM glp1_weight_logs WHERE id=$1 AND client_id=$2',
-        [req.params.id, clientId]
+      const { height_in, target_weight_lb, hydration_goal_oz, protein_goal_g, countdown_target, countdown_label } = req.body;
+      const result = await db.query(
+        `INSERT INTO glp1_profile (client_id, height_in, target_weight_lb, hydration_goal_oz, protein_goal_g, countdown_target, countdown_label)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)
+         ON CONFLICT (client_id) DO UPDATE SET
+           height_in = EXCLUDED.height_in,
+           target_weight_lb = EXCLUDED.target_weight_lb,
+           hydration_goal_oz = EXCLUDED.hydration_goal_oz,
+           protein_goal_g = EXCLUDED.protein_goal_g,
+           countdown_target = EXCLUDED.countdown_target,
+           countdown_label = EXCLUDED.countdown_label,
+           updated_at = NOW()
+         RETURNING *`,
+        [clientId, height_in ?? null, target_weight_lb ?? null, hydration_goal_oz, protein_goal_g ?? null, countdown_target ?? null, countdown_label ?? null]
       );
-      if (!rowCount) return res.status(404).json({ error: 'Not found' });
-      res.json({ success: true });
+      res.json(result.rows[0]);
     } catch (err) {
-      res.status(500).json({ error: 'Failed to delete weight log' });
+      console.error('GLP-1 profile save error:', err.message);
+      res.status(500).json({ error: 'Failed to save profile' });
     }
   });
 
-  // ── Doses ─────────────────────────────────────────────────────────────────
-
-  router.get('/doses', auth, async (req, res) => {
+  // GET /usda-search?q=<term> — proxy to USDA FoodData Central; keeps the API key server-side.
+  // Returns { results: [{ fdcId, description, serving, protein, fat, carbs, calories }] }
+  router.get('/usda-search', auth, async (req, res) => {
+    const q = (req.query.q ?? '').trim();
+    if (!q || q.length > 200) return res.status(400).json({ error: 'q is required (200 chars max)' });
+    const apiKey = process.env.USDA_API_KEY;
+    if (!apiKey) return res.status(503).json({ error: 'USDA lookup is not configured on this server.' });
     try {
-      const clientId = await getClientId(db, req);
-      const { rows } = await db.query(
-        'SELECT * FROM glp1_dose_logs WHERE client_id=$1 ORDER BY administered_at DESC LIMIT 50',
-        [clientId]
-      );
-      res.json({ logs: rows });
+      const url = `https://api.nal.usda.gov/fdc/v1/foods/search?query=${encodeURIComponent(q)}&pageSize=10&dataType=SR%20Legacy,Survey%20(FNDDS),Foundation&api_key=${apiKey}`;
+      const upstream = await fetch(url, { signal: AbortSignal.timeout(8000) });
+      if (!upstream.ok) return res.status(502).json({ error: 'USDA API returned an error.' });
+      const data = await upstream.json();
+      const PROTEIN = 1003, FAT = 1004, CARBS = 1005, ENERGY = 1008;
+      const getNutrient = (nutrients, id) => {
+        const n = nutrients?.find(n => n.nutrientId === id);
+        return n ? Math.round(n.value * 10) / 10 : 0;
+      };
+      const results = (data.foods ?? []).map(f => ({
+        fdcId: f.fdcId,
+        description: f.description,
+        serving: f.servingSize ? `${f.servingSize}${f.servingSizeUnit ?? 'g'}` : null,
+        protein: getNutrient(f.foodNutrients, PROTEIN),
+        fat: getNutrient(f.foodNutrients, FAT),
+        carbs: getNutrient(f.foodNutrients, CARBS),
+        calories: getNutrient(f.foodNutrients, ENERGY),
+      }));
+      res.json({ results });
     } catch (err) {
-      console.error('Dose GET error:', err.message);
-      res.status(500).json({ error: 'Failed to fetch dose logs' });
-    }
-  });
-
-  router.post('/doses', auth, async (req, res) => {
-    const err = validateDose(req.body);
-    if (err) return res.status(400).json({ error: err });
-    try {
-      const clientId = await getClientId(db, req);
-      const { medication, dose_mg, injection_site, administered_at, notes } = req.body;
-      const { rows } = await db.query(
-        `INSERT INTO glp1_dose_logs (client_id, medication, dose_mg, injection_site, administered_at, notes)
-         VALUES ($1,$2,$3,$4,$5,$6) RETURNING *`,
-        [clientId, medication, dose_mg, injection_site, administered_at, notes ?? null]
-      );
-      res.status(201).json({ log: rows[0] });
-    } catch (err) {
-      console.error('Dose POST error:', err.message);
-      res.status(500).json({ error: 'Failed to save dose log' });
-    }
-  });
-
-  router.delete('/doses/:id', auth, async (req, res) => {
-    try {
-      const clientId = await getClientId(db, req);
-      const { rowCount } = await db.query(
-        'DELETE FROM glp1_dose_logs WHERE id=$1 AND client_id=$2',
-        [req.params.id, clientId]
-      );
-      if (!rowCount) return res.status(404).json({ error: 'Not found' });
-      res.json({ success: true });
-    } catch (err) {
-      res.status(500).json({ error: 'Failed to delete dose log' });
-    }
-  });
-
-  // ── Mood ──────────────────────────────────────────────────────────────────
-
-  router.get('/mood', auth, async (req, res) => {
-    try {
-      const clientId = await getClientId(db, req);
-      const { rows } = await db.query(
-        'SELECT * FROM glp1_mood_logs WHERE client_id=$1 ORDER BY recorded_at DESC LIMIT 90',
-        [clientId]
-      );
-      res.json({ logs: rows });
-    } catch (err) {
-      console.error('Mood GET error:', err.message);
-      res.status(500).json({ error: 'Failed to fetch mood logs' });
-    }
-  });
-
-  router.post('/mood', auth, async (req, res) => {
-    const err = validateMood(req.body);
-    if (err) return res.status(400).json({ error: err });
-    try {
-      const clientId = await getClientId(db, req);
-      const { recorded_at, mood_score, energy_level, hunger_level, nausea_level, sleep_hours, notes } = req.body;
-      const { rows } = await db.query(
-        `INSERT INTO glp1_mood_logs (client_id, recorded_at, mood_score, energy_level, hunger_level, nausea_level, sleep_hours, notes)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
-        [clientId, recorded_at, mood_score, energy_level ?? null, hunger_level ?? null, nausea_level ?? null, sleep_hours ?? null, notes ?? null]
-      );
-      res.status(201).json({ log: rows[0] });
-    } catch (err) {
-      console.error('Mood POST error:', err.message);
-      res.status(500).json({ error: 'Failed to save mood log' });
-    }
-  });
-
-  router.delete('/mood/:id', auth, async (req, res) => {
-    try {
-      const clientId = await getClientId(db, req);
-      const { rowCount } = await db.query(
-        'DELETE FROM glp1_mood_logs WHERE id=$1 AND client_id=$2',
-        [req.params.id, clientId]
-      );
-      if (!rowCount) return res.status(404).json({ error: 'Not found' });
-      res.json({ success: true });
-    } catch (err) {
-      res.status(500).json({ error: 'Failed to delete mood log' });
+      console.error('USDA search error:', err.message);
+      res.status(502).json({ error: 'Could not reach USDA. Try again.' });
     }
   });
 
   // ── Fasting sessions ──────────────────────────────────────────────────────
+
+  router.get('/fasting/current', auth, async (req, res) => {
+    try {
+      const clientId = await getClientId(db, req);
+      const r = await db.query(
+        `SELECT id, method_id, fast_hours, started_at, notify_at, notified_at
+         FROM glp1_fasting_sessions
+         WHERE client_id=$1 AND ended_at IS NULL
+         ORDER BY started_at DESC LIMIT 1`,
+        [clientId]
+      );
+      res.json({ session: r.rows[0] ?? null });
+    } catch (err) {
+      console.error('Fasting current error:', err.message);
+      res.status(500).json({ error: 'Failed to fetch fasting session' });
+    }
+  });
 
   router.post('/fasting/start', auth, async (req, res) => {
     const { method_id, started_at } = req.body ?? {};
@@ -521,45 +704,33 @@ function makeRouter(db) {
         const handle = fastingTimers.get(key);
         if (handle) { clearTimeout(handle); fastingTimers.delete(key); }
       }
-      res.json({ success: true });
+      res.json({ stopped: r.rows.length > 0 });
     } catch (err) {
       console.error('Fasting stop error:', err.message);
       res.status(500).json({ error: 'Failed to stop fasting session' });
     }
   });
 
-  router.get('/fasting/current', auth, async (req, res) => {
-    try {
-      const clientId = await getClientId(db, req);
-      const r = await db.query(
-        `SELECT * FROM glp1_fasting_sessions
-         WHERE client_id=$1 AND ended_at IS NULL
-         ORDER BY started_at DESC LIMIT 1`,
-        [clientId]
-      );
-      res.json({ session: r.rows[0] ?? null });
-    } catch (err) {
-      console.error('Fasting current error:', err.message);
-      res.status(500).json({ error: 'Failed to fetch current session' });
-    }
-  });
-
   router.get('/fasting/history', auth, async (req, res) => {
-    const { from, to, limit = '30' } = req.query;
+    const { from, to } = req.query;
+    const dateRe = /^\d{4}-\d{2}-\d{2}$/;
     try {
       const clientId = await getClientId(db, req);
-      const params = [clientId];
-      let where = 'WHERE client_id=$1 AND ended_at IS NOT NULL';
-      if (from) { params.push(from); where += ` AND started_at >= $${params.length}::date`; }
-      if (to)   { params.push(to);   where += ` AND started_at <  ($${params.length}::date + INTERVAL '1 day')`; }
-      params.push(Math.min(Number(limit) || 30, 200));
-      const r = await db.query(
-        `SELECT * FROM glp1_fasting_sessions
-         ${where}
-         ORDER BY started_at DESC
-         LIMIT $${params.length}`,
-        params
-      );
+      let query, params;
+      if (from && to && dateRe.test(from) && dateRe.test(to)) {
+        query = `SELECT id, method_id, fast_hours, started_at, ended_at, notified_at
+                 FROM glp1_fasting_sessions
+                 WHERE client_id=$1 AND started_at::date BETWEEN $2 AND $3
+                 ORDER BY started_at DESC`;
+        params = [clientId, from, to];
+      } else {
+        query = `SELECT id, method_id, fast_hours, started_at, ended_at, notified_at
+                 FROM glp1_fasting_sessions
+                 WHERE client_id=$1 AND started_at >= NOW() - INTERVAL '14 days'
+                 ORDER BY started_at DESC`;
+        params = [clientId];
+      }
+      const r = await db.query(query, params);
       res.json({ sessions: r.rows });
     } catch (err) {
       console.error('Fasting history error:', err.message);
@@ -567,128 +738,113 @@ function makeRouter(db) {
     }
   });
 
-  // ── Fasting schedule ──────────────────────────────────────────────────────
-
-  router.get('/fasting/schedule', auth, async (req, res) => {
-    try {
-      const clientId = await getClientId(db, req);
-      const r = await db.query(
-        'SELECT * FROM glp1_fasting_schedule WHERE client_id=$1',
-        [clientId]
-      );
-      if (!r.rows.length) return res.json({ enabled: false, reminder_hour: 20, reminder_min: 0, fast_days: null });
-      res.json(r.rows[0]);
-    } catch (err) {
-      console.error('Fasting schedule GET error:', err.message);
-      res.status(500).json({ error: 'Failed to fetch fasting schedule' });
-    }
-  });
-
-  router.put('/fasting/schedule', auth, async (req, res) => {
-    const { enabled, reminder_hour, reminder_min, fast_days } = req.body ?? {};
-    if (typeof enabled !== 'boolean') return res.status(400).json({ error: 'enabled must be a boolean' });
-    if (typeof reminder_hour !== 'number' || reminder_hour < 0 || reminder_hour > 23)
-      return res.status(400).json({ error: 'reminder_hour must be 0–23' });
-    if (typeof reminder_min !== 'number' || reminder_min < 0 || reminder_min > 59)
-      return res.status(400).json({ error: 'reminder_min must be 0–59' });
-    if (fast_days !== null && fast_days !== undefined) {
-      if (!Array.isArray(fast_days) || fast_days.some(d => !Number.isInteger(d) || d < 0 || d > 6))
-        return res.status(400).json({ error: 'fast_days must be an array of integers 0–6' });
-    }
-    try {
-      const clientId = await getClientId(db, req);
-      const r = await db.query(
-        `INSERT INTO glp1_fasting_schedule (client_id, enabled, reminder_hour, reminder_min, fast_days, updated_at)
-         VALUES ($1,$2,$3,$4,$5,NOW())
-         ON CONFLICT (client_id) DO UPDATE SET
-           enabled=EXCLUDED.enabled, reminder_hour=EXCLUDED.reminder_hour,
-           reminder_min=EXCLUDED.reminder_min, fast_days=EXCLUDED.fast_days,
-           updated_at=NOW()
-         RETURNING *`,
-        [clientId, enabled, reminder_hour, reminder_min, fast_days ?? null]
-      );
-      if (enabled) {
-        scheduleNextReminder(clientId, reminder_hour, reminder_min, fast_days);
-      } else {
-        const key = `schedule-${clientId}`;
-        const h   = scheduleReminders.get(key);
-        if (h) { clearTimeout(h); scheduleReminders.delete(key); }
-      }
-      res.json(r.rows[0]);
-    } catch (err) {
-      console.error('Fasting schedule PUT error:', err.message);
-      res.status(500).json({ error: 'Failed to save fasting schedule' });
-    }
-  });
-
-  // ── Fasting plans ─────────────────────────────────────────────────────────
-
   router.get('/fasting/plans', auth, async (req, res) => {
     const { from, to } = req.query;
+    const dateRe = /^\d{4}-\d{2}-\d{2}$/;
+    if (!from || !to || !dateRe.test(from) || !dateRe.test(to)) {
+      return res.status(400).json({ error: 'from and to (YYYY-MM-DD) are required' });
+    }
     try {
       const clientId = await getClientId(db, req);
-      const params = [clientId];
-      let where = 'WHERE client_id=$1';
-      if (from) { params.push(from); where += ` AND plan_date >= $${params.length}::date`; }
-      if (to)   { params.push(to);   where += ` AND plan_date <= $${params.length}::date`; }
       const r = await db.query(
         `SELECT plan_date::text, method_id, start_time::text, alert_enabled
-         FROM glp1_fasting_plan ${where}
+         FROM glp1_fasting_plan
+         WHERE client_id=$1 AND plan_date BETWEEN $2 AND $3
          ORDER BY plan_date`,
-        params
+        [clientId, from, to]
       );
       res.json({ plans: r.rows });
     } catch (err) {
-      console.error('Plans GET error:', err.message);
+      console.error('Fasting plans get error:', err.message);
       res.status(500).json({ error: 'Failed to fetch plans' });
     }
   });
 
   router.put('/fasting/plans/:date', auth, async (req, res) => {
-    const planErr = validatePlan(req.body);
-    if (planErr) return res.status(400).json({ error: planErr });
-    const { plan_date } = req.params;
-    const planDate = req.params.date;
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(planDate)) return res.status(400).json({ error: 'date must be YYYY-MM-DD' });
-    const { method_id, start_time, alert_enabled } = req.body;
+    const { date } = req.params;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return res.status(400).json({ error: 'date must be YYYY-MM-DD' });
+    const bad = validatePlan(req.body);
+    if (bad) return res.status(400).json({ error: bad });
     try {
       const clientId = await getClientId(db, req);
-      const r = await db.query(
+      const { method_id, start_time, alert_enabled } = req.body;
+      await db.query(
         `INSERT INTO glp1_fasting_plan (client_id, plan_date, method_id, start_time, alert_enabled)
          VALUES ($1,$2,$3,$4,$5)
          ON CONFLICT (client_id, plan_date) DO UPDATE SET
            method_id=EXCLUDED.method_id, start_time=EXCLUDED.start_time,
-           alert_enabled=EXCLUDED.alert_enabled
-         RETURNING plan_date::text, method_id, start_time::text, alert_enabled`,
-        [clientId, planDate, method_id, start_time, alert_enabled]
+           alert_enabled=EXCLUDED.alert_enabled, created_at=NOW()`,
+        [clientId, date, method_id, start_time, alert_enabled]
       );
       if (alert_enabled) {
-        schedulePlanAlert(clientId, planDate, start_time, method_id);
+        schedulePlanAlert(clientId, date, start_time, method_id);
       } else {
-        const key = `plan-${clientId}-${planDate}`;
-        const h   = planTimers.get(key);
+        const key = `plan-${clientId}-${date}`;
+        const h = planTimers.get(key);
         if (h) { clearTimeout(h); planTimers.delete(key); }
       }
-      res.json({ plan: r.rows[0] });
+      res.json({ ok: true });
     } catch (err) {
-      console.error('Plan PUT error:', err.message);
+      console.error('Fasting plan put error:', err.message);
       res.status(500).json({ error: 'Failed to save plan' });
     }
   });
 
   router.delete('/fasting/plans/:date', auth, async (req, res) => {
-    const planDate = req.params.date;
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(planDate)) return res.status(400).json({ error: 'date must be YYYY-MM-DD' });
+    const { date } = req.params;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return res.status(400).json({ error: 'date must be YYYY-MM-DD' });
     try {
       const clientId = await getClientId(db, req);
-      await db.query('DELETE FROM glp1_fasting_plan WHERE client_id=$1 AND plan_date=$2', [clientId, planDate]);
-      const key = `plan-${clientId}-${planDate}`;
-      const h   = planTimers.get(key);
+      await db.query('DELETE FROM glp1_fasting_plan WHERE client_id=$1 AND plan_date=$2', [clientId, date]);
+      const key = `plan-${clientId}-${date}`;
+      const h = planTimers.get(key);
       if (h) { clearTimeout(h); planTimers.delete(key); }
-      res.json({ success: true });
+      res.json({ ok: true });
     } catch (err) {
-      console.error('Plan DELETE error:', err.message);
+      console.error('Fasting plan delete error:', err.message);
       res.status(500).json({ error: 'Failed to delete plan' });
+    }
+  });
+
+  router.get('/fasting/schedule', auth, async (req, res) => {
+    try {
+      const clientId = await getClientId(db, req);
+      const r = await db.query('SELECT * FROM glp1_fasting_schedule WHERE client_id=$1', [clientId]);
+      const row = r.rows[0] ?? { enabled: false, reminder_hour: 20, reminder_min: 0, fast_days: null };
+      res.json({
+        enabled: row.enabled,
+        reminder_hour: row.reminder_hour,
+        reminder_min: row.reminder_min,
+        fast_days: row.fast_days ? JSON.parse(row.fast_days) : null,
+      });
+    } catch (err) {
+      console.error('Fasting schedule get error:', err.message);
+      res.status(500).json({ error: 'Failed to fetch schedule' });
+    }
+  });
+
+  router.put('/fasting/schedule', auth, async (req, res) => {
+    const bad = validateSchedule(req.body);
+    if (bad) return res.status(400).json({ error: bad });
+    try {
+      const clientId = await getClientId(db, req);
+      const { enabled, reminder_hour, reminder_min, fast_days } = req.body;
+      const fastDaysJson = fast_days && fast_days.length > 0 ? JSON.stringify(fast_days) : null;
+      await db.query(
+        `INSERT INTO glp1_fasting_schedule (client_id, enabled, reminder_hour, reminder_min, fast_days, updated_at)
+         VALUES ($1,$2,$3,$4,$5,NOW())
+         ON CONFLICT (client_id) DO UPDATE SET
+           enabled=EXCLUDED.enabled, reminder_hour=EXCLUDED.reminder_hour,
+           reminder_min=EXCLUDED.reminder_min, fast_days=EXCLUDED.fast_days,
+           updated_at=NOW()`,
+        [clientId, enabled, reminder_hour, reminder_min, fastDaysJson]
+      );
+      const row = { enabled, reminder_hour, reminder_min, fast_days: fastDaysJson };
+      scheduleReminder(db, clientId, row);
+      res.json({ ok: true });
+    } catch (err) {
+      console.error('Fasting schedule put error:', err.message);
+      res.status(500).json({ error: 'Failed to save schedule' });
     }
   });
 
