@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Timer, Square } from 'lucide-react';
-import { primaryBtn, ghostBtn, panelStyle } from './shared';
+import { glp1Fetch, primaryBtn, ghostBtn, panelStyle } from './shared';
 
 interface FastingMethod {
   id: string;
@@ -108,15 +108,42 @@ function FastingRow({ method, session, onStart, onStop }: {
 export default function FastingTracker() {
   const [session, setSession] = useState<FastingSession | null>(null);
 
-  useEffect(() => { setSession(loadSession()); }, []);
+  useEffect(() => {
+    // Prefer server-side session; fall back to localStorage if API unavailable
+    glp1Fetch<{ session: { method_id: string; started_at: string } | null }>('/fasting/current')
+      .then(data => {
+        if (data.session) {
+          const s: FastingSession = { methodId: data.session.method_id, startedAt: data.session.started_at };
+          setSession(s);
+          saveSession(s);
+        } else {
+          setSession(loadSession());
+        }
+      })
+      .catch(() => setSession(loadSession()));
+  }, []);
 
-  function start(methodId: string) {
-    const s: FastingSession = { methodId, startedAt: new Date().toISOString() };
-    setSession(s);
-    saveSession(s);
+  async function start(methodId: string) {
+    try {
+      const data = await glp1Fetch<{ session: { method_id: string; started_at: string } }>('/fasting/start', {
+        method: 'POST',
+        body: JSON.stringify({ method_id: methodId }),
+      });
+      const s: FastingSession = { methodId: data.session.method_id, startedAt: data.session.started_at };
+      setSession(s);
+      saveSession(s);
+    } catch {
+      // Fallback: local-only if API fails
+      const s: FastingSession = { methodId, startedAt: new Date().toISOString() };
+      setSession(s);
+      saveSession(s);
+    }
   }
 
-  function stop() {
+  async function stop() {
+    try {
+      await glp1Fetch('/fasting/stop', { method: 'POST' });
+    } catch { /* ignore */ }
     setSession(null);
     saveSession(null);
   }
