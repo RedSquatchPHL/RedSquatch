@@ -657,8 +657,15 @@ function makeRouter(db) {
   });
 
   router.post('/fasting/start', auth, async (req, res) => {
-    const { method_id } = req.body ?? {};
+    const { method_id, started_at } = req.body ?? {};
     if (!VALID_METHOD_IDS.includes(method_id)) return res.status(400).json({ error: 'Invalid method_id' });
+    let startedAt = new Date();
+    if (started_at) {
+      const parsed = new Date(started_at);
+      if (isNaN(parsed.getTime())) return res.status(400).json({ error: 'Invalid started_at timestamp' });
+      if (parsed > new Date()) return res.status(400).json({ error: 'started_at cannot be in the future' });
+      startedAt = parsed;
+    }
     try {
       const clientId = await getClientId(db, req);
       // End any active session first
@@ -667,7 +674,6 @@ function makeRouter(db) {
         [clientId]
       );
       const fastHours = METHOD_HOURS[method_id];
-      const startedAt = new Date();
       const notifyAt = new Date(startedAt.getTime() + fastHours * 3_600_000);
       const r = await db.query(
         `INSERT INTO glp1_fasting_sessions (client_id, method_id, fast_hours, started_at, notify_at)
