@@ -250,12 +250,12 @@ export default function FastingTracker() {
         ))}
       </div>
 
-      {/* 7-Day History */}
+      {/* Week Calendar */}
       <div className="mt-5">
-        <SectionToggle label="7-Day History" open={showHistory} onToggle={() => setShowHistory(v => !v)} />
+        <SectionToggle label="Week Planner" open={showHistory} onToggle={() => setShowHistory(v => !v)} />
         {showHistory && (
           <div className="mt-2">
-            <FastingCalendar />
+            <FastingCalendar session={session} onStart={start} />
           </div>
         )}
       </div>

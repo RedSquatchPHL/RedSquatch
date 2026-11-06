@@ -110,6 +110,17 @@ const SCHEMA_STATEMENTS = [
     fast_days      TEXT,
     updated_at     TIMESTAMP DEFAULT NOW()
   )`,
+  `CREATE TABLE IF NOT EXISTS glp1_fasting_plan (
+    id            SERIAL PRIMARY KEY,
+    client_id     INTEGER NOT NULL REFERENCES client_users(id) ON DELETE CASCADE,
+    plan_date     DATE NOT NULL,
+    method_id     VARCHAR(20) NOT NULL,
+    start_time    TIME NOT NULL,
+    alert_enabled BOOLEAN NOT NULL DEFAULT false,
+    created_at    TIMESTAMP DEFAULT NOW(),
+    UNIQUE(client_id, plan_date)
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_glp1_fasting_plan_client ON glp1_fasting_plan(client_id, plan_date)`,
 ];
 
 async function runMigrations(db) {
@@ -252,6 +263,47 @@ async function rehydrateScheduleReminders(db) {
   }
 }
 
+// ── Per-day plan alert timers ─────────────────────────────────────────────────
+
+const planTimers = new Map(); // key: `plan-${clientId}-${planDate}`
+
+function schedulePlanAlert(clientId, planDate, startTime, methodId) {
+  const key = `plan-${clientId}-${planDate}`;
+  const existing = planTimers.get(key);
+  if (existing) clearTimeout(existing);
+  const [year, month, day] = planDate.split('-').map(Number);
+  const [hour, min] = startTime.split(':').map(Number);
+  const fireAt = new Date(year, month - 1, day, hour, min, 0, 0);
+  const delay = fireAt.getTime() - Date.now();
+  if (delay <= 0) return;
+  const handle = setTimeout(async () => {
+    planTimers.delete(key);
+    try {
+      const name = methodId.replace('_', '/');
+      await sendPushover('⏰ Fast Starting', `Time to start your ${name} fast!`);
+    } catch (err) {
+      console.error('[Plan alert] error:', err.message);
+    }
+  }, delay);
+  planTimers.set(key, handle);
+}
+
+async function rehydratePlanAlerts(db) {
+  try {
+    const r = await db.query(
+      `SELECT client_id, plan_date::text, start_time::text, method_id
+       FROM glp1_fasting_plan
+       WHERE alert_enabled=true AND (plan_date + start_time) > NOW()`
+    );
+    for (const row of r.rows) {
+      schedulePlanAlert(row.client_id, row.plan_date, row.start_time.slice(0, 5), row.method_id);
+    }
+    if (r.rows.length > 0) console.log(`[Fasting] rehydrated ${r.rows.length} plan alert(s)`);
+  } catch (err) {
+    console.error('[Fasting] plan alert rehydrate error:', err.message);
+  }
+}
+
 // ── Validation ───────────────────────────────────────────────────────────────
 
 const isDate = v => typeof v === 'string' && !Number.isNaN(Date.parse(v));
@@ -311,6 +363,16 @@ function validateInjection(b) {
   if (!isNum(b.dose_mg, 0.01, 100)) return 'dose_mg must be between 0.01 and 100';
   if (!VALID_SITES.includes(b.site)) return `site must be one of ${VALID_SITES.join(', ')}`;
   if (!isDate(b.injected_at)) return 'injected_at must be a valid date/time';
+  return null;
+}
+
+function validatePlan(b) {
+  if (!b || typeof b !== 'object') return 'body required';
+  if (!VALID_METHOD_IDS.includes(b.method_id)) return 'invalid method_id';
+  if (!b.start_time || !/^\d{1,2}:\d{2}$/.test(b.start_time)) return 'start_time must be HH:MM';
+  const [h, m] = b.start_time.split(':').map(Number);
+  if (h < 0 || h > 23 || m < 0 || m > 59) return 'start_time out of range';
+  if (typeof b.alert_enabled !== 'boolean') return 'alert_enabled must be a boolean';
   return null;
 }
 
@@ -644,19 +706,97 @@ function makeRouter(db) {
   });
 
   router.get('/fasting/history', auth, async (req, res) => {
+    const { from, to } = req.query;
+    const dateRe = /^\d{4}-\d{2}-\d{2}$/;
     try {
       const clientId = await getClientId(db, req);
-      const r = await db.query(
-        `SELECT id, method_id, fast_hours, started_at, ended_at, notified_at
-         FROM glp1_fasting_sessions
-         WHERE client_id=$1 AND started_at >= NOW() - INTERVAL '14 days'
-         ORDER BY started_at DESC`,
-        [clientId]
-      );
+      let query, params;
+      if (from && to && dateRe.test(from) && dateRe.test(to)) {
+        query = `SELECT id, method_id, fast_hours, started_at, ended_at, notified_at
+                 FROM glp1_fasting_sessions
+                 WHERE client_id=$1 AND started_at::date BETWEEN $2 AND $3
+                 ORDER BY started_at DESC`;
+        params = [clientId, from, to];
+      } else {
+        query = `SELECT id, method_id, fast_hours, started_at, ended_at, notified_at
+                 FROM glp1_fasting_sessions
+                 WHERE client_id=$1 AND started_at >= NOW() - INTERVAL '14 days'
+                 ORDER BY started_at DESC`;
+        params = [clientId];
+      }
+      const r = await db.query(query, params);
       res.json({ sessions: r.rows });
     } catch (err) {
       console.error('Fasting history error:', err.message);
       res.status(500).json({ error: 'Failed to fetch fasting history' });
+    }
+  });
+
+  router.get('/fasting/plans', auth, async (req, res) => {
+    const { from, to } = req.query;
+    const dateRe = /^\d{4}-\d{2}-\d{2}$/;
+    if (!from || !to || !dateRe.test(from) || !dateRe.test(to)) {
+      return res.status(400).json({ error: 'from and to (YYYY-MM-DD) are required' });
+    }
+    try {
+      const clientId = await getClientId(db, req);
+      const r = await db.query(
+        `SELECT plan_date::text, method_id, start_time::text, alert_enabled
+         FROM glp1_fasting_plan
+         WHERE client_id=$1 AND plan_date BETWEEN $2 AND $3
+         ORDER BY plan_date`,
+        [clientId, from, to]
+      );
+      res.json({ plans: r.rows });
+    } catch (err) {
+      console.error('Fasting plans get error:', err.message);
+      res.status(500).json({ error: 'Failed to fetch plans' });
+    }
+  });
+
+  router.put('/fasting/plans/:date', auth, async (req, res) => {
+    const { date } = req.params;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return res.status(400).json({ error: 'date must be YYYY-MM-DD' });
+    const bad = validatePlan(req.body);
+    if (bad) return res.status(400).json({ error: bad });
+    try {
+      const clientId = await getClientId(db, req);
+      const { method_id, start_time, alert_enabled } = req.body;
+      await db.query(
+        `INSERT INTO glp1_fasting_plan (client_id, plan_date, method_id, start_time, alert_enabled)
+         VALUES ($1,$2,$3,$4,$5)
+         ON CONFLICT (client_id, plan_date) DO UPDATE SET
+           method_id=EXCLUDED.method_id, start_time=EXCLUDED.start_time,
+           alert_enabled=EXCLUDED.alert_enabled, created_at=NOW()`,
+        [clientId, date, method_id, start_time, alert_enabled]
+      );
+      if (alert_enabled) {
+        schedulePlanAlert(clientId, date, start_time, method_id);
+      } else {
+        const key = `plan-${clientId}-${date}`;
+        const h = planTimers.get(key);
+        if (h) { clearTimeout(h); planTimers.delete(key); }
+      }
+      res.json({ ok: true });
+    } catch (err) {
+      console.error('Fasting plan put error:', err.message);
+      res.status(500).json({ error: 'Failed to save plan' });
+    }
+  });
+
+  router.delete('/fasting/plans/:date', auth, async (req, res) => {
+    const { date } = req.params;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return res.status(400).json({ error: 'date must be YYYY-MM-DD' });
+    try {
+      const clientId = await getClientId(db, req);
+      await db.query('DELETE FROM glp1_fasting_plan WHERE client_id=$1 AND plan_date=$2', [clientId, date]);
+      const key = `plan-${clientId}-${date}`;
+      const h = planTimers.get(key);
+      if (h) { clearTimeout(h); planTimers.delete(key); }
+      res.json({ ok: true });
+    } catch (err) {
+      console.error('Fasting plan delete error:', err.message);
+      res.status(500).json({ error: 'Failed to delete plan' });
     }
   });
 
@@ -705,4 +845,4 @@ function makeRouter(db) {
   return router;
 }
 
-module.exports = { runMigrations, makeRouter, rehydrateFastingTimers, rehydrateScheduleReminders };
+module.exports = { runMigrations, makeRouter, rehydrateFastingTimers, rehydrateScheduleReminders, rehydratePlanAlerts };
