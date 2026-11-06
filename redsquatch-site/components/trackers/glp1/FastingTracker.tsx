@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Timer, Square, ChevronDown, ChevronUp, Bell, BellOff } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Timer, Square, ChevronDown, ChevronUp, Bell, BellOff, Clock } from 'lucide-react';
 import { glp1Fetch, primaryBtn, ghostBtn, panelStyle, inputStyle } from './shared';
 import FastingCalendar from './FastingCalendar';
 
@@ -49,14 +49,22 @@ const muted = { color: 'rgba(var(--rs-accent-rgb),0.6)' } as const;
 
 const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
+function nowLocalDTInput(): string {
+  const d = new Date();
+  d.setSeconds(0, 0);
+  return d.toISOString().slice(0, 16); // YYYY-MM-DDTHH:MM
+}
+
 function FastingRow({ method, session, onStart, onStop }: {
   method: FastingMethod;
   session: FastingSession | null;
-  onStart: (id: string) => void;
+  onStart: (id: string, startedAt?: string) => void;
   onStop: () => void;
 }) {
   const isActive = session?.methodId === method.id;
   const [elapsed, setElapsed] = useState(0);
+  const [showTimePicker, setShowTimePicker] = useState(false);
+  const [customTime, setCustomTime] = useState('');
 
   useEffect(() => {
     if (!isActive || !session) { setElapsed(0); return; }
@@ -70,6 +78,16 @@ function FastingRow({ method, session, onStart, onStop }: {
   const targetMs = method.fastHours * 3_600_000;
   const pct = isActive ? Math.min(100, (elapsed / targetMs) * 100) : 0;
   const done = isActive && elapsed >= targetMs;
+
+  function openTimePicker() {
+    setCustomTime(nowLocalDTInput());
+    setShowTimePicker(true);
+  }
+
+  function startCustom() {
+    onStart(method.id, new Date(customTime).toISOString());
+    setShowTimePicker(false);
+  }
 
   return (
     <div className="py-2.5" style={{ borderBottom: '1px solid rgba(var(--rs-edge-rgb),0.1)' }}>
@@ -90,17 +108,47 @@ function FastingRow({ method, session, onStart, onStop }: {
             <Square size={11} /> Stop
           </button>
         ) : (
-          <button type="button" onClick={() => onStart(method.id)}
-            className="shrink-0 flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded"
-            style={primaryBtn}>
-            <Timer size={11} /> Start
-          </button>
+          <div className="flex items-center gap-1 shrink-0">
+            <button type="button" onClick={() => onStart(method.id)}
+              className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded"
+              style={primaryBtn}>
+              <Timer size={11} /> Start
+            </button>
+            <button type="button" onClick={openTimePicker} title="Start at custom time"
+              className="p-1.5 rounded border"
+              style={ghostBtn}>
+              <Clock size={11} />
+            </button>
+          </div>
         )}
       </div>
       {isActive && (
         <div className="mt-2 h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(var(--rs-edge-rgb),0.15)' }}>
           <div className="h-full rounded-full transition-all duration-1000"
             style={{ width: `${pct}%`, background: done ? 'var(--rs-ok, #4ade80)' : 'var(--rs-accent)' }} />
+        </div>
+      )}
+      {showTimePicker && (
+        <div className="mt-2 flex flex-wrap items-center gap-2 p-2 rounded" style={{ background: 'rgba(var(--rs-edge-rgb),0.08)' }}>
+          <span className="text-xs" style={muted}>Started at:</span>
+          <input
+            type="datetime-local"
+            value={customTime}
+            max={nowLocalDTInput()}
+            onChange={e => setCustomTime(e.target.value)}
+            className="border px-2 py-1 text-xs rounded"
+            style={inputStyle}
+          />
+          <button type="button" onClick={startCustom}
+            className="px-2.5 py-1 text-xs font-semibold rounded"
+            style={primaryBtn}>
+            Start
+          </button>
+          <button type="button" onClick={() => setShowTimePicker(false)}
+            className="px-2 py-1 text-xs rounded border"
+            style={ghostBtn}>
+            Cancel
+          </button>
         </div>
       )}
     </div>
@@ -171,17 +219,19 @@ export default function FastingTracker() {
       .catch(() => {});
   }, []);
 
-  async function start(methodId: string) {
+  async function start(methodId: string, startedAt?: string) {
     try {
+      const body: Record<string, string> = { method_id: methodId };
+      if (startedAt) body.started_at = startedAt;
       const data = await glp1Fetch<{ session: { method_id: string; started_at: string } }>('/fasting/start', {
         method: 'POST',
-        body: JSON.stringify({ method_id: methodId }),
+        body: JSON.stringify(body),
       });
       const s: FastingSession = { methodId: data.session.method_id, startedAt: data.session.started_at };
       setSession(s);
       saveSession(s);
     } catch {
-      const s: FastingSession = { methodId, startedAt: new Date().toISOString() };
+      const s: FastingSession = { methodId, startedAt: startedAt ?? new Date().toISOString() };
       setSession(s);
       saveSession(s);
     }
