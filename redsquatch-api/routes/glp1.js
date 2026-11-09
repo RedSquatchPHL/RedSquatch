@@ -682,6 +682,7 @@ function makeRouter(db) {
       );
       const session = r.rows[0];
       scheduleFastingTimer(db, session.id, clientId, session.notify_at, method_id);
+      sendPushover('⏱ Fast Started', `Your ${fastHours}h ${method_id.replace('_', '/')} fast has begun. You'll be notified when it's complete.`).catch(() => {});
       res.status(201).json({ session });
     } catch (err) {
       console.error('Fasting start error:', err.message);
