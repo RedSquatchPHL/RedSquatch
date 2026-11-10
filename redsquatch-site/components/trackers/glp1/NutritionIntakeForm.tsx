@@ -220,6 +220,29 @@ export default function NutritionIntakeForm({ onViewLog, onSubmit }: { onViewLog
     }
   }
 
+  async function quickLog(d: FoodRow) {
+    const oz = num(d.volume_oz);
+    if (!oz || oz <= 0) return;
+    const p = num(d.protein_g) ?? 0;
+    const f = num(d.fat_g) ?? 0;
+    const c = num(d.carbs_g) ?? 0;
+    const cal = num(d.calories) ?? 0;
+    const hasMacroData = p > 0 || f > 0 || c > 0 || cal > 0;
+    setBusy(true); setErr(null); setDoneCount(null);
+    try {
+      await glp1Fetch('/intake', { method: 'POST', body: JSON.stringify({
+        logged_at: new Date().toISOString(),
+        items: [{ kind: 'hydration', ounces: r1(oz), drink_name: d.name, macros: hasMacroData ? { grams: r1(p), fat_g: r1(f), carbs_g: r1(c), calories: r1(cal) } : null, save_drink: null }],
+      }) });
+      setDoneCount(1);
+      onSubmit?.();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : 'Quick log failed.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
   if (foods.loading) return <Loading />;
 
   const itemLabel = (s: Staged) => s.kind === 'hydration'
@@ -236,10 +259,31 @@ export default function NutritionIntakeForm({ onViewLog, onSubmit }: { onViewLog
       </div>
 
       <div className="rounded-md p-3 sm:p-4 mb-4" style={panelStyle}>
-        <div className="text-xs mb-2" style={muted}>Hydration or food?</div>
-        <div className="flex gap-2">
-          <Choice active={kind === 'hydration'} onClick={() => setKind('hydration')}><Droplets size={14} /> Hydration</Choice>
-          <Choice active={kind === 'food'} onClick={() => setKind('food')}><Utensils size={14} /> Food</Choice>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <div className="text-xs mb-2" style={muted}>Hydration or food?</div>
+            <div className="flex gap-2">
+              <Choice active={kind === 'hydration'} onClick={() => setKind('hydration')}><Droplets size={14} /> Hydration</Choice>
+              <Choice active={kind === 'food'} onClick={() => setKind('food')}><Utensils size={14} /> Food</Choice>
+            </div>
+          </div>
+
+          {sortedDrinks.length > 0 && (
+            <div className="flex-shrink-0 text-right">
+              <div className="text-xs mb-1.5" style={muted}>Quick Log</div>
+              <div className="flex flex-wrap gap-1.5 justify-end max-w-[200px] sm:max-w-xs">
+                {sortedDrinks.map(d => (
+                  <button key={d.id} type="button" disabled={busy}
+                    onClick={() => quickLog(d)}
+                    className="px-2.5 py-1.5 rounded-full text-xs font-semibold border disabled:opacity-40"
+                    style={ghostBtn}>
+                    <Droplets size={10} className="inline mr-1 align-middle" />
+                    {d.name} · {num(d.volume_oz)} oz
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {kind === 'hydration' && (
