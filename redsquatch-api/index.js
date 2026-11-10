@@ -6,7 +6,16 @@ const pgSession = require('connect-pg-simple')(session);
 const bcrypt = require('bcrypt');
 const speakeasy = require('speakeasy');
 const QRCode = require('qrcode');
-const { Pool } = require('pg');
+const { Pool, types: pgTypes } = require('pg');
+// TIMESTAMP columns (OID 1114) store naïve datetimes with no timezone info.
+// pg constructs Date objects via new Date(str) using the process timezone (TZ env),
+// so when TZ=America/New_York the server misreads UTC values as EST, shifting them +5h.
+// Appending 'Z' forces UTC interpretation, matching what we always insert.
+pgTypes.setTypeParser(1114, (str) => {
+  if (!str) return null;
+  const iso = str.includes('T') ? str : str.replace(' ', 'T');
+  return new Date(iso.endsWith('Z') ? iso : iso + 'Z');
+});
 const path = require('path');
 const fs = require('fs');
 const { scrapeAll } = require('./sports-scraper');
