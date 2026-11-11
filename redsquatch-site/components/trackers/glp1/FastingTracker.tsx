@@ -15,15 +15,11 @@ interface FastingMethod {
 const DAILY_TRF: FastingMethod[] = [
   { id: '16_8',  name: '16/8 Leangains',    protocol: 'Fast 16h · eat 8h (e.g. 12 PM–8 PM) — most popular',  fastHours: 16 },
   { id: '14_10', name: '14/10',              protocol: 'Fast 14h · eat 10h — gentler entry point',              fastHours: 14 },
-  { id: '12_12', name: '12/12',              protocol: 'Fast 12h · eat 12h — beginner-friendly',                fastHours: 12 },
   { id: '18_6',  name: '18/6',               protocol: 'Fast 18h · eat 6h — condensed eating window',           fastHours: 18 },
-  { id: '20_4',  name: '20/4 Warrior Diet',  protocol: 'Fast 20h · eat 4h (evening) — full daily calories',     fastHours: 20 },
 ];
 
 const WEEKLY: FastingMethod[] = [
   { id: '5_2',   name: '5:2 Diet',           protocol: '5 normal days · 2 fasting days (~500–600 cal)',         fastHours: 24 },
-  { id: 'adf',   name: 'Alternate-Day',       protocol: 'Fast every other day (0–500 cal on fast days)',         fastHours: 24 },
-  { id: 'ese',   name: 'Eat-Stop-Eat',        protocol: '24-hour fast 1–2× per week (dinner to dinner)',         fastHours: 24 },
   { id: 'omad',  name: 'OMAD',                protocol: '23:1 · entire day\'s calories in one sitting',          fastHours: 23 },
 ];
 
