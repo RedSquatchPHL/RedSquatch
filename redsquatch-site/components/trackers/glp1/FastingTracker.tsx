@@ -30,7 +30,11 @@ function loadSession(): FastingSession | null {
   try { return JSON.parse(localStorage.getItem(LS_KEY) ?? 'null'); } catch { return null; }
 }
 function saveSession(s: FastingSession | null) {
-  try { if (s) localStorage.setItem(LS_KEY, JSON.stringify(s)); else localStorage.removeItem(LS_KEY); } catch {}
+  try {
+    if (s) localStorage.setItem(LS_KEY, JSON.stringify(s));
+    else localStorage.removeItem(LS_KEY);
+    window.dispatchEvent(new CustomEvent('rs-fasting-updated'));
+  } catch {}
 }
 
 function formatElapsed(ms: number): string {
