@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { Timer, Square, ChevronDown, ChevronUp, Bell, BellOff, Clock } from 'lucide-react';
-import { glp1Fetch, primaryBtn, ghostBtn, panelStyle, inputStyle } from './shared';
+import { Timer, Square, ChevronDown, ChevronUp, Bell, BellOff, Clock, Pencil } from 'lucide-react';
+import { glp1Fetch, primaryBtn, ghostBtn, panelStyle, inputStyle, toLocalInput } from './shared';
 import FastingCalendar from './FastingCalendar';
 
 interface FastingMethod {
@@ -65,6 +65,8 @@ function FastingRow({ method, session, onStart, onStop }: {
   const [elapsed, setElapsed] = useState(0);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [customTime, setCustomTime] = useState('');
+  const [showEditStart, setShowEditStart] = useState(false);
+  const [editStartTime, setEditStartTime] = useState('');
 
   useEffect(() => {
     if (!isActive || !session) { setElapsed(0); return; }
@@ -78,6 +80,9 @@ function FastingRow({ method, session, onStart, onStop }: {
   const targetMs = method.fastHours * 3_600_000;
   const pct = isActive ? Math.min(100, (elapsed / targetMs) * 100) : 0;
   const done = isActive && elapsed >= targetMs;
+  const finishAt = isActive && session
+    ? new Date(new Date(session.startedAt).getTime() + targetMs)
+    : null;
 
   function openTimePicker() {
     setCustomTime(nowLocalDTInput());
@@ -87,6 +92,16 @@ function FastingRow({ method, session, onStart, onStop }: {
   function startCustom() {
     onStart(method.id, new Date(customTime).toISOString());
     setShowTimePicker(false);
+  }
+
+  function openEditStart() {
+    setEditStartTime(session ? toLocalInput(session.startedAt) : nowLocalDTInput());
+    setShowEditStart(true);
+  }
+
+  function saveEditStart() {
+    onStart(method.id, new Date(editStartTime).toISOString());
+    setShowEditStart(false);
   }
 
   return (
@@ -102,11 +117,18 @@ function FastingRow({ method, session, onStart, onStop }: {
           </span>
         )}
         {isActive ? (
-          <button type="button" onClick={onStop}
-            className="shrink-0 flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded border"
-            style={ghostBtn}>
-            <Square size={11} /> Stop
-          </button>
+          <div className="flex items-center gap-1 shrink-0">
+            <button type="button" onClick={openEditStart} title="Edit start time"
+              className="p-1.5 rounded border"
+              style={ghostBtn}>
+              <Pencil size={11} />
+            </button>
+            <button type="button" onClick={onStop}
+              className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded border"
+              style={ghostBtn}>
+              <Square size={11} /> Stop
+            </button>
+          </div>
         ) : (
           <div className="flex items-center gap-1 shrink-0">
             <button type="button" onClick={() => onStart(method.id)}
@@ -126,6 +148,40 @@ function FastingRow({ method, session, onStart, onStop }: {
         <div className="mt-2 h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(var(--rs-edge-rgb),0.15)' }}>
           <div className="h-full rounded-full transition-all duration-1000"
             style={{ width: `${pct}%`, background: done ? 'var(--rs-ok, #4ade80)' : 'var(--rs-accent)' }} />
+        </div>
+      )}
+      {isActive && finishAt && (
+        <div className="mt-1 flex items-center gap-3 text-xs" style={muted}>
+          <span>
+            Started {new Date(session!.startedAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+          </span>
+          <span className="opacity-40">·</span>
+          <span style={{ color: done ? 'var(--rs-ok, #4ade80)' : undefined }}>
+            {done ? 'Goal reached' : `Finish by ${finishAt.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`}
+          </span>
+        </div>
+      )}
+      {showEditStart && (
+        <div className="mt-2 flex flex-wrap items-center gap-2 p-2 rounded" style={{ background: 'rgba(var(--rs-edge-rgb),0.08)' }}>
+          <span className="text-xs" style={muted}>Started at:</span>
+          <input
+            type="datetime-local"
+            value={editStartTime}
+            max={nowLocalDTInput()}
+            onChange={e => setEditStartTime(e.target.value)}
+            className="border px-2 py-1 text-xs rounded"
+            style={inputStyle}
+          />
+          <button type="button" onClick={saveEditStart}
+            className="px-2.5 py-1 text-xs font-semibold rounded"
+            style={primaryBtn}>
+            Save
+          </button>
+          <button type="button" onClick={() => setShowEditStart(false)}
+            className="px-2 py-1 text-xs rounded border"
+            style={ghostBtn}>
+            Cancel
+          </button>
         </div>
       )}
       {showTimePicker && (
@@ -280,11 +336,16 @@ export default function FastingTracker() {
 
   return (
     <div>
-      {session && activeMethod && (
-        <div className="rounded-md px-3 py-2 mb-4 text-xs" style={{ ...panelStyle, color: 'var(--rs-accent)', borderLeft: '2px solid var(--rs-accent)' }}>
-          Active: <strong>{activeMethod.name}</strong> — started {new Date(session.startedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-        </div>
-      )}
+      {session && activeMethod && (() => {
+        const finishAt = new Date(new Date(session.startedAt).getTime() + activeMethod.fastHours * 3_600_000);
+        return (
+          <div className="rounded-md px-3 py-2 mb-4 text-xs" style={{ ...panelStyle, color: 'var(--rs-accent)', borderLeft: '2px solid var(--rs-accent)' }}>
+            Active: <strong>{activeMethod.name}</strong>
+            {' · '}Started {new Date(session.startedAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+            {' · '}Finish by {finishAt.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+          </div>
+        );
+      })()}
 
       <div className="text-xs font-semibold uppercase tracking-wider mb-2" style={muted}>Daily Time-Restricted</div>
       <div className="rounded-md px-3" style={panelStyle}>
