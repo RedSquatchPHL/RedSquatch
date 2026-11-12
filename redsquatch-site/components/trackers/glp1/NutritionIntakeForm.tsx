@@ -259,7 +259,7 @@ export default function NutritionIntakeForm({ onViewLog, onSubmit }: { onViewLog
       </div>
 
       <div className="rounded-md p-3 sm:p-4 mb-4" style={panelStyle}>
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
           <div>
             <div className="text-xs mb-2" style={muted}>Hydration or food?</div>
             <div className="flex gap-2">
@@ -269,13 +269,13 @@ export default function NutritionIntakeForm({ onViewLog, onSubmit }: { onViewLog
           </div>
 
           {sortedDrinks.length > 0 && (
-            <div className="flex-shrink-0 text-right">
+            <div className="sm:flex-shrink-0 sm:text-right">
               <div className="text-xs mb-1.5" style={muted}>Quick Log</div>
-              <div className="flex flex-wrap gap-1.5 justify-end max-w-[200px] sm:max-w-xs">
+              <div className="flex flex-col sm:flex-row sm:flex-wrap gap-1.5 sm:justify-end sm:max-w-xs">
                 {sortedDrinks.map(d => (
                   <button key={d.id} type="button" disabled={busy}
                     onClick={() => quickLog(d)}
-                    className="px-2.5 py-1.5 rounded-full text-xs font-semibold border disabled:opacity-40"
+                    className="w-full sm:w-auto text-left sm:text-center px-2.5 py-2 sm:py-1.5 rounded-md sm:rounded-full text-xs font-semibold border disabled:opacity-40"
                     style={ghostBtn}>
                     <Droplets size={10} className="inline mr-1 align-middle" />
                     {d.name} · {num(d.volume_oz)} oz
