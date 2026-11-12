@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { API } from '@/lib/api';
-import { HeartPulse, Scale, Syringe, Utensils, Timer } from 'lucide-react';
+import { HeartPulse, Scale, Syringe, Utensils, Timer, UtensilsCrossed, ChevronDown, ChevronUp } from 'lucide-react';
 import AppletModal from '@/components/AppletModal';
 import BloodPressureTracker from '@/components/trackers/BloodPressureTracker';
 import WeightBmiTracker from '@/components/trackers/glp1/WeightBmiTracker';
@@ -29,6 +29,8 @@ export default function HSHealthPage() {
   const [activeApplet, setActiveApplet] = useState<Applet>(null);
   const [selectedPerson, setSelectedPerson] = useState<Person>('me');
   const [nutritionTab, setNutritionTab] = useState<'log' | 'day'>('log');
+  const [showCountdown, setShowCountdown] = useState(false);
+  const [showFasting, setShowFasting] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -53,13 +55,12 @@ export default function HSHealthPage() {
       {/* Header */}
       <div className="w-full max-w-5xl">
         <CopperPanel>
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-            {/* Title — left-anchored on both layouts */}
-            <h1 className="text-2xl sm:text-3xl font-bold shrink-0 order-1" style={{ color: 'var(--rs-accent)', textShadow: '0 0 16px rgba(var(--rs-accent-rgb),0.3)' }}>
+          {/* Always-visible row: title + person selector */}
+          <div className="flex items-center justify-between gap-4">
+            <h1 className="text-2xl sm:text-3xl font-bold shrink-0" style={{ color: 'var(--rs-accent)', textShadow: '0 0 16px rgba(var(--rs-accent-rgb),0.3)' }}>
               Health
             </h1>
-            {/* Person selector — right of title on mobile (order-2 + ml-auto), after timers on desktop */}
-            <div className="flex gap-1 shrink-0 order-2 ml-auto sm:order-3 sm:ml-0">
+            <div className="flex gap-1 shrink-0">
               {PEOPLE.map(({ key, label }) => (
                 <button
                   key={key}
@@ -80,11 +81,55 @@ export default function HSHealthPage() {
                 </button>
               ))}
             </div>
-            {/* Timers — full-width centered row on mobile, flex-1 center on desktop */}
-            <div className="order-3 w-full flex justify-center items-center gap-6 sm:order-2 sm:w-auto sm:flex-1">
-              <HealthCountdown />
-              <div className="w-px h-8 opacity-20" style={{ background: 'var(--rs-accent)' }} />
-              <FastingWidget onOpen={() => setActiveApplet('fasting')} />
+          </div>
+
+          {/* Desktop: timers inline */}
+          <div className="hidden sm:flex justify-center items-center gap-6 mt-3 pt-3" style={{ borderTop: '1px solid rgba(var(--rs-edge-rgb),0.1)' }}>
+            <HealthCountdown />
+            <div className="w-px h-8 opacity-20" style={{ background: 'var(--rs-accent)' }} />
+            <FastingWidget onOpen={() => setActiveApplet('fasting')} />
+          </div>
+
+          {/* Mobile: collapsible timer toggles */}
+          <div className="sm:hidden mt-3 space-y-1" style={{ borderTop: '1px solid rgba(var(--rs-edge-rgb),0.1)', paddingTop: 10 }}>
+            {/* Health countdown toggle */}
+            <div>
+              <button
+                type="button"
+                onClick={() => setShowCountdown(v => !v)}
+                className="w-full flex items-center justify-between px-2.5 py-1.5 rounded text-xs font-mono"
+                style={{ background: 'rgba(var(--rs-edge-rgb),0.08)', color: 'rgba(var(--rs-accent-rgb),0.7)' }}
+              >
+                <span className="flex items-center gap-1.5">
+                  <Timer size={11} /> Health Timer
+                </span>
+                {showCountdown ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+              </button>
+              {showCountdown && (
+                <div className="mt-2 flex justify-center py-1">
+                  <HealthCountdown />
+                </div>
+              )}
+            </div>
+
+            {/* Fasting toggle */}
+            <div>
+              <button
+                type="button"
+                onClick={() => setShowFasting(v => !v)}
+                className="w-full flex items-center justify-between px-2.5 py-1.5 rounded text-xs font-mono"
+                style={{ background: 'rgba(var(--rs-edge-rgb),0.08)', color: 'rgba(var(--rs-accent-rgb),0.7)' }}
+              >
+                <span className="flex items-center gap-1.5">
+                  <UtensilsCrossed size={11} /> Fasting Tracker
+                </span>
+                {showFasting ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+              </button>
+              {showFasting && (
+                <div className="mt-2 flex justify-center py-1">
+                  <FastingWidget onOpen={() => setActiveApplet('fasting')} />
+                </div>
+              )}
             </div>
           </div>
         </CopperPanel>
