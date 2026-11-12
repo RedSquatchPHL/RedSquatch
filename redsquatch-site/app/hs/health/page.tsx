@@ -53,16 +53,13 @@ export default function HSHealthPage() {
       {/* Header */}
       <div className="w-full max-w-5xl">
         <CopperPanel>
-          <div className="flex items-center justify-between gap-4">
-            <h1 className="text-3xl font-bold shrink-0" style={{ color: 'var(--rs-accent)', textShadow: '0 0 16px rgba(var(--rs-accent-rgb),0.3)' }}>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            {/* Title — left-anchored on both layouts */}
+            <h1 className="text-2xl sm:text-3xl font-bold shrink-0 order-1" style={{ color: 'var(--rs-accent)', textShadow: '0 0 16px rgba(var(--rs-accent-rgb),0.3)' }}>
               Health
             </h1>
-            <div className="flex-1 flex justify-center items-center gap-6">
-              <HealthCountdown />
-              <div className="w-px h-8 opacity-20" style={{ background: 'var(--rs-accent)' }} />
-              <FastingWidget onOpen={() => setActiveApplet('fasting')} />
-            </div>
-            <div className="flex gap-1 shrink-0">
+            {/* Person selector — right of title on mobile (order-2 + ml-auto), after timers on desktop */}
+            <div className="flex gap-1 shrink-0 order-2 ml-auto sm:order-3 sm:ml-0">
               {PEOPLE.map(({ key, label }) => (
                 <button
                   key={key}
@@ -82,6 +79,12 @@ export default function HSHealthPage() {
                   {label}
                 </button>
               ))}
+            </div>
+            {/* Timers — full-width centered row on mobile, flex-1 center on desktop */}
+            <div className="order-3 w-full flex justify-center items-center gap-6 sm:order-2 sm:w-auto sm:flex-1">
+              <HealthCountdown />
+              <div className="w-px h-8 opacity-20" style={{ background: 'var(--rs-accent)' }} />
+              <FastingWidget onOpen={() => setActiveApplet('fasting')} />
             </div>
           </div>
         </CopperPanel>
