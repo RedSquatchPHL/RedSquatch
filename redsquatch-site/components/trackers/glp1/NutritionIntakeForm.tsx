@@ -54,6 +54,7 @@ function Choice({ active, onClick, children }: { active: boolean; onClick: () =>
 
 export default function NutritionIntakeForm({ onViewLog, onSubmit }: { onViewLog?: () => void; onSubmit?: () => void }) {
   const foods = useEntries<FoodRow>('/foods');
+  const frequentDrinks = useEntries<FoodRow & { log_count: number }>('/foods/frequent');
 
   const [date, setDate] = useState(dayKey(new Date()));
   const [time, setTime] = useState(nowHM());
@@ -211,6 +212,7 @@ export default function NutritionIntakeForm({ onViewLog, onSubmit }: { onViewLog
       setTime(nowHM());
       setDoneCount(items.length);
       foods.reload();
+      frequentDrinks.reload();
       onSubmit?.();
     } catch (e) {
       // Nothing was saved; keep everything on screen so the user can retry.
@@ -235,6 +237,7 @@ export default function NutritionIntakeForm({ onViewLog, onSubmit }: { onViewLog
         items: [{ kind: 'hydration', ounces: r1(oz), drink_name: d.name, macros: hasMacroData ? { grams: r1(p), fat_g: r1(f), carbs_g: r1(c), calories: r1(cal) } : null, save_drink: null }],
       }) });
       setDoneCount(1);
+      frequentDrinks.reload();
       onSubmit?.();
     } catch (e) {
       setErr(e instanceof Error ? e.message : 'Quick log failed.');
@@ -268,11 +271,11 @@ export default function NutritionIntakeForm({ onViewLog, onSubmit }: { onViewLog
             </div>
           </div>
 
-          {sortedDrinks.length > 0 && (
+          {frequentDrinks.entries.length > 0 && (
             <div className="sm:flex-shrink-0 sm:text-right">
               <div className="text-xs mb-1.5" style={muted}>Quick Log</div>
               <div className="flex flex-col sm:flex-row sm:flex-wrap gap-1.5 sm:justify-end sm:max-w-xs">
-                {sortedDrinks.map(d => (
+                {frequentDrinks.entries.map(d => (
                   <button key={d.id} type="button" disabled={busy}
                     onClick={() => quickLog(d)}
                     className="w-full sm:w-auto text-left sm:text-center px-2.5 py-2 sm:py-1.5 rounded-md sm:rounded-full text-xs font-semibold border disabled:opacity-40"

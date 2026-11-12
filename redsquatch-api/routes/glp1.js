@@ -481,6 +481,34 @@ function makeRouter(db) {
   crud('/foods', 'glp1_foods', 'name', ['serving', 'volume_oz', 'protein_g', 'fat_g', 'carbs_g', 'calories'], validateFood);
   crud('/injections', 'glp1_injections', 'injected_at', ['medication', 'dose_mg', 'site', 'notes'], validateInjection);
 
+  // GET /foods/frequent — saved drinks (volume_oz IS NOT NULL) sorted by how often
+  // they appear in the hydration log, most-logged first. Useful for Quick Log ordering.
+  router.get('/foods/frequent', auth, async (req, res) => {
+    const clientId = req.client.id;
+    const limit = Math.min(parseInt(req.query.limit ?? '8', 10) || 8, 20);
+    try {
+      const { rows } = await db.query(
+        `SELECT f.id, f.name, f.serving, f.volume_oz, f.protein_g, f.fat_g, f.carbs_g, f.calories,
+                COALESCE(c.cnt, 0) AS log_count
+           FROM glp1_foods f
+           LEFT JOIN (
+             SELECT lower(drink_name) AS dn, COUNT(*) AS cnt
+               FROM glp1_hydration_entries
+              WHERE client_id = $1 AND drink_name IS NOT NULL
+              GROUP BY lower(drink_name)
+           ) c ON lower(f.name) = c.dn
+          WHERE f.client_id = $1 AND f.volume_oz IS NOT NULL
+          ORDER BY c.cnt DESC NULLS LAST, f.name ASC
+          LIMIT $2`,
+        [clientId, limit]
+      );
+      res.json({ entries: rows });
+    } catch (err) {
+      console.error('GLP-1 /foods/frequent error:', err.message);
+      res.status(500).json({ error: 'Failed to load frequent drinks' });
+    }
+  });
+
   // POST /intake — the nutrition form's single Submit. Body: { logged_at, items: [...] }
   // where an item is { kind: 'hydration', ounces, drink_name } or
   // { kind: 'food', name, grams, fat_g, carbs_g, calories, food_name, save_food?: {serving, protein_g, fat_g, carbs_g, calories} }.
