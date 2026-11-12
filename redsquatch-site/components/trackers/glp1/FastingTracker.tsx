@@ -113,7 +113,7 @@ function FastingRow({ method, session, onStart, onStop }: {
         </div>
         {isActive && (
           <span className="text-sm font-mono shrink-0" style={{ color: done ? 'var(--rs-ok, #4ade80)' : 'var(--rs-accent)' }}>
-            {formatElapsed(elapsed)}
+            {done ? '00:00:00' : formatElapsed(targetMs - elapsed)}
           </span>
         )}
         {isActive ? (

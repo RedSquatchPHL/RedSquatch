@@ -141,7 +141,7 @@ export default function FastingWidget({ onOpen }: { onOpen?: () => void }) {
             className="font-mono text-sm"
             style={{ color: done ? 'var(--rs-ok, #4ade80)' : accent, textShadow: `0 0 10px rgba(${accentRgb},0.3)` }}
           >
-            {formatElapsed(elapsed)}
+            {done ? '00:00:00' : formatElapsed(targetMs - elapsed)}
           </span>
           <div className="w-20 h-1 rounded-full overflow-hidden mt-0.5" style={{ background: `rgba(${accentRgb},0.15)` }}>
             <div
