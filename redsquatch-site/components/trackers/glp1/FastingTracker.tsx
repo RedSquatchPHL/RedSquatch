@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Timer, Square, ChevronDown, ChevronUp, Bell, BellOff, Clock, Pencil } from 'lucide-react';
 import { glp1Fetch, primaryBtn, ghostBtn, panelStyle, inputStyle, toLocalInput } from './shared';
 import FastingCalendar from './FastingCalendar';
+import FastingStageView from './FastingStageView';
 
 interface FastingMethod {
   id: string;
@@ -336,6 +337,8 @@ export default function FastingTracker() {
 
   return (
     <div>
+      <FastingStageView startedAt={session?.startedAt ?? null} />
+
       {session && activeMethod && (() => {
         const finishAt = new Date(new Date(session.startedAt).getTime() + activeMethod.fastHours * 3_600_000);
         return (
