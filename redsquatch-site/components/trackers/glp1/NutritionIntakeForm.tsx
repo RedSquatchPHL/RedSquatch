@@ -419,7 +419,7 @@ export default function NutritionIntakeForm({ onViewLog, onSubmit }: { onViewLog
                             <span className="font-semibold">{f.name}</span>
                             {f.serving && <span className="text-xs" style={muted}>({f.serving})</span>}
                             <span className="w-full sm:w-auto sm:ml-auto text-xs" style={muted}>
-                              {macroLine({ protein: num(f.protein_g) ?? 0, fat: num(f.fat_g) ?? 0, carbs: num(f.carbs_g) ?? 0, calories: num(f.calories) ?? 0 })}
+                              {macroLine({ protein: num(f.protein_g) ?? 0, fat: num(f.fat_g) ?? 0, carbs: num(f.carbs_g) ?? 0, calories: num(f.calories) ?? 0, fiber: num(f.fiber_g) ?? 0 })}
                             </span>
                           </button>
                         </li>
