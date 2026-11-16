@@ -88,6 +88,8 @@ const SCHEMA_STATEMENTS = [
   // A saved item with a volume is a drink (protein shake): it shows in the hydration
   // picker, not the food list. Its macros are per serving of that volume.
   `ALTER TABLE glp1_foods ADD COLUMN IF NOT EXISTS volume_oz NUMERIC(6,1)`,
+  `ALTER TABLE glp1_protein_entries ADD COLUMN IF NOT EXISTS fiber_g NUMERIC(6,1)`,
+  `ALTER TABLE glp1_foods ADD COLUMN IF NOT EXISTS fiber_g NUMERIC(6,1) NOT NULL DEFAULT 0`,
   `ALTER TABLE glp1_profile ADD COLUMN IF NOT EXISTS countdown_target TIMESTAMP`,
   `ALTER TABLE glp1_profile ADD COLUMN IF NOT EXISTS countdown_label VARCHAR(120)`,
   `CREATE TABLE IF NOT EXISTS glp1_fasting_sessions (
@@ -346,6 +348,7 @@ function validateProtein(b) {
   if (!optNum(b.fat_g, 0, 1000)) return 'fat_g must be between 0 and 1000';
   if (!optNum(b.carbs_g, 0, 1000)) return 'carbs_g must be between 0 and 1000';
   if (!optNum(b.calories, 0, 10000)) return 'calories must be between 0 and 10000';
+  if (!optNum(b.fiber_g, 0, 200)) return 'fiber_g must be between 0 and 200';
   if (!optText(b.food_name, 120)) return 'food_name must be 120 characters or fewer';
   return null;
 }
@@ -357,6 +360,7 @@ function validateFood(b) {
   if (!isNum(b.fat_g, 0, 1000)) return 'fat_g must be between 0 and 1000';
   if (!isNum(b.carbs_g, 0, 1000)) return 'carbs_g must be between 0 and 1000';
   if (!isNum(b.calories, 0, 10000)) return 'calories must be between 0 and 10000';
+  if (!optNum(b.fiber_g, 0, 200)) return 'fiber_g must be between 0 and 200';
   if (!optNum(b.volume_oz, 0.1, 500)) return 'volume_oz must be between 0.1 and 500';
   return null;
 }
@@ -475,10 +479,10 @@ function makeRouter(db) {
 
   crud('/weight', 'glp1_weight_entries', 'measured_at', ['weight_lb', 'notes'], validateWeight);
   crud('/hydration', 'glp1_hydration_entries', 'logged_at', ['ounces', 'drink_name', 'notes'], validateHydration);
-  crud('/protein', 'glp1_protein_entries', 'logged_at', ['grams', 'fat_g', 'carbs_g', 'calories', 'food_name', 'notes'], validateProtein);
+  crud('/protein', 'glp1_protein_entries', 'logged_at', ['grams', 'fat_g', 'carbs_g', 'calories', 'fiber_g', 'food_name', 'notes'], validateProtein);
   // The foods list sorts client-side (alphabetical, case-insensitive); `name` here is
   // only the crud helper's sort column.
-  crud('/foods', 'glp1_foods', 'name', ['serving', 'volume_oz', 'protein_g', 'fat_g', 'carbs_g', 'calories'], validateFood);
+  crud('/foods', 'glp1_foods', 'name', ['serving', 'volume_oz', 'protein_g', 'fat_g', 'carbs_g', 'calories', 'fiber_g'], validateFood);
   crud('/injections', 'glp1_injections', 'injected_at', ['medication', 'dose_mg', 'site', 'notes'], validateInjection);
 
   // GET /foods/frequent — saved drinks (volume_oz IS NOT NULL) sorted by how often
@@ -488,7 +492,7 @@ function makeRouter(db) {
     const limit = Math.min(parseInt(req.query.limit ?? '8', 10) || 8, 20);
     try {
       const { rows } = await db.query(
-        `SELECT f.id, f.name, f.serving, f.volume_oz, f.protein_g, f.fat_g, f.carbs_g, f.calories,
+        `SELECT f.id, f.name, f.serving, f.volume_oz, f.protein_g, f.fat_g, f.carbs_g, f.calories, f.fiber_g,
                 COALESCE(c.cnt, 0) AS log_count
            FROM glp1_foods f
            LEFT JOIN (
@@ -550,17 +554,17 @@ function makeRouter(db) {
           if (it.save_drink) {
             const f = it.save_drink;
             await client.query(
-              `INSERT INTO glp1_foods (client_id, name, volume_oz, protein_g, fat_g, carbs_g, calories)
-               SELECT $1, $2, $3, $4, $5, $6, $7
+              `INSERT INTO glp1_foods (client_id, name, volume_oz, protein_g, fat_g, carbs_g, calories, fiber_g)
+               SELECT $1, $2, $3, $4, $5, $6, $7, $8
                WHERE NOT EXISTS (SELECT 1 FROM glp1_foods WHERE client_id = $1 AND lower(name) = lower($2::varchar))`,
-              [clientId, f.name ?? it.drink_name, f.volume_oz, f.protein_g, f.fat_g, f.carbs_g, f.calories]
+              [clientId, f.name ?? it.drink_name, f.volume_oz, f.protein_g, f.fat_g, f.carbs_g, f.calories, f.fiber_g ?? 0]
             );
           }
           if (it.macros) {
             const m = it.macros;
             await client.query(
-              `INSERT INTO glp1_protein_entries (client_id, logged_at, grams, fat_g, carbs_g, calories, food_name) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-              [clientId, logged_at, m.grams, m.fat_g ?? null, m.carbs_g ?? null, m.calories ?? null, it.drink_name ?? null]
+              `INSERT INTO glp1_protein_entries (client_id, logged_at, grams, fat_g, carbs_g, calories, food_name, fiber_g) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+              [clientId, logged_at, m.grams, m.fat_g ?? null, m.carbs_g ?? null, m.calories ?? null, it.drink_name ?? null, m.fiber_g ?? null]
             );
           }
           continue;
@@ -568,15 +572,15 @@ function makeRouter(db) {
         if (it.save_food) {
           const f = it.save_food;
           await client.query(
-            `INSERT INTO glp1_foods (client_id, name, serving, protein_g, fat_g, carbs_g, calories)
-             SELECT $1, $2, $3, $4, $5, $6, $7
+            `INSERT INTO glp1_foods (client_id, name, serving, protein_g, fat_g, carbs_g, calories, fiber_g)
+             SELECT $1, $2, $3, $4, $5, $6, $7, $8
              WHERE NOT EXISTS (SELECT 1 FROM glp1_foods WHERE client_id = $1 AND lower(name) = lower($2::varchar))`,
-            [clientId, it.name, f.serving ?? null, f.protein_g, f.fat_g, f.carbs_g, f.calories]
+            [clientId, it.name, f.serving ?? null, f.protein_g, f.fat_g, f.carbs_g, f.calories, f.fiber_g ?? 0]
           );
         }
         await client.query(
-          `INSERT INTO glp1_protein_entries (client_id, logged_at, grams, fat_g, carbs_g, calories, food_name) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-          [clientId, logged_at, it.grams, it.fat_g ?? null, it.carbs_g ?? null, it.calories ?? null, it.food_name ?? null]
+          `INSERT INTO glp1_protein_entries (client_id, logged_at, grams, fat_g, carbs_g, calories, food_name, fiber_g) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+          [clientId, logged_at, it.grams, it.fat_g ?? null, it.carbs_g ?? null, it.calories ?? null, it.food_name ?? null, it.fiber_g ?? null]
         );
       }
       await client.query('COMMIT');
@@ -596,7 +600,7 @@ function makeRouter(db) {
       const clientId = await getClientId(db, req);
       const result = await db.query(`SELECT * FROM glp1_profile WHERE client_id = $1`, [clientId]);
       res.json(result.rows[0] ?? {
-        client_id: clientId, height_in: null, target_weight_lb: null, hydration_goal_oz: 64, protein_goal_g: null, countdown_target: null, countdown_label: null,
+        client_id: clientId, height_in: null, target_weight_lb: null, hydration_goal_oz: 100, protein_goal_g: null, countdown_target: null, countdown_label: null,
       });
     } catch (err) {
       console.error('GLP-1 profile fetch error:', err.message);

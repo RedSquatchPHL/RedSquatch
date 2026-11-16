@@ -9,6 +9,7 @@ export interface HydrationRow { id: number; logged_at: string; ounces: string | 
 export interface ProteinRow {
   id: number; logged_at: string; grams: string | number; notes: string | null;
   food_name: string | null; fat_g: string | number | null; carbs_g: string | number | null; calories: string | number | null;
+  fiber_g: string | number | null;
 }
 
 interface Entries<T> {
@@ -21,7 +22,7 @@ type Item =
   | { type: 'h'; id: number; at: string; row: HydrationRow }
   | { type: 'f'; id: number; at: string; row: ProteinRow };
 
-interface Draft { at: string; name: string; amount: string; fat: string; carbs: string; cal: string }
+interface Draft { at: string; name: string; amount: string; fat: string; carbs: string; cal: string; fiber: string }
 
 const r1 = (n: number) => Math.round(n * 10) / 10;
 const show = (v: unknown) => { const n = num(v); return n === null ? '' : String(n); };
@@ -57,8 +58,8 @@ export default function NutritionDayLog({ day, hydration, protein }: {
     setEditing({
       item,
       d: item.type === 'h'
-        ? { at: toLocalInput(item.at), name: item.row.drink_name ?? '', amount: show(item.row.ounces), fat: '', carbs: '', cal: '' }
-        : { at: toLocalInput(item.at), name: item.row.food_name ?? '', amount: show(item.row.grams), fat: show(item.row.fat_g), carbs: show(item.row.carbs_g), cal: show(item.row.calories) },
+        ? { at: toLocalInput(item.at), name: item.row.drink_name ?? '', amount: show(item.row.ounces), fat: '', carbs: '', cal: '', fiber: '' }
+        : { at: toLocalInput(item.at), name: item.row.food_name ?? '', amount: show(item.row.grams), fat: show(item.row.fat_g), carbs: show(item.row.carbs_g), cal: show(item.row.calories), fiber: show(item.row.fiber_g) },
     });
   }
 
@@ -75,10 +76,10 @@ export default function NutritionDayLog({ day, hydration, protein }: {
         // PUT replaces every column, so send notes back unchanged.
         await hydration.update(item.id, { ounces: amount, drink_name: d.name.trim() || null, logged_at: when.toISOString(), notes: item.row.notes });
       } else {
-        const fat = optNonNeg(d.fat), carbs = optNonNeg(d.carbs), cal = optNonNeg(d.cal);
+        const fat = optNonNeg(d.fat), carbs = optNonNeg(d.carbs), cal = optNonNeg(d.cal), fiber = optNonNeg(d.fiber);
         if (!d.amount.trim() || !Number.isFinite(amount) || amount < 0) { setErr('Enter protein as 0 or more grams.'); return; }
-        if (fat === undefined || carbs === undefined || cal === undefined) { setErr('Fat, carbs and calories must be blank or 0 or more.'); return; }
-        await protein.update(item.id, { grams: amount, food_name: d.name.trim() || null, fat_g: fat, carbs_g: carbs, calories: cal, logged_at: when.toISOString(), notes: item.row.notes });
+        if (fat === undefined || carbs === undefined || cal === undefined || fiber === undefined) { setErr('Fat, carbs, calories and fiber must be blank or 0 or more.'); return; }
+        await protein.update(item.id, { grams: amount, food_name: d.name.trim() || null, fat_g: fat, carbs_g: carbs, calories: cal, fiber_g: fiber, logged_at: when.toISOString(), notes: item.row.notes });
       }
       setEditing(null); setErr(null);
     } catch (e) {
@@ -131,6 +132,7 @@ export default function NutritionDayLog({ day, hydration, protein }: {
                       <Field label="Fat (g)"><input value={editing.d.fat} onChange={set('fat')} inputMode="decimal" className={inp} style={inputStyle} /></Field>
                       <Field label="Carbs (g)"><input value={editing.d.carbs} onChange={set('carbs')} inputMode="decimal" className={inp} style={inputStyle} /></Field>
                       <Field label="Calories"><input value={editing.d.cal} onChange={set('cal')} inputMode="decimal" className={inp} style={inputStyle} /></Field>
+                      <Field label="Fiber (g)"><input value={editing.d.fiber} onChange={set('fiber')} inputMode="decimal" className={inp} style={inputStyle} /></Field>
                     </>}
                   </div>
                   <div className="flex gap-2">
@@ -156,7 +158,7 @@ export default function NutritionDayLog({ day, hydration, protein }: {
                         <strong>{show(p.grams)} g</strong>
                         {p.food_name && <span>{p.food_name}</span>}
                         {p.calories !== null && (
-                          <span className="text-xs" style={muted}>{show(p.calories)} cal · F {show(p.fat_g) || 0}g · C {show(p.carbs_g) || 0}g</span>
+                          <span className="text-xs" style={muted}>{show(p.calories)} cal · F {show(p.fat_g) || 0}g · C {show(p.carbs_g) || 0}g{p.fiber_g && num(p.fiber_g) ? ` · Fiber ${show(p.fiber_g)}g` : ''}</span>
                         )}
                       </>
                     );

@@ -85,8 +85,8 @@ export default function NutritionTracker() {
   const dayOunces = hydration.entries.filter(r => dayKey(r.logged_at) === day).reduce((t, r) => t + (num(r.ounces) ?? 0), 0);
   const dayGrams = protein.entries.filter(r => dayKey(r.logged_at) === day).reduce((t, r) => t + (num(r.grams) ?? 0), 0);
   const dayMacros = protein.entries.filter(r => dayKey(r.logged_at) === day).reduce(
-    (t, r) => ({ calories: t.calories + (num(r.calories) ?? 0), fat: t.fat + (num(r.fat_g) ?? 0), carbs: t.carbs + (num(r.carbs_g) ?? 0) }),
-    { calories: 0, fat: 0, carbs: 0 },
+    (t, r) => ({ calories: t.calories + (num(r.calories) ?? 0), fat: t.fat + (num(r.fat_g) ?? 0), carbs: t.carbs + (num(r.carbs_g) ?? 0), fiber: t.fiber + (num(r.fiber_g) ?? 0) }),
+    { calories: 0, fat: 0, carbs: 0, fiber: 0 },
   );
 
   async function submitGoals() {
@@ -156,6 +156,7 @@ export default function NutritionTracker() {
         <span>Calories <strong style={{ color: CAL_COLOR }}>{Math.round(dayMacros.calories)}</strong></span>
         <span>Fat <strong>{Math.round(dayMacros.fat * 10) / 10} g</strong></span>
         <span>Carbs <strong>{Math.round(dayMacros.carbs * 10) / 10} g</strong></span>
+        {dayMacros.fiber > 0 && <span>Fiber <strong>{Math.round(dayMacros.fiber * 10) / 10} g</strong></span>}
       </div>
 
       <div className="mb-5">

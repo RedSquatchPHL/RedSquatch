@@ -13,9 +13,10 @@ interface UsdaResult { fdcId: number; description: string; serving: string | nul
 interface FoodRow {
   id: number; name: string; serving: string | null; volume_oz: string | number | null;
   protein_g: string | number; fat_g: string | number; carbs_g: string | number; calories: string | number;
+  fiber_g: string | number | null;
 }
 
-interface Macros { protein: number; fat: number; carbs: number; calories: number }
+interface Macros { protein: number; fat: number; carbs: number; calories: number; fiber: number }
 
 // One staged item waiting for Submit. Macros (and a drink's ounces) are already scaled
 // by servings, because that is what the logs store (a logged amount, not a per-serving
@@ -37,7 +38,8 @@ function parseNonNeg(s: string): number | null {
 }
 
 function macroLine(m: Macros): string {
-  return `${r1(m.calories)} cal · P ${r1(m.protein)}g · F ${r1(m.fat)}g · C ${r1(m.carbs)}g`;
+  const fib = m.fiber > 0 ? ` · Fiber ${r1(m.fiber)}g` : '';
+  return `${r1(m.calories)} cal · P ${r1(m.protein)}g · F ${r1(m.fat)}g · C ${r1(m.carbs)}g${fib}`;
 }
 
 const muted = { color: 'rgba(var(--rs-accent-rgb),0.6)' } as const;
@@ -63,13 +65,13 @@ export default function NutritionIntakeForm({ onViewLog, onSubmit }: { onViewLog
   const [drink, setDrink] = useState('');
   const [ounces, setOunces] = useState('');
   const [hasMacros, setHasMacros] = useState(false);
-  const [dm, setDm] = useState({ protein: '', fat: '', carbs: '', calories: '' });
+  const [dm, setDm] = useState({ protein: '', fat: '', carbs: '', calories: '', fiber: '' });
   const [dServ, setDServ] = useState('1');
   const [saveDrink, setSaveDrink] = useState(true);
   const [pickedDrinkId, setPickedDrinkId] = useState<number | null>(null);
 
   const [isNew, setIsNew] = useState<boolean | null>(null);
-  const [nf, setNf] = useState({ name: '', serving: '', protein: '', fat: '', carbs: '', calories: '' });
+  const [nf, setNf] = useState({ name: '', serving: '', protein: '', fat: '', carbs: '', calories: '', fiber: '' });
   const [search, setSearch] = useState('');
   const [pickedId, setPickedId] = useState<number | null>(null);
   const [servings, setServings] = useState('1');
@@ -129,7 +131,7 @@ export default function NutritionIntakeForm({ onViewLog, onSubmit }: { onViewLog
       const oz = num(ounces);
       if (!drink.trim() || !oz || oz <= 0) return null;
       if (!hasMacros) return { kind: 'hydration', drink: drink.trim(), servings: 1, ounces: oz, macros: null, newDrink: null };
-      const per = { protein: parseNonNeg(dm.protein), fat: parseNonNeg(dm.fat), carbs: parseNonNeg(dm.carbs), calories: parseNonNeg(dm.calories) };
+      const per = { protein: parseNonNeg(dm.protein), fat: parseNonNeg(dm.fat), carbs: parseNonNeg(dm.carbs), calories: parseNonNeg(dm.calories), fiber: parseNonNeg(dm.fiber) ?? 0 };
       const sv = num(dServ);
       if (!sv || sv <= 0 || per.protein === null || per.fat === null || per.carbs === null || per.calories === null) return null;
       const full = per as Macros;
@@ -143,11 +145,11 @@ export default function NutritionIntakeForm({ onViewLog, onSubmit }: { onViewLog
       if (!sv || sv <= 0) return null;
       if (isNew === false) {
         if (!picked) return null;
-        const per = { protein: num(picked.protein_g) ?? 0, fat: num(picked.fat_g) ?? 0, carbs: num(picked.carbs_g) ?? 0, calories: num(picked.calories) ?? 0 };
+        const per = { protein: num(picked.protein_g) ?? 0, fat: num(picked.fat_g) ?? 0, carbs: num(picked.carbs_g) ?? 0, calories: num(picked.calories) ?? 0, fiber: num(picked.fiber_g) ?? 0 };
         return { kind: 'food', name: picked.name, servings: sv, macros: scale(per, sv), newFood: null };
       }
       if (isNew === true) {
-        const per = { protein: parseNonNeg(nf.protein), fat: parseNonNeg(nf.fat), carbs: parseNonNeg(nf.carbs), calories: parseNonNeg(nf.calories) };
+        const per = { protein: parseNonNeg(nf.protein), fat: parseNonNeg(nf.fat), carbs: parseNonNeg(nf.carbs), calories: parseNonNeg(nf.calories), fiber: parseNonNeg(nf.fiber) ?? 0 };
         if (!nf.name.trim() || per.protein === null || per.fat === null || per.carbs === null || per.calories === null) return null;
         const full = per as Macros;
         return { kind: 'food', name: nf.name.trim(), servings: sv, macros: scale(full, sv), newFood: { serving: nf.serving.trim() || null, per: full } };
@@ -157,13 +159,13 @@ export default function NutritionIntakeForm({ onViewLog, onSubmit }: { onViewLog
   }, [kind, drink, ounces, hasMacros, dm, dServ, saveDrink, pickedDrink, isNew, nf, picked, servings]);
 
   function scale(m: Macros, sv: number): Macros {
-    return { protein: m.protein * sv, fat: m.fat * sv, carbs: m.carbs * sv, calories: m.calories * sv };
+    return { protein: m.protein * sv, fat: m.fat * sv, carbs: m.carbs * sv, calories: m.calories * sv, fiber: m.fiber * sv };
   }
 
   function resetItem() {
     setKind(null); setDrink(''); setOunces('');
-    setHasMacros(false); setDm({ protein: '', fat: '', carbs: '', calories: '' }); setDServ('1'); setSaveDrink(true); setPickedDrinkId(null);
-    setIsNew(null); setNf({ name: '', serving: '', protein: '', fat: '', carbs: '', calories: '' });
+    setHasMacros(false); setDm({ protein: '', fat: '', carbs: '', calories: '', fiber: '' }); setDServ('1'); setSaveDrink(true); setPickedDrinkId(null);
+    setIsNew(null); setNf({ name: '', serving: '', protein: '', fat: '', carbs: '', calories: '', fiber: '' });
     setSearch(''); setPickedId(null); setServings('1');
     setUsdaResults([]); setUsdaErr(null);
   }
@@ -196,14 +198,14 @@ export default function NutritionIntakeForm({ onViewLog, onSubmit }: { onViewLog
           ? {
               kind: 'hydration', ounces: r1(it.ounces),
               drink_name: it.servings === 1 ? it.drink : `${it.drink} ×${it.servings}`,
-              macros: it.macros && { grams: r1(it.macros.protein), fat_g: r1(it.macros.fat), carbs_g: r1(it.macros.carbs), calories: r1(it.macros.calories) },
-              save_drink: it.newDrink && { name: it.drink, volume_oz: it.newDrink.perOz, protein_g: it.newDrink.per.protein, fat_g: it.newDrink.per.fat, carbs_g: it.newDrink.per.carbs, calories: it.newDrink.per.calories },
+              macros: it.macros && { grams: r1(it.macros.protein), fat_g: r1(it.macros.fat), carbs_g: r1(it.macros.carbs), calories: r1(it.macros.calories), fiber_g: r1(it.macros.fiber) },
+              save_drink: it.newDrink && { name: it.drink, volume_oz: it.newDrink.perOz, protein_g: it.newDrink.per.protein, fat_g: it.newDrink.per.fat, carbs_g: it.newDrink.per.carbs, calories: it.newDrink.per.calories, fiber_g: it.newDrink.per.fiber },
             }
           : {
               kind: 'food', name: it.name,
-              grams: r1(it.macros.protein), fat_g: r1(it.macros.fat), carbs_g: r1(it.macros.carbs), calories: r1(it.macros.calories),
+              grams: r1(it.macros.protein), fat_g: r1(it.macros.fat), carbs_g: r1(it.macros.carbs), calories: r1(it.macros.calories), fiber_g: r1(it.macros.fiber),
               food_name: it.servings === 1 ? it.name : `${it.name} ×${it.servings}`,
-              save_food: it.newFood && { serving: it.newFood.serving, protein_g: it.newFood.per.protein, fat_g: it.newFood.per.fat, carbs_g: it.newFood.per.carbs, calories: it.newFood.per.calories },
+              save_food: it.newFood && { serving: it.newFood.serving, protein_g: it.newFood.per.protein, fat_g: it.newFood.per.fat, carbs_g: it.newFood.per.carbs, calories: it.newFood.per.calories, fiber_g: it.newFood.per.fiber },
             }),
       }) });
       setStaged([]);
@@ -229,12 +231,13 @@ export default function NutritionIntakeForm({ onViewLog, onSubmit }: { onViewLog
     const f = num(d.fat_g) ?? 0;
     const c = num(d.carbs_g) ?? 0;
     const cal = num(d.calories) ?? 0;
+    const fib = num(d.fiber_g) ?? 0;
     const hasMacroData = p > 0 || f > 0 || c > 0 || cal > 0;
     setBusy(true); setErr(null); setDoneCount(null);
     try {
       await glp1Fetch('/intake', { method: 'POST', body: JSON.stringify({
         logged_at: new Date().toISOString(),
-        items: [{ kind: 'hydration', ounces: r1(oz), drink_name: d.name, macros: hasMacroData ? { grams: r1(p), fat_g: r1(f), carbs_g: r1(c), calories: r1(cal) } : null, save_drink: null }],
+        items: [{ kind: 'hydration', ounces: r1(oz), drink_name: d.name, macros: hasMacroData ? { grams: r1(p), fat_g: r1(f), carbs_g: r1(c), calories: r1(cal), fiber_g: r1(fib) } : null, save_drink: null }],
       }) });
       setDoneCount(1);
       frequentDrinks.reload();
@@ -304,7 +307,7 @@ export default function NutritionIntakeForm({ onViewLog, onSubmit }: { onViewLog
                       // A saved drink fills in its name, ounces and macros and turns macros on.
                       setPickedDrinkId(d.id); setDrink(d.name); setOunces(String(num(d.volume_oz) ?? ''));
                       setHasMacros(true);
-                      setDm({ protein: String(num(d.protein_g) ?? 0), fat: String(num(d.fat_g) ?? 0), carbs: String(num(d.carbs_g) ?? 0), calories: String(num(d.calories) ?? 0) });
+                      setDm({ protein: String(num(d.protein_g) ?? 0), fat: String(num(d.fat_g) ?? 0), carbs: String(num(d.carbs_g) ?? 0), calories: String(num(d.calories) ?? 0), fiber: String(num(d.fiber_g) ?? 0) });
                     }}
                     className={`px-3 py-2 min-h-[36px] rounded-full text-xs font-semibold ${pickedDrinkId === d.id ? '' : 'border'}`}
                     style={pickedDrinkId === d.id ? primaryBtn : ghostBtn}>
@@ -321,7 +324,7 @@ export default function NutritionIntakeForm({ onViewLog, onSubmit }: { onViewLog
 
             {hasMacros && (
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3">
-                {([['protein', 'Protein (g)'], ['fat', 'Fat (g)'], ['carbs', 'Carbs (g)'], ['calories', 'Calories']] as const).map(([k, label]) => (
+                {([['protein', 'Protein (g)'], ['fat', 'Fat (g)'], ['carbs', 'Carbs (g)'], ['calories', 'Calories'], ['fiber', 'Fiber (g)']] as const).map(([k, label]) => (
                   <Field key={k} label={label}><input value={dm[k]} onChange={e => setDm(x => ({ ...x, [k]: e.target.value }))} inputMode="decimal" className="w-full border px-2 py-2 text-base sm:py-1.5 sm:text-sm rounded" style={inputStyle} /></Field>
                 ))}
                 <Field label="Servings"><input value={dServ} onChange={e => setDServ(e.target.value)} inputMode="decimal" className="w-full border px-2 py-2 text-base sm:py-1.5 sm:text-sm rounded" style={inputStyle} /></Field>
@@ -390,7 +393,7 @@ export default function NutritionIntakeForm({ onViewLog, onSubmit }: { onViewLog
                   </div>
                 )}
 
-                {([['protein', 'Protein (g)'], ['fat', 'Fat (g)'], ['carbs', 'Carbs (g)'], ['calories', 'Calories']] as const).map(([k, label]) => (
+                {([['protein', 'Protein (g)'], ['fat', 'Fat (g)'], ['carbs', 'Carbs (g)'], ['calories', 'Calories'], ['fiber', 'Fiber (g)']] as const).map(([k, label]) => (
                   <Field key={k} label={label}><input value={nf[k]} onChange={e => setNf(x => ({ ...x, [k]: e.target.value }))} inputMode="decimal" className="w-full border px-2 py-2 text-base sm:py-1.5 sm:text-sm rounded" style={inputStyle} /></Field>
                 ))}
                 <p className="col-span-2 md:col-span-4 text-xs" style={muted}>Macros are per serving. This food is saved to your list for next time.</p>
