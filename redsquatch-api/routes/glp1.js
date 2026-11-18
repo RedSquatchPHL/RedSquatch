@@ -422,6 +422,15 @@ function makeRouter(db) {
     next();
   }
 
+  // Accepts either a valid browser session OR the x-n8n-token header (for n8n workflow calls).
+  // getClientId() already falls back to 1 for sessionless requests, so no route handlers change.
+  function n8nAuth(req, res, next) {
+    if (req.session?.user) return next();
+    const envToken = process.env.FASTING_QUICK_START_TOKEN;
+    if (envToken && req.headers['x-n8n-token'] === envToken) return next();
+    res.status(401).json({ error: 'Unauthorized' });
+  }
+
   // Generic list/create/update/delete for the four itemised logs. `cols` maps the
   // body field names to columns; `at` is the timestamp column, which also sorts.
   function crud(path, table, at, cols, validate) {
@@ -689,7 +698,7 @@ function makeRouter(db) {
 
   // ── Fasting sessions ──────────────────────────────────────────────────────
 
-  router.get('/fasting/current', auth, async (req, res) => {
+  router.get('/fasting/current', n8nAuth, async (req, res) => {
     try {
       const clientId = await getClientId(db, req);
       const r = await db.query(
@@ -706,7 +715,7 @@ function makeRouter(db) {
     }
   });
 
-  router.post('/fasting/start', auth, async (req, res) => {
+  router.post('/fasting/start', n8nAuth, async (req, res) => {
     const { method_id, started_at } = req.body ?? {};
     if (!VALID_METHOD_IDS.includes(method_id)) return res.status(400).json({ error: 'Invalid method_id' });
     let startedAt = new Date();
@@ -740,7 +749,7 @@ function makeRouter(db) {
     }
   });
 
-  router.post('/fasting/stop', auth, async (req, res) => {
+  router.post('/fasting/stop', n8nAuth, async (req, res) => {
     try {
       const clientId = await getClientId(db, req);
       const r = await db.query(
