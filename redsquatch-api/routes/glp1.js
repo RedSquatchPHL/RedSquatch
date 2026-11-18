@@ -145,14 +145,24 @@ async function getClientId(db, req) {
 const https = require('https');
 const querystring = require('querystring');
 
-async function sendPushover(title, message) {
+function quickStartUrl(methodId) {
+  const base = process.env.FASTING_QUICK_START_BASE;
+  const token = process.env.FASTING_QUICK_START_TOKEN;
+  if (!base || !token) return null;
+  return `${base}?token=${encodeURIComponent(token)}&method=${encodeURIComponent(methodId)}`;
+}
+
+async function sendPushover(title, message, opts = {}) {
   const userKey = process.env.PUSHOVER_USER_KEY;
   const apiToken = process.env.PUSHOVER_API_TOKEN;
   if (!userKey || !apiToken) {
     console.log('[Pushover] skipped — PUSHOVER_USER_KEY or PUSHOVER_API_TOKEN not set');
     return;
   }
-  const body = querystring.stringify({ token: apiToken, user: userKey, title, message });
+  const params = { token: apiToken, user: userKey, title, message };
+  if (opts.url) params.url = opts.url;
+  if (opts.url_title) params.url_title = opts.url_title;
+  const body = querystring.stringify(params);
   return new Promise((resolve, reject) => {
     const req = https.request({
       hostname: 'api.pushover.net',
@@ -245,7 +255,8 @@ function scheduleReminder(db, clientId, row) {
   const handle = setTimeout(async () => {
     scheduleTimers.delete(clientId);
     try {
-      await sendPushover('⏰ Time to Fast', "Your fasting window is starting — start your fast when you're ready!");
+      const qs_url = quickStartUrl('16_8');
+      await sendPushover('⏰ Time to Fast', "Your fasting window is starting — tap to start your fast now.", qs_url ? { url: qs_url, url_title: 'Start Fast' } : {});
       const r = await db.query('SELECT * FROM glp1_fasting_schedule WHERE client_id=$1', [clientId]);
       if (r.rows.length && r.rows[0].enabled) scheduleReminder(db, clientId, r.rows[0]);
     } catch (err) {
@@ -282,7 +293,8 @@ function schedulePlanAlert(clientId, planDate, startTime, methodId) {
     planTimers.delete(key);
     try {
       const name = methodId.replace('_', '/');
-      await sendPushover('⏰ Fast Starting', `Time to start your ${name} fast!`);
+      const pa_url = quickStartUrl(methodId);
+      await sendPushover('⏰ Fast Starting', `Time to start your ${name} fast — tap to start now.`, pa_url ? { url: pa_url, url_title: 'Start Fast' } : {});
     } catch (err) {
       console.error('[Plan alert] error:', err.message);
     }
@@ -741,6 +753,36 @@ function makeRouter(db) {
     } catch (err) {
       console.error('Fasting stop error:', err.message);
       res.status(500).json({ error: 'Failed to stop fasting session' });
+    }
+  });
+
+  // GET /fasting/quick-start — token-authenticated, no session required.
+  // Opened from a Pushover notification button; returns a simple HTML page.
+  router.get('/fasting/quick-start', async (req, res) => {
+    const qs = s => `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${s.title}</title><style>body{font-family:system-ui;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#111;color:#eee;text-align:center;padding:1.5rem}h1{font-size:1.5rem;margin-bottom:.5rem}p{color:#aaa}</style></head><body><div><h1>${s.title}</h1><p>${s.body}</p></div></body></html>`;
+    const envToken = process.env.FASTING_QUICK_START_TOKEN;
+    if (!envToken || req.query.token !== envToken) {
+      return res.status(403).send(qs({ title: '🚫 Not authorized', body: 'Invalid or missing token.' }));
+    }
+    const methodId = VALID_METHOD_IDS.includes(req.query.method) ? req.query.method : '16_8';
+    const fastHours = METHOD_HOURS[methodId];
+    try {
+      await db.query('UPDATE glp1_fasting_sessions SET ended_at=NOW() WHERE client_id=1 AND ended_at IS NULL');
+      const startedAt = new Date();
+      const notifyAt = new Date(startedAt.getTime() + fastHours * 3_600_000);
+      const r = await db.query(
+        `INSERT INTO glp1_fasting_sessions (client_id, method_id, fast_hours, started_at, notify_at)
+         VALUES (1, $1, $2, $3, $4) RETURNING *`,
+        [methodId, fastHours, startedAt.toISOString(), notifyAt.toISOString()]
+      );
+      const session = r.rows[0];
+      scheduleFastingTimer(db, session.id, 1, session.notify_at, methodId);
+      sendPushover('⏱ Fast Started', `Your ${fastHours}h ${methodId.replace('_', '/')} fast has begun via quick-start.`).catch(() => {});
+      const done = notifyAt.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' });
+      res.send(qs({ title: '⏱ Fast started!', body: `Your ${fastHours}h ${methodId.replace('_', '/')} fast is running. Done around ${done} ET. You can close this tab.` }));
+    } catch (err) {
+      console.error('[Quick-start] error:', err.message);
+      res.status(500).send(qs({ title: '⚠️ Error', body: 'Something went wrong. Please start your fast manually.' }));
     }
   });
 
