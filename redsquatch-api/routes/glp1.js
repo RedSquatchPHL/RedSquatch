@@ -255,8 +255,14 @@ function scheduleReminder(db, clientId, row) {
   const handle = setTimeout(async () => {
     scheduleTimers.delete(clientId);
     try {
-      const qs_url = quickStartUrl('16_8');
-      await sendPushover('⏰ Time to Fast', "Your fasting window is starting — tap to start your fast now.", qs_url ? { url: qs_url, url_title: 'Start Fast' } : {});
+      const active = await db.query(
+        'SELECT id FROM glp1_fasting_sessions WHERE client_id=$1 AND ended_at IS NULL AND notify_at > NOW() LIMIT 1',
+        [clientId]
+      );
+      if (!active.rows.length) {
+        const qs_url = quickStartUrl('16_8');
+        await sendPushover('⏰ Time to Fast', "Your fasting window is starting — tap to start your fast now.", qs_url ? { url: qs_url, url_title: 'Start Fast' } : {});
+      }
       const r = await db.query('SELECT * FROM glp1_fasting_schedule WHERE client_id=$1', [clientId]);
       if (r.rows.length && r.rows[0].enabled) scheduleReminder(db, clientId, r.rows[0]);
     } catch (err) {
@@ -767,6 +773,14 @@ function makeRouter(db) {
     const methodId = VALID_METHOD_IDS.includes(req.query.method) ? req.query.method : '16_8';
     const fastHours = METHOD_HOURS[methodId];
     try {
+      const active = await db.query(
+        'SELECT id, method_id, notify_at FROM glp1_fasting_sessions WHERE client_id=1 AND ended_at IS NULL AND notify_at > NOW() LIMIT 1'
+      );
+      if (active.rows.length) {
+        const a = active.rows[0];
+        const done = new Date(a.notify_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' });
+        return res.send(qs({ title: '⏱ Already fasting', body: `Your ${a.method_id.replace('_', '/')} fast is already running — done around ${done} ET.` }));
+      }
       await db.query('UPDATE glp1_fasting_sessions SET ended_at=NOW() WHERE client_id=1 AND ended_at IS NULL');
       const startedAt = new Date();
       const notifyAt = new Date(startedAt.getTime() + fastHours * 3_600_000);
