@@ -504,6 +504,18 @@ function makeRouter(db) {
     });
   }
 
+  // One-time download: returns the pre-built .shortcut file for the iOS Health import.
+  // Requires session auth so the token placeholder is never exposed publicly.
+  router.get('/weight/shortcut', auth, (req, res) => {
+    const path = require('path');
+    const fs = require('fs');
+    const file = path.join(__dirname, '../shortcuts/sync-weight.shortcut');
+    if (!fs.existsSync(file)) return res.status(404).json({ error: 'Shortcut file not found' });
+    res.setHeader('Content-Type', 'application/octet-stream');
+    res.setHeader('Content-Disposition', 'attachment; filename="Sync Weight to Health.shortcut"');
+    res.sendFile(file);
+  });
+
   // Read-only export used by the iOS Shortcut → Apple Health import.
   // Must be registered before crud('/weight') to beat the /weight/:id param route.
   // Optional ?since=ISO8601 to fetch only new entries on subsequent runs.
