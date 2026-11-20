@@ -504,6 +504,33 @@ function makeRouter(db) {
     });
   }
 
+  // Read-only export used by the iOS Shortcut → Apple Health import.
+  // Must be registered before crud('/weight') to beat the /weight/:id param route.
+  // Optional ?since=ISO8601 to fetch only new entries on subsequent runs.
+  router.get('/weight/export', n8nAuth, async (req, res) => {
+    try {
+      const clientId = await getClientId(db, req);
+      const since = req.query.since ? new Date(req.query.since) : null;
+      const rows = since && !isNaN(since)
+        ? (await db.query(
+            `SELECT id, measured_at, weight_lb FROM glp1_weight_entries
+              WHERE client_id = $1 AND measured_at > $2
+              ORDER BY measured_at ASC, id ASC`,
+            [clientId, since]
+          )).rows
+        : (await db.query(
+            `SELECT id, measured_at, weight_lb FROM glp1_weight_entries
+              WHERE client_id = $1
+              ORDER BY measured_at ASC, id ASC`,
+            [clientId]
+          )).rows;
+      res.json({ count: rows.length, entries: rows });
+    } catch (err) {
+      console.error('GLP-1 /weight/export error:', err.message);
+      res.status(500).json({ error: 'Failed to export weight entries' });
+    }
+  });
+
   crud('/weight', 'glp1_weight_entries', 'measured_at', ['weight_lb', 'notes'], validateWeight);
   crud('/hydration', 'glp1_hydration_entries', 'logged_at', ['ounces', 'drink_name', 'notes'], validateHydration);
   crud('/protein', 'glp1_protein_entries', 'logged_at', ['grams', 'fat_g', 'carbs_g', 'calories', 'fiber_g', 'food_name', 'notes'], validateProtein);
