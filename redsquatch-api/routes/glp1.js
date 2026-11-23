@@ -92,6 +92,8 @@ const SCHEMA_STATEMENTS = [
   `ALTER TABLE glp1_foods ADD COLUMN IF NOT EXISTS fiber_g NUMERIC(6,1) NOT NULL DEFAULT 0`,
   `ALTER TABLE glp1_profile ADD COLUMN IF NOT EXISTS countdown_target TIMESTAMP`,
   `ALTER TABLE glp1_profile ADD COLUMN IF NOT EXISTS countdown_label VARCHAR(120)`,
+  `ALTER TABLE glp1_protein_entries ADD COLUMN IF NOT EXISTS meal_category VARCHAR(20)`,
+  `ALTER TABLE glp1_foods ADD COLUMN IF NOT EXISTS meal_category VARCHAR(20)`,
   `CREATE TABLE IF NOT EXISTS glp1_fasting_sessions (
     id           SERIAL PRIMARY KEY,
     client_id    INTEGER NOT NULL REFERENCES client_users(id) ON DELETE CASCADE,
@@ -329,6 +331,8 @@ async function rehydratePlanAlerts(db) {
 const VALID_METHOD_IDS = ['16_8', '14_10', '12_12', '18_6', '20_4', '5_2', 'adf', 'ese', 'omad'];
 const METHOD_HOURS = { '16_8': 16, '14_10': 14, '12_12': 12, '18_6': 18, '20_4': 20, '5_2': 24, 'adf': 24, 'ese': 24, 'omad': 23 };
 
+const VALID_MEAL_CATEGORIES = ['cooked', 'packaged', 'restaurant'];
+
 const isDate = v => typeof v === 'string' && !Number.isNaN(Date.parse(v));
 const isNum = (v, min, max) => typeof v === 'number' && Number.isFinite(v) && v >= min && v <= max;
 const optNum = (v, min, max) => v === null || v === undefined || isNum(v, min, max);
@@ -368,6 +372,7 @@ function validateProtein(b) {
   if (!optNum(b.calories, 0, 10000)) return 'calories must be between 0 and 10000';
   if (!optNum(b.fiber_g, 0, 200)) return 'fiber_g must be between 0 and 200';
   if (!optText(b.food_name, 120)) return 'food_name must be 120 characters or fewer';
+  if (b.meal_category !== null && b.meal_category !== undefined && !VALID_MEAL_CATEGORIES.includes(b.meal_category)) return `meal_category must be one of ${VALID_MEAL_CATEGORIES.join(', ')}`;
   return null;
 }
 
@@ -380,6 +385,7 @@ function validateFood(b) {
   if (!isNum(b.calories, 0, 10000)) return 'calories must be between 0 and 10000';
   if (!optNum(b.fiber_g, 0, 200)) return 'fiber_g must be between 0 and 200';
   if (!optNum(b.volume_oz, 0.1, 500)) return 'volume_oz must be between 0.1 and 500';
+  if (b.meal_category !== null && b.meal_category !== undefined && !VALID_MEAL_CATEGORIES.includes(b.meal_category)) return `meal_category must be one of ${VALID_MEAL_CATEGORIES.join(', ')}`;
   return null;
 }
 
@@ -545,10 +551,10 @@ function makeRouter(db) {
 
   crud('/weight', 'glp1_weight_entries', 'measured_at', ['weight_lb', 'notes'], validateWeight);
   crud('/hydration', 'glp1_hydration_entries', 'logged_at', ['ounces', 'drink_name', 'notes'], validateHydration);
-  crud('/protein', 'glp1_protein_entries', 'logged_at', ['grams', 'fat_g', 'carbs_g', 'calories', 'fiber_g', 'food_name', 'notes'], validateProtein);
+  crud('/protein', 'glp1_protein_entries', 'logged_at', ['grams', 'fat_g', 'carbs_g', 'calories', 'fiber_g', 'food_name', 'notes', 'meal_category'], validateProtein);
   // The foods list sorts client-side (alphabetical, case-insensitive); `name` here is
   // only the crud helper's sort column.
-  crud('/foods', 'glp1_foods', 'name', ['serving', 'volume_oz', 'protein_g', 'fat_g', 'carbs_g', 'calories', 'fiber_g'], validateFood);
+  crud('/foods', 'glp1_foods', 'name', ['serving', 'volume_oz', 'protein_g', 'fat_g', 'carbs_g', 'calories', 'fiber_g', 'meal_category'], validateFood);
   crud('/injections', 'glp1_injections', 'injected_at', ['medication', 'dose_mg', 'site', 'notes'], validateInjection);
 
   // GET /foods/frequent — saved drinks (volume_oz IS NOT NULL) sorted by how often
@@ -638,15 +644,15 @@ function makeRouter(db) {
         if (it.save_food) {
           const f = it.save_food;
           await client.query(
-            `INSERT INTO glp1_foods (client_id, name, serving, protein_g, fat_g, carbs_g, calories, fiber_g)
-             SELECT $1, $2, $3, $4, $5, $6, $7, $8
+            `INSERT INTO glp1_foods (client_id, name, serving, protein_g, fat_g, carbs_g, calories, fiber_g, meal_category)
+             SELECT $1, $2, $3, $4, $5, $6, $7, $8, $9
              WHERE NOT EXISTS (SELECT 1 FROM glp1_foods WHERE client_id = $1 AND lower(name) = lower($2::varchar))`,
-            [clientId, it.name, f.serving ?? null, f.protein_g, f.fat_g, f.carbs_g, f.calories, f.fiber_g ?? 0]
+            [clientId, it.name, f.serving ?? null, f.protein_g, f.fat_g, f.carbs_g, f.calories, f.fiber_g ?? 0, it.meal_category ?? null]
           );
         }
         await client.query(
-          `INSERT INTO glp1_protein_entries (client_id, logged_at, grams, fat_g, carbs_g, calories, food_name, fiber_g) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-          [clientId, logged_at, it.grams, it.fat_g ?? null, it.carbs_g ?? null, it.calories ?? null, it.food_name ?? null, it.fiber_g ?? null]
+          `INSERT INTO glp1_protein_entries (client_id, logged_at, grams, fat_g, carbs_g, calories, food_name, fiber_g, meal_category) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+          [clientId, logged_at, it.grams, it.fat_g ?? null, it.carbs_g ?? null, it.calories ?? null, it.food_name ?? null, it.fiber_g ?? null, it.meal_category ?? null]
         );
       }
       await client.query('COMMIT');

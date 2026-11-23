@@ -1,7 +1,7 @@
 'use client';
 
-import { useMemo, useRef, useState } from 'react';
-import { Droplets, Utensils, X, Check, Search, Loader2 } from 'lucide-react';
+import React, { useMemo, useRef, useState } from 'react';
+import { Droplets, Utensils, X, Check, Search, Loader2, Flame, Package, MapPin } from 'lucide-react';
 import {
   useEntries, glp1Fetch, num, dayKey,
   inputStyle, panelStyle, primaryBtn, ghostBtn,
@@ -10,10 +10,18 @@ import {
 
 interface UsdaResult { fdcId: number; description: string; serving: string | null; protein: number; fat: number; carbs: number; calories: number }
 
+type MealCategory = 'cooked' | 'packaged' | 'restaurant';
+
+const MEAL_CATEGORIES: { key: MealCategory; label: string; Icon: React.ElementType }[] = [
+  { key: 'cooked', label: 'Cooked', Icon: Flame },
+  { key: 'packaged', label: 'Pre-packaged', Icon: Package },
+  { key: 'restaurant', label: 'Restaurant', Icon: MapPin },
+];
+
 interface FoodRow {
   id: number; name: string; serving: string | null; volume_oz: string | number | null;
   protein_g: string | number; fat_g: string | number; carbs_g: string | number; calories: string | number;
-  fiber_g: string | number | null;
+  fiber_g: string | number | null; meal_category: string | null;
 }
 
 interface Macros { protein: number; fat: number; carbs: number; calories: number; fiber: number }
@@ -24,7 +32,7 @@ interface Macros { protein: number; fat: number; carbs: number; calories: number
 // hydration and macros to the protein log.
 type Staged =
   | { kind: 'hydration'; drink: string; servings: number; ounces: number; macros: Macros | null; newDrink: { perOz: number; per: Macros } | null }
-  | { kind: 'food'; name: string; servings: number; macros: Macros; newFood: { serving: string | null; per: Macros } | null };
+  | { kind: 'food'; name: string; servings: number; macros: Macros; mealCategory: MealCategory | null; newFood: { serving: string | null; per: Macros } | null };
 
 const r1 = (n: number) => Math.round(n * 10) / 10;
 const pad = (n: number) => String(n).padStart(2, '0');
@@ -70,6 +78,7 @@ export default function NutritionIntakeForm({ onViewLog, onSubmit }: { onViewLog
   const [saveDrink, setSaveDrink] = useState(true);
   const [pickedDrinkId, setPickedDrinkId] = useState<number | null>(null);
 
+  const [mealCategory, setMealCategory] = useState<MealCategory | null>(null);
   const [isNew, setIsNew] = useState<boolean | null>(null);
   const [nf, setNf] = useState({ name: '', serving: '', protein: '', fat: '', carbs: '', calories: '', fiber: '' });
   const [search, setSearch] = useState('');
@@ -146,17 +155,17 @@ export default function NutritionIntakeForm({ onViewLog, onSubmit }: { onViewLog
       if (isNew === false) {
         if (!picked) return null;
         const per = { protein: num(picked.protein_g) ?? 0, fat: num(picked.fat_g) ?? 0, carbs: num(picked.carbs_g) ?? 0, calories: num(picked.calories) ?? 0, fiber: num(picked.fiber_g) ?? 0 };
-        return { kind: 'food', name: picked.name, servings: sv, macros: scale(per, sv), newFood: null };
+        return { kind: 'food', name: picked.name, servings: sv, macros: scale(per, sv), mealCategory, newFood: null };
       }
       if (isNew === true) {
         const per = { protein: parseNonNeg(nf.protein), fat: parseNonNeg(nf.fat), carbs: parseNonNeg(nf.carbs), calories: parseNonNeg(nf.calories), fiber: parseNonNeg(nf.fiber) ?? 0 };
         if (!nf.name.trim() || per.protein === null || per.fat === null || per.carbs === null || per.calories === null) return null;
         const full = per as Macros;
-        return { kind: 'food', name: nf.name.trim(), servings: sv, macros: scale(full, sv), newFood: { serving: nf.serving.trim() || null, per: full } };
+        return { kind: 'food', name: nf.name.trim(), servings: sv, macros: scale(full, sv), mealCategory, newFood: { serving: nf.serving.trim() || null, per: full } };
       }
     }
     return null;
-  }, [kind, drink, ounces, hasMacros, dm, dServ, saveDrink, pickedDrink, isNew, nf, picked, servings]);
+  }, [kind, drink, ounces, hasMacros, dm, dServ, saveDrink, pickedDrink, isNew, nf, picked, servings, mealCategory]);
 
   function scale(m: Macros, sv: number): Macros {
     return { protein: m.protein * sv, fat: m.fat * sv, carbs: m.carbs * sv, calories: m.calories * sv, fiber: m.fiber * sv };
@@ -165,7 +174,7 @@ export default function NutritionIntakeForm({ onViewLog, onSubmit }: { onViewLog
   function resetItem() {
     setKind(null); setDrink(''); setOunces('');
     setHasMacros(false); setDm({ protein: '', fat: '', carbs: '', calories: '', fiber: '' }); setDServ('1'); setSaveDrink(true); setPickedDrinkId(null);
-    setIsNew(null); setNf({ name: '', serving: '', protein: '', fat: '', carbs: '', calories: '', fiber: '' });
+    setMealCategory(null); setIsNew(null); setNf({ name: '', serving: '', protein: '', fat: '', carbs: '', calories: '', fiber: '' });
     setSearch(''); setPickedId(null); setServings('1');
     setUsdaResults([]); setUsdaErr(null);
   }
@@ -205,7 +214,8 @@ export default function NutritionIntakeForm({ onViewLog, onSubmit }: { onViewLog
               kind: 'food', name: it.name,
               grams: r1(it.macros.protein), fat_g: r1(it.macros.fat), carbs_g: r1(it.macros.carbs), calories: r1(it.macros.calories), fiber_g: r1(it.macros.fiber),
               food_name: it.servings === 1 ? it.name : `${it.name} ×${it.servings}`,
-              save_food: it.newFood && { serving: it.newFood.serving, protein_g: it.newFood.per.protein, fat_g: it.newFood.per.fat, carbs_g: it.newFood.per.carbs, calories: it.newFood.per.calories, fiber_g: it.newFood.per.fiber },
+              meal_category: it.mealCategory ?? null,
+              save_food: it.newFood && { serving: it.newFood.serving, protein_g: it.newFood.per.protein, fat_g: it.newFood.per.fat, carbs_g: it.newFood.per.carbs, calories: it.newFood.per.calories, fiber_g: it.newFood.per.fiber, meal_category: it.mealCategory ?? null },
             }),
       }) });
       setStaged([]);
@@ -344,6 +354,14 @@ export default function NutritionIntakeForm({ onViewLog, onSubmit }: { onViewLog
 
         {kind === 'food' && (
           <div className="mt-4">
+            <div className="text-xs mb-2" style={muted}>Meal category</div>
+            <div className="flex gap-2 flex-wrap mb-4">
+              {MEAL_CATEGORIES.map(({ key, label, Icon }) => (
+                <Choice key={key} active={mealCategory === key} onClick={() => setMealCategory(mealCategory === key ? null : key)}>
+                  <Icon size={14} /> {label}
+                </Choice>
+              ))}
+            </div>
             <div className="text-xs mb-2" style={muted}>Is this a new food?</div>
             <div className="flex gap-2">
               <Choice active={isNew === true} onClick={() => setIsNew(true)}>Yes</Choice>
@@ -412,7 +430,7 @@ export default function NutritionIntakeForm({ onViewLog, onSubmit }: { onViewLog
                       {matches.length === 0 && <li className="px-3 py-2 text-xs" style={muted}>No match.</li>}
                       {matches.map(f => (
                         <li key={f.id}>
-                          <button type="button" onClick={() => setPickedId(f.id)} aria-pressed={pickedId === f.id}
+                          <button type="button" onClick={() => { setPickedId(f.id); if (f.meal_category) setMealCategory(f.meal_category as MealCategory); }} aria-pressed={pickedId === f.id}
                             className="w-full flex flex-wrap items-center gap-x-2 gap-y-0.5 px-3 py-2.5 sm:py-1.5 text-left text-sm"
                             style={{ background: pickedId === f.id ? 'rgba(var(--rs-accent-rgb),0.15)' : 'transparent', borderBottom: '1px solid rgba(var(--rs-edge-rgb),0.1)' }}>
                             {pickedId === f.id && <Check size={12} />}

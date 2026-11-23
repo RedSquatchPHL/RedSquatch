@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { Droplets, Utensils, Pencil, Trash2, Check, X } from 'lucide-react';
+import React, { useState } from 'react';
+import { Droplets, Utensils, Pencil, Trash2, Check, X, Flame, Package, MapPin } from 'lucide-react';
 import { num, dayKey, toLocalInput, inputStyle, ghostBtn, primaryBtn, Field } from './shared';
 
 export interface HydrationRow { id: number; logged_at: string; ounces: string | number; drink_name: string | null; notes: string | null }
@@ -9,8 +9,18 @@ export interface HydrationRow { id: number; logged_at: string; ounces: string | 
 export interface ProteinRow {
   id: number; logged_at: string; grams: string | number; notes: string | null;
   food_name: string | null; fat_g: string | number | null; carbs_g: string | number | null; calories: string | number | null;
-  fiber_g: string | number | null;
+  fiber_g: string | number | null; meal_category: string | null;
 }
+
+type CatFilter = 'cooked' | 'packaged' | 'restaurant' | null;
+
+const CAT_LABEL: Record<string, string> = { cooked: 'Cooked', packaged: 'Pre-packaged', restaurant: 'Restaurant' };
+const CAT_COLOR: Record<string, string> = {
+  cooked: 'var(--rs-ok)',
+  packaged: 'var(--rs-info)',
+  restaurant: 'var(--rs-warn)',
+};
+const CAT_ICON: Record<string, React.ElementType> = { cooked: Flame, packaged: Package, restaurant: MapPin };
 
 interface Entries<T> {
   entries: T[];
@@ -22,7 +32,7 @@ type Item =
   | { type: 'h'; id: number; at: string; row: HydrationRow }
   | { type: 'f'; id: number; at: string; row: ProteinRow };
 
-interface Draft { at: string; name: string; amount: string; fat: string; carbs: string; cal: string; fiber: string }
+interface Draft { at: string; name: string; amount: string; fat: string; carbs: string; cal: string; fiber: string; category: string }
 
 const r1 = (n: number) => Math.round(n * 10) / 10;
 const show = (v: unknown) => { const n = num(v); return n === null ? '' : String(n); };
@@ -45,11 +55,19 @@ export default function NutritionDayLog({ day, hydration, protein }: {
   const [deleting, setDeleting] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [catFilter, setCatFilter] = useState<CatFilter>(null);
 
   const items: Item[] = [
     ...hydration.entries.filter(r => dayKey(r.logged_at) === day).map((row): Item => ({ type: 'h', id: row.id, at: row.logged_at, row })),
     ...protein.entries.filter(r => dayKey(r.logged_at) === day).map((row): Item => ({ type: 'f', id: row.id, at: row.logged_at, row })),
   ].sort((a, b) => new Date(a.at).getTime() - new Date(b.at).getTime() || a.type.localeCompare(b.type));
+
+  const foodItems = items.filter(i => i.type === 'f');
+  const categorizedFoodItems = foodItems.filter(i => (i.row as ProteinRow).meal_category);
+  const catCounts = (['cooked', 'packaged', 'restaurant'] as const).map(cat => ({
+    cat, count: foodItems.filter(i => (i.row as ProteinRow).meal_category === cat).length,
+  }));
+  const visibleItems = catFilter ? items.filter(i => i.type !== 'f' || (i.row as ProteinRow).meal_category === catFilter) : items;
 
   const keyOf = (i: Item) => `${i.type}-${i.id}`;
 
@@ -58,8 +76,8 @@ export default function NutritionDayLog({ day, hydration, protein }: {
     setEditing({
       item,
       d: item.type === 'h'
-        ? { at: toLocalInput(item.at), name: item.row.drink_name ?? '', amount: show(item.row.ounces), fat: '', carbs: '', cal: '', fiber: '' }
-        : { at: toLocalInput(item.at), name: item.row.food_name ?? '', amount: show(item.row.grams), fat: show(item.row.fat_g), carbs: show(item.row.carbs_g), cal: show(item.row.calories), fiber: show(item.row.fiber_g) },
+        ? { at: toLocalInput(item.at), name: item.row.drink_name ?? '', amount: show(item.row.ounces), fat: '', carbs: '', cal: '', fiber: '', category: '' }
+        : { at: toLocalInput(item.at), name: item.row.food_name ?? '', amount: show(item.row.grams), fat: show(item.row.fat_g), carbs: show(item.row.carbs_g), cal: show(item.row.calories), fiber: show(item.row.fiber_g), category: (item.row as ProteinRow).meal_category ?? '' },
     });
   }
 
@@ -79,7 +97,7 @@ export default function NutritionDayLog({ day, hydration, protein }: {
         const fat = optNonNeg(d.fat), carbs = optNonNeg(d.carbs), cal = optNonNeg(d.cal), fiber = optNonNeg(d.fiber);
         if (!d.amount.trim() || !Number.isFinite(amount) || amount < 0) { setErr('Enter protein as 0 or more grams.'); return; }
         if (fat === undefined || carbs === undefined || cal === undefined || fiber === undefined) { setErr('Fat, carbs, calories and fiber must be blank or 0 or more.'); return; }
-        await protein.update(item.id, { grams: amount, food_name: d.name.trim() || null, fat_g: fat, carbs_g: carbs, calories: cal, fiber_g: fiber, logged_at: when.toISOString(), notes: item.row.notes });
+        await protein.update(item.id, { grams: amount, food_name: d.name.trim() || null, fat_g: fat, carbs_g: carbs, calories: cal, fiber_g: fiber, logged_at: when.toISOString(), notes: item.row.notes, meal_category: d.category || null });
       }
       setEditing(null); setErr(null);
     } catch (e) {
@@ -106,11 +124,36 @@ export default function NutritionDayLog({ day, hydration, protein }: {
 
   return (
     <div>
-      <div className="text-xs font-semibold uppercase tracking-wide mb-1" style={muted}>Day log</div>
+      <div className="flex items-center justify-between mb-1 flex-wrap gap-2">
+        <div className="text-xs font-semibold uppercase tracking-wide" style={muted}>Day log</div>
+        {categorizedFoodItems.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            <button type="button"
+              onClick={() => setCatFilter(null)}
+              className="px-2 py-0.5 text-xs font-semibold rounded border"
+              style={catFilter === null ? primaryBtn : ghostBtn}>
+              All
+            </button>
+            {catCounts.filter(({ count }) => count > 0).map(({ cat, count }) => {
+              const Icon = CAT_ICON[cat];
+              return (
+                <button key={cat} type="button"
+                  onClick={() => setCatFilter(catFilter === cat ? null : cat)}
+                  className="flex items-center gap-1 px-2 py-0.5 text-xs font-semibold rounded border"
+                  style={catFilter === cat
+                    ? { background: CAT_COLOR[cat], color: 'var(--rs-btn-ink)', borderColor: CAT_COLOR[cat] }
+                    : { ...ghostBtn, color: CAT_COLOR[cat], borderColor: `${CAT_COLOR[cat]}60` }}>
+                  <Icon size={10} /> {CAT_LABEL[cat]} {count}
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
       {err && <p className="text-xs mb-2 text-[color:var(--rs-bad)]" role="alert">{err}</p>}
       <ul className="rounded-md overflow-hidden" style={{ border: '1px solid rgba(var(--rs-edge-rgb),0.2)' }}>
-        {items.length === 0 && <li className="px-3 py-3 text-xs" style={muted}>Nothing logged.</li>}
-        {items.map(item => {
+        {visibleItems.length === 0 && <li className="px-3 py-3 text-xs" style={muted}>Nothing logged.</li>}
+        {visibleItems.map(item => {
           const water = item.type === 'h';
           const isEditing = editing && keyOf(editing.item) === keyOf(item);
           const row = item.row;
@@ -133,6 +176,15 @@ export default function NutritionDayLog({ day, hydration, protein }: {
                       <Field label="Carbs (g)"><input value={editing.d.carbs} onChange={set('carbs')} inputMode="decimal" className={inp} style={inputStyle} /></Field>
                       <Field label="Calories"><input value={editing.d.cal} onChange={set('cal')} inputMode="decimal" className={inp} style={inputStyle} /></Field>
                       <Field label="Fiber (g)"><input value={editing.d.fiber} onChange={set('fiber')} inputMode="decimal" className={inp} style={inputStyle} /></Field>
+                      <Field label="Category">
+                        <select value={editing.d.category} onChange={e => setEditing(x => x && ({ ...x, d: { ...x.d, category: e.target.value } }))}
+                          className={inp} style={{ ...inputStyle, appearance: 'auto' }}>
+                          <option value="">—</option>
+                          <option value="cooked">Cooked</option>
+                          <option value="packaged">Pre-packaged</option>
+                          <option value="restaurant">Restaurant</option>
+                        </select>
+                      </Field>
                     </>}
                   </div>
                   <div className="flex gap-2">
@@ -157,6 +209,15 @@ export default function NutritionDayLog({ day, hydration, protein }: {
                       <>
                         <strong>{show(p.grams)} g</strong>
                         {p.food_name && <span>{p.food_name}</span>}
+                        {p.meal_category && CAT_LABEL[p.meal_category] && (() => {
+                          const Icon = CAT_ICON[p.meal_category];
+                          return (
+                            <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold px-1.5 py-0.5 rounded"
+                              style={{ color: CAT_COLOR[p.meal_category], background: `${CAT_COLOR[p.meal_category]}18`, border: `1px solid ${CAT_COLOR[p.meal_category]}40` }}>
+                              <Icon size={9} /> {CAT_LABEL[p.meal_category]}
+                            </span>
+                          );
+                        })()}
                         {p.calories !== null && (
                           <span className="text-xs" style={muted}>{show(p.calories)} cal · F {show(p.fat_g) || 0}g · C {show(p.carbs_g) || 0}g{p.fiber_g && num(p.fiber_g) ? ` · Fiber ${show(p.fiber_g)}g` : ''}</span>
                         )}
