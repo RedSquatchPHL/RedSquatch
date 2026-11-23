@@ -51,6 +51,8 @@ function macroLine(m: Macros): string {
 }
 
 const muted = { color: 'rgba(var(--rs-accent-rgb),0.6)' } as const;
+// Higher-contrast variant for secondary text inside scrolling lists (small text on light bg).
+const listSub = { color: 'rgba(var(--rs-accent-rgb),0.8)' } as const;
 
 function Choice({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
@@ -393,14 +395,14 @@ export default function NutritionIntakeForm({ onViewLog, onSubmit }: { onViewLog
                   <div className="col-span-2 md:col-span-4">
                     {usdaErr && <p className="text-xs mb-1" style={{ color: 'rgba(var(--rs-accent-rgb),0.6)' }}>{usdaErr}</p>}
                     {usdaResults.length > 0 && (
-                      <ul className="max-h-52 overflow-y-auto rounded-md" style={{ border: '1px solid rgba(var(--rs-edge-rgb),0.2)' }}>
+                      <ul className="max-h-52 overflow-y-auto rounded-md" style={{ border: '1px solid rgba(var(--rs-edge-rgb),0.3)' }}>
                         {usdaResults.map(r => (
                           <li key={r.fdcId}>
                             <button type="button" onClick={() => pickUsdaResult(r)}
                               className="w-full flex flex-col gap-0.5 px-3 py-2 text-left text-sm hover:bg-[rgba(var(--rs-accent-rgb),0.08)]"
-                              style={{ borderBottom: '1px solid rgba(var(--rs-edge-rgb),0.1)', color: 'var(--rs-accent)' }}>
+                              style={{ borderBottom: '1px solid rgba(var(--rs-edge-rgb),0.18)', color: 'var(--rs-accent)' }}>
                               <span className="font-semibold truncate">{r.description}</span>
-                              <span className="text-xs" style={muted}>
+                              <span className="text-xs" style={listSub}>
                                 {r.serving ? `per ${r.serving} · ` : ''}{r.calories} cal · P {r.protein}g · F {r.fat}g · C {r.carbs}g
                               </span>
                             </button>
@@ -426,17 +428,17 @@ export default function NutritionIntakeForm({ onViewLog, onSubmit }: { onViewLog
                   <>
                     <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Type to narrow the list…" aria-label="Search saved foods"
                       className="w-full sm:max-w-sm border px-2 py-2 text-base sm:py-1.5 sm:text-sm rounded mb-2" style={inputStyle} />
-                    <ul className="max-h-56 sm:max-h-48 overflow-y-auto rounded-md" style={{ border: '1px solid rgba(var(--rs-edge-rgb),0.2)' }}>
+                    <ul className="max-h-56 sm:max-h-48 overflow-y-auto rounded-md" style={{ border: '1px solid rgba(var(--rs-edge-rgb),0.3)' }}>
                       {matches.length === 0 && <li className="px-3 py-2 text-xs" style={muted}>No match.</li>}
                       {matches.map(f => (
                         <li key={f.id}>
                           <button type="button" onClick={() => { setPickedId(f.id); if (f.meal_category) setMealCategory(f.meal_category as MealCategory); }} aria-pressed={pickedId === f.id}
                             className="w-full flex flex-wrap items-center gap-x-2 gap-y-0.5 px-3 py-2.5 sm:py-1.5 text-left text-sm"
-                            style={{ background: pickedId === f.id ? 'rgba(var(--rs-accent-rgb),0.15)' : 'transparent', borderBottom: '1px solid rgba(var(--rs-edge-rgb),0.1)' }}>
+                            style={{ background: pickedId === f.id ? 'rgba(var(--rs-accent-rgb),0.15)' : 'transparent', borderBottom: '1px solid rgba(var(--rs-edge-rgb),0.18)' }}>
                             {pickedId === f.id && <Check size={12} />}
-                            <span className="font-semibold">{f.name}</span>
-                            {f.serving && <span className="text-xs" style={muted}>({f.serving})</span>}
-                            <span className="w-full sm:w-auto sm:ml-auto text-xs" style={muted}>
+                            <span className="font-semibold" style={{ color: 'var(--rs-accent)' }}>{f.name}</span>
+                            {f.serving && <span className="text-xs" style={listSub}>({f.serving})</span>}
+                            <span className="w-full sm:w-auto sm:ml-auto text-xs" style={listSub}>
                               {macroLine({ protein: num(f.protein_g) ?? 0, fat: num(f.fat_g) ?? 0, carbs: num(f.carbs_g) ?? 0, calories: num(f.calories) ?? 0, fiber: num(f.fiber_g) ?? 0 })}
                             </span>
                           </button>
