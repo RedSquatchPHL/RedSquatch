@@ -36,6 +36,7 @@ const { runMigrations: runTaskBoardMigrations, makeRouter: makeTaskBoardRouter }
 const { runMigrations: runBloodPressureMigrations, makeRouter: makeBloodPressureRouter } = require('./routes/blood-pressure');
 const { runMigrations: runGlp1Migrations, makeRouter: makeGlp1Router, rehydrateFastingTimers, rehydrateScheduleReminders, rehydratePlanAlerts } = require('./routes/glp1');
 const { runMigrations: runFinanceMigrations, makeRouter: makeFinanceRouter } = require('./routes/finance');
+const { runMigrations: runFoodMigrations, makeRouter: makeFoodRouter } = require('./routes/food');
 
 const SPORTS_FILE = path.join(__dirname, 'public', 'sports.json');
 
@@ -1072,6 +1073,7 @@ app.use('/api/client/task-board', makeTaskBoardRouter(db));
 app.use('/api/client/blood-pressure', makeBloodPressureRouter(db));
 app.use('/api/client/glp1', makeGlp1Router(db));
 app.use('/api/client/finance', makeFinanceRouter(db));
+app.use('/api/client/food', makeFoodRouter(db));
 app.use('/api/client', makeIntakeRouter(db));
 
 // ============ TOOLS ============
@@ -1140,6 +1142,7 @@ async function initializeApp() {
     await runBloodPressureMigrations(db);
     await runGlp1Migrations(db);
     await runFinanceMigrations(db);
+    await runFoodMigrations(db);
 
     await rehydrateFastingTimers(db);
     await rehydrateScheduleReminders(db);
