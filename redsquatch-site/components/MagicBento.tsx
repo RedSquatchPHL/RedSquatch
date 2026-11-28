@@ -49,12 +49,6 @@ const cardData: BentoCardProps[] = [
 },
 {
     color: '#0f0f0f',
-    title: 'Sports Hub',
-    description: 'LAD vs NYY · 2-1 · Final',
-    label: 'Live'
-},
-{
-    color: '#0f0f0f',
     title: 'Weather',
     description: 'Jenkintown, PA · 75°F, Partly Cloudy',
     label: 'Current'

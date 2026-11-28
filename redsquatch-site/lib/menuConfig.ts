@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
-import { FileText, LayoutDashboard, Target, GraduationCap, Briefcase, Wrench, Trophy, Gamepad2, Landmark, ChefHat, FileSearch, Snowflake, Syringe, Wallet, Timer } from 'lucide-react';
+import { FileText, LayoutDashboard, Target, GraduationCap, Briefcase, Wrench, Landmark, ChefHat, FileSearch, Snowflake, Syringe, Wallet, Utensils } from 'lucide-react';
 
 export type MenuLeaf =
   | { id: string; label: string; icon: LucideIcon; type: 'internal'; path: string }
@@ -22,14 +22,12 @@ export const WS_NAV: MenuLeaf[] = [
 export const HS_NAV: MenuLeaf[] = [
   { id: 'hs-dashboard', label: 'Dashboard', icon: LayoutDashboard, type: 'internal', path: '/hs/dashboard' },
   { id: 'hs-goals', label: 'Goals', icon: Target, type: 'internal', path: '/hs/goals' },
-  { id: 'hs-sports', label: 'Sports', icon: Trophy, type: 'internal', path: '/hs/sports' },
   { id: 'hs-snow', label: 'ServiceNow', icon: Snowflake, type: 'internal', path: '/hs/snow' },
   { id: 'hs-mexican', label: 'Mexican', icon: Landmark, type: 'internal', path: '/hs/mexican' },
   { id: 'hs-cocina', label: 'Cocina', icon: ChefHat, type: 'internal', path: '/hs/cocina' },
+  { id: 'hs-food', label: 'Food', icon: Utensils, type: 'internal', path: '/hs/food' },
   { id: 'hs-health', label: 'Health', icon: Syringe, type: 'internal', path: '/hs/health' },
-  { id: 'hs-health-timer', label: 'Health Timer', icon: Timer, type: 'internal', path: '/hs/health' },
   { id: 'hs-finance', label: 'Finance', icon: Wallet, type: 'internal', path: '/hs/finance' },
-  { id: 'hs-downtime', label: 'Downtime', icon: Gamepad2, type: 'internal', path: '/hs/downtime' },
 ];
 
 // Icon-only, slide-right submenu under the Quick Links row in ClockGateMenu.tsx —
